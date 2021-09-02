@@ -1,0 +1,53 @@
+{{ define "content" }}
+<div class="mcw">
+    <div class="cv">
+        <div>
+            <div class="inbox">
+                <div class="inbox-sb">
+
+                </div>
+                <div class="inbox-bx container-fluid">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table class="table table-stripped">
+                                <tbody>
+                                <tr>
+                                    <td>ID</td>
+                                    <td>IP address</td>
+                                    <td>Services</td>
+                                    <td>Last seen</td>
+                                    <td>Configure</td>
+                                </tr>
+                                {{range .PIs}}
+                                {{$out := .}}
+                                <tr>
+                                    <td style="vertical-align: middle;">{{.Name}}</td>
+                                    <td style="vertical-align: middle;">{{.Ip}}</td>
+                                    <td style="vertical-align: middle;">
+                                        <ul>
+                                            {{range .Services}}
+                                            {{if .Running}}
+                                            <li style="color: green;">{{.Name}}</li>
+                                            {{else}}
+                                            <li style="color: red;">{{.Name}}</li>
+                                            {{end}}
+                                            {{end}}
+                                        </ul>
+                                    </td>
+                                    <td style="vertical-align: middle;">{{.LastSeen}}</td>
+                                    <td style="vertical-align: middle;">
+                                        <button>Configure</button>
+                                    </td>
+                                </tr>
+                                {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{{ end }}
+
