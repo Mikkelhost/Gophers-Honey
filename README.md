@@ -1,2 +1,2 @@
 # GoHoney
-![Gopher](https://imgur.com/a/GnP6BeF.png)
+![Gopher](https://imgur.com/6VhcFV4)
