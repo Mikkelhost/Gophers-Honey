@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
-	"time"
 )
 
 var db *mongo.Client
@@ -18,6 +17,9 @@ var (
 	DB_HOST = getenv("DB_HOST", "cluster0.sb5ex.mongodb.net")
 	DB_USER = getenv("DB_USER", "goadmin")
 	DB_PASS = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
+	DB_DEV_COLL = "device_collection"
+	DB_CONF_COLL = "config_collection"
+	DB_USER_COLL = "user_collection"
 )
 
 func getenv(key, fallback string) string {
@@ -30,36 +32,20 @@ func getenv(key, fallback string) string {
 	return value
 }
 
-func testInsertDocument() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	coll := db.Database(DB_NAME).Collection("device_collection")
-	_, err := coll.InsertOne(ctx, Device{
-		UUID:  0x000000FF,
-		IP:    0xFFFFFF00,
-		IpStr: "255.255.255.0",
-		Services: Service{
-			SSH: true,
-			FTP: true,
-		},
-	})
-	if err != nil {
-		return
-	}
-}
-
 func Connect() {
 	URI := fmt.Sprintf("mongodb+srv://%s:%s@%s/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME)
 	clientOptions := options.Client().
 		ApplyURI(URI)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal().Msgf("Error connecting to DB: %s", err)
 	}
 	db = client
-	testInsertDocument()
+	//ConfigureDevice(Service{RDP: true, FTP: true}, 3311712553)
+	//AddDevice("10.0.0.3")
+	_ = GetAllDevices()
 }
 
 func Disconnect() {

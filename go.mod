@@ -7,4 +7,5 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/rs/zerolog v1.23.0
 	go.mongodb.org/mongo-driver v1.7.2
+	golang.org/x/tools v0.1.5 // indirect
 )
