@@ -1,14 +1,12 @@
 package main
 
 import (
-	"github.com/GeekMuch/GoHoney/pkg/database"
-	"github.com/GeekMuch/GoHoney/pkg/httpserver"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/httpserver"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"
 )
-
-
 
 
 func main() {

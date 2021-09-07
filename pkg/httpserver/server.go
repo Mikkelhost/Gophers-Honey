@@ -2,8 +2,8 @@ package httpserver
 
 import (
 	"fmt"
-	"github.com/GeekMuch/GoHoney/pkg/api"
-	"github.com/GeekMuch/GoHoney/pkg/websocket"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/api"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/websocket"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"

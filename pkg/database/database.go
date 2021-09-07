@@ -13,18 +13,19 @@ import (
 var db *mongo.Client
 
 var (
-	DB_NAME = "honeyDB"
-	DB_HOST = getenv("DB_HOST", "cluster0.sb5ex.mongodb.net")
-	DB_USER = getenv("DB_USER", "goadmin")
-	DB_PASS = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
-	DB_DEV_COLL = "device_collection"
+	DB_NAME      = "honeyDB"
+	DB_HOST      = getenv("DB_HOST", "cluster0.sb5ex.mongodb.net")
+	DB_USER      = getenv("DB_USER", "goadmin")
+	DB_PASS      = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
+	DB_DEV_COLL  = "device_collection"
 	DB_CONF_COLL = "config_collection"
 	DB_USER_COLL = "user_collection"
+	DEBUG        = false
 )
 
 func getenv(key, fallback string) string {
-	value := os.Getenv(key)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	value := os.Getenv(key)
 	log.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
 	if len(value) == 0 {
 		return fallback

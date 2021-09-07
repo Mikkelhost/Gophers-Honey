@@ -132,8 +132,10 @@ func GetAllDevices() []Device {
 		}
 		device_list = append(device_list, device)
 	}
-	for _,device := range(device_list) {
-		log.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
+	if DEBUG {
+		for _,device := range(device_list) {
+			log.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
+		}
 	}
 	return device_list
 }
