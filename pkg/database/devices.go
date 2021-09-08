@@ -7,6 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Service struct is used to specify enabled/disabled services in a
+// configuration.
 type Service struct {
 	SSH    bool `bson:"ssh"`
 	FTP    bool `bson:"ftp"`
@@ -15,6 +17,7 @@ type Service struct {
 	SMB    bool `bson:"smb"`
 }
 
+// Device struct is used to specify device information.
 type Device struct {
 	GUID       primitive.ObjectID `bson:"_id,omitempty"`
 	UUID       uint32             `bson:"uuid,omitempty"`
@@ -24,23 +27,29 @@ type Device struct {
 	Services   Service            `bson:"services"`
 }
 
+// isDeviceInCollection reports whether a document with the specified
+// device ID occurs in the given collection.
 func isDeviceInCollection(value uint32, key, collection string) bool {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
-	doc := bson.M{
+	filter := bson.M{
 		key: value,
 	}
 	countOptions := options.Count().SetLimit(1)
-	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, doc, countOptions)
+	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
+
 	if err != nil {
 		log.Warn().Msgf("Error counting documents: %s", err)
 	}
+
 	if count > 0 {
 		return true
 	}
 	return false
 }
 
+// updateConfiguration updates the device configuration data contained in
+// the "configuration_collection" collection.
 func updateConfiguration(service Service, uuid uint32) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -58,24 +67,29 @@ func updateConfiguration(service Service, uuid uint32) {
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).UpdateOne(ctx, filter, update)
 		if err != nil {
 			log.Warn().
-				Uint32("uuid",uuid).
+				Uint32("uuid", uuid).
 				Msgf("Error updating device config collection: %s", err)
 		}
 	} else {
 		config := bson.M{
-			"uuid": uuid,
+			"uuid":     uuid,
 			"services": service,
 		}
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, config)
+
 		if err != nil {
 			log.Warn().
-				Uint32("uuid",uuid).
+				Uint32("uuid", uuid).
 				Msgf("Error adding device config to config collection %s", err)
 		}
 	}
 }
 
-func ConfigureDevice(service Service, uuid uint32){
+// ConfigureDevice configures a given device to provide specified
+// services. Specifically it updates the value of "services" for the
+// specific device ID in both the "device_collection" and
+// "configuration_collection" collections.
+func ConfigureDevice(service Service, uuid uint32) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 	filter := bson.M{
@@ -83,40 +97,49 @@ func ConfigureDevice(service Service, uuid uint32){
 	}
 	config := Device{
 		Configured: true,
-		Services: service,
+		Services:   service,
 	}
 	update := bson.M{
 		"$set": config,
 	}
 	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
+
 	if err != nil {
 		log.Warn().
-			Uint32("uuid",uuid).
+			Uint32("uuid", uuid).
 			Msgf("Error updating device: %s", err)
 	}
 	updateConfiguration(service, uuid)
 }
 
+// AddDevice assigns a device ID to the device and adds it to the
+// database.
 func AddDevice(ipStr string) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
-	uuid := createRandUuid()
-	ip := ipToInt(ipStr)
 
-	coll := db.Database(DB_NAME).Collection(DB_DEV_COLL)
-	_, err := coll.InsertOne(ctx, Device{
-		UUID:  uuid,
-		IpStr: ipStr,
+	uuid := createRandUuid()
+	ip := ip2int(ipStr)
+	device := Device{
+		UUID:       uuid,
+		IpStr:      ipStr,
 		Configured: false,
-		IP:    ip,
-	})
+		IP:         ip,
+	}
+
+	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).InsertOne(ctx, device)
+
 	if err != nil {
+		log.Fatal().Msgf("Error adding device: %s", err)
 		return
 	}
 }
 
+// GetAllDevices retrieves and returns a list of all devices currently in
+// the database. Specifically it retrieves all devices contained in the
+// "device_collection" collection.
 func GetAllDevices() []Device {
-	var device_list []Device
+	var deviceList []Device
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -130,12 +153,12 @@ func GetAllDevices() []Device {
 		if err := results.Decode(&device); err != nil {
 			log.Warn().Msgf("Error decoding result: %s", err)
 		}
-		device_list = append(device_list, device)
+		deviceList = append(deviceList, device)
 	}
 	if DEBUG {
-		for _,device := range(device_list) {
+		for _, device := range deviceList {
 			log.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
 		}
 	}
-	return device_list
+	return deviceList
 }

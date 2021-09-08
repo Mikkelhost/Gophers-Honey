@@ -23,6 +23,9 @@ var (
 	DEBUG        = false
 )
 
+// getenv retrieves the value of the environment variable named by the
+// key. If no environment variable of the provided key is found a
+// fallback is used as a default value.
 func getenv(key, fallback string) string {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	value := os.Getenv(key)
@@ -33,10 +36,10 @@ func getenv(key, fallback string) string {
 	return value
 }
 
+// Connect creates a connection to the database.
 func Connect() {
 	URI := fmt.Sprintf("mongodb+srv://%s:%s@%s/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME)
-	clientOptions := options.Client().
-		ApplyURI(URI)
+	clientOptions := options.Client().ApplyURI(URI)
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 	client, err := mongo.Connect(ctx, clientOptions)
@@ -49,6 +52,14 @@ func Connect() {
 	_ = GetAllDevices()
 }
 
+// Disconnect shuts down the current database connection.
 func Disconnect() {
-	db.Disconnect(context.Background())
+	if db == nil {
+		log.Warn().Msgf("No database connection to disconnect.")
+		return
+	}
+	err := db.Disconnect(context.Background())
+	if err != nil {
+		log.Fatal().Msgf("Error disconnecting from DB: %s", err)
+	}
 }
