@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,7 +39,7 @@ func isDeviceInCollection(value uint32, key, collection string) bool {
 	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
 
 	if err != nil {
-		log.Warn().Msgf("Error counting documents: %s", err)
+		log.Logger.Warn().Msgf("Error counting documents: %s", err)
 	}
 
 	if count > 0 {
@@ -66,7 +66,7 @@ func updateConfiguration(service Service, uuid uint32) {
 		}
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).UpdateOne(ctx, filter, update)
 		if err != nil {
-			log.Warn().
+			log.Logger.Warn().
 				Uint32("uuid", uuid).
 				Msgf("Error updating device config collection: %s", err)
 		}
@@ -78,7 +78,7 @@ func updateConfiguration(service Service, uuid uint32) {
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, config)
 
 		if err != nil {
-			log.Warn().
+			log.Logger.Warn().
 				Uint32("uuid", uuid).
 				Msgf("Error adding device config to config collection %s", err)
 		}
@@ -105,7 +105,7 @@ func ConfigureDevice(service Service, uuid uint32) {
 	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		log.Warn().
+		log.Logger.Warn().
 			Uint32("uuid", uuid).
 			Msgf("Error updating device: %s", err)
 	}
@@ -130,7 +130,7 @@ func AddDevice(ipStr string) {
 	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).InsertOne(ctx, device)
 
 	if err != nil {
-		log.Fatal().Msgf("Error adding device: %s", err)
+		log.Logger.Fatal().Msgf("Error adding device: %s", err)
 		return
 	}
 }
@@ -145,19 +145,19 @@ func GetAllDevices() []Device {
 	defer cancel()
 	results, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).Find(ctx, bson.M{})
 	if err != nil {
-		log.Warn().Msgf("Error retrieving device list")
+		log.Logger.Warn().Msgf("Error retrieving device list")
 	}
 
 	for results.Next(ctx) {
 		var device Device
 		if err := results.Decode(&device); err != nil {
-			log.Warn().Msgf("Error decoding result: %s", err)
+			log.Logger.Warn().Msgf("Error decoding result: %s", err)
 		}
 		deviceList = append(deviceList, device)
 	}
 	if DEBUG {
 		for _, device := range deviceList {
-			log.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
+			log.Logger.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
 		}
 	}
 	return deviceList

@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -17,7 +17,7 @@ type User struct {
 // TODO: HANDLE password info, salt and hash info when adding user.
 func AddNewUser(username, salt, hash string) {
 	if isUserInCollection(username, "username", DB_USER_COLL) {
-		log.Fatal().Msgf("Username already in use")
+		log.Logger.Fatal().Msgf("Username already in use")
 		return
 	}
 
@@ -31,7 +31,7 @@ func AddNewUser(username, salt, hash string) {
 	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, user)
 
 	if err != nil {
-		log.Fatal().Msgf("Error adding username: %s", err)
+		log.Logger.Fatal().Msgf("Error adding username: %s", err)
 		return
 	}
 }
@@ -51,7 +51,7 @@ func isUserInCollection(value, key, collection string) bool {
 	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
 
 	if err != nil {
-		log.Warn().Msgf("Error counting documents: %s", err)
+		log.Logger.Warn().Msgf("Error counting documents: %s", err)
 	}
 
 	if count > 0 {

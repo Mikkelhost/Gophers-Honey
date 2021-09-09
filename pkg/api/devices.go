@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"net/http"
 )
 /*
@@ -39,21 +39,21 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var ipStruct = database.Device{}
 	if err := decoder.Decode(&ipStruct); err != nil {
-		log.Warn().Msgf("Failed decoding json: %s", err)
+		log.Logger.Warn().Msgf("Failed decoding json: %s", err)
 		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
 		return
 	}
 	w.Write([]byte(fmt.Sprintf("Success")))
-	log.Debug().Msgf("Received new device with IP: %s Adding to DB", ipStruct.IpStr)
+	log.Logger.Debug().Msgf("Received new device with IP: %s Adding to DB", ipStruct.IpStr)
 	database.AddDevice(ipStruct.IpStr)
 }
 
 func deviceSecretMiddleware(next http.HandlerFunc) http.HandlerFunc{
 	return func(w http.ResponseWriter, r *http.Request) {
 		deviceKey := extractToken(r)
-		log.Debug().Msgf("Received authentication attempt with key: %s", deviceKey)
+		log.Logger.Debug().Msgf("Received authentication attempt with key: %s", deviceKey)
 		if deviceKey != DEVICE_KEY {
-			log.Debug().Msg("Wrong Devicekey for authentication")
+			log.Logger.Debug().Msg("Wrong Devicekey for authentication")
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Please provide the right credential"))
 			return

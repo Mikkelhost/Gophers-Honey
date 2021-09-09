@@ -3,8 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
@@ -27,9 +26,8 @@ var (
 // key. If no environment variable of the provided key is found a
 // fallback is used as a default value.
 func getenv(key, fallback string) string {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	value := os.Getenv(key)
-	log.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
+	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
 	if len(value) == 0 {
 		return fallback
 	}
@@ -44,7 +42,7 @@ func Connect() {
 	defer cancel()
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal().Msgf("Error connecting to DB: %s", err)
+		log.Logger.Fatal().Msgf("Error connecting to DB: %s", err)
 	}
 	db = client
 	//ConfigureDevice(Service{RDP: true, FTP: true}, 3311712553)
@@ -55,11 +53,11 @@ func Connect() {
 // Disconnect shuts down the current database connection.
 func Disconnect() {
 	if db == nil {
-		log.Warn().Msgf("No database connection to disconnect.")
+		log.Logger.Warn().Msgf("No database connection to disconnect.")
 		return
 	}
 	err := db.Disconnect(context.Background())
 	if err != nil {
-		log.Fatal().Msgf("Error disconnecting from DB: %s", err)
+		log.Logger.Fatal().Msgf("Error disconnecting from DB: %s", err)
 	}
 }

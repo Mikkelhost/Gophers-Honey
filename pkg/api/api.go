@@ -1,9 +1,8 @@
 package api
 
 import (
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -17,9 +16,8 @@ var (
 )
 
 func getenv(key, fallback string) string {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	value := os.Getenv(key)
-	log.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
+	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
 	if len(value) == 0 {
 		return fallback
 	}
@@ -27,7 +25,6 @@ func getenv(key, fallback string) string {
 }
 
 func SetupRouters(r *mux.Router) {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	devicesSubrouter(r)
 	usersSubrouter(r)
 }
