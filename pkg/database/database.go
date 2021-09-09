@@ -17,6 +17,7 @@ var (
 	DB_USER      = getenv("DB_USER", "goadmin")
 	DB_PASS      = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
 	DB_DEV_COLL  = "device_collection"
+	DB_LOG_COLL  = "log_collection"
 	DB_CONF_COLL = "config_collection"
 	DB_USER_COLL = "user_collection"
 	DEBUG        = false
@@ -45,6 +46,9 @@ func Connect() {
 		log.Logger.Fatal().Msgf("Error connecting to DB: %s", err)
 	}
 	db = client
+	//ConfigureDevice(Service{RDP: true, FTP: true}, 3311712553)
+	//AddDevice("10.0.0.3")
+	_ = GetAllDevices()
 }
 
 // Disconnect shuts down the current database connection.

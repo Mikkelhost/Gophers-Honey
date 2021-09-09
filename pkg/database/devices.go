@@ -160,3 +160,24 @@ func GetAllDevices() ([]Device, error) {
 	}
 	return deviceList, nil
 }
+
+// RemoveDevice removes the given device from collection,
+// if the given uuid is valid
+func RemoveDevice(uuid uint32) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	if isDeviceInCollection(uuid, "uuid", DB_CONF_COLL) {
+		device := Device{
+			UUID: uuid,
+		}
+		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).DeleteOne(ctx, device)
+		if err != nil {
+			log.Logger.Warn().Msgf("Error removing device: %s", err)
+			return
+		}
+	} else {
+		log.Logger.Warn().Msgf("Device ID: %d not found", uuid)
+	}
+
+}
