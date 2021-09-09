@@ -22,7 +22,7 @@ type Device struct {
 	GUID       primitive.ObjectID `bson:"_id,omitempty"`
 	UUID       uint32             `bson:"uuid,omitempty"`
 	IP         uint32             `bson:"ip,omitempty"`
-	IpStr      string             `bson:"ip_str,omitempty"`
+	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
 	Configured bool               `bson:"configured"`
 	Services   Service            `bson:"services"`
 }
