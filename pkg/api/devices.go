@@ -30,15 +30,28 @@ func devicesSubrouter(r *mux.Router){
 }
 
 func getDevices(w http.ResponseWriter, r *http.Request) {
+	var devices []database.Device
+	devices, err := database.GetAllDevices()
+	if err != nil {
+		w.Write([]byte("Error retrieving devices"))
+		return
+	}
+	if len(devices) == 0{
+		w.Write([]byte("No devices in DB"))
+		return
+	}
+	devicesJson, err := json.Marshal(devices)
+	if err != nil {
+		w.Write([]byte("Error Marshalling devices"))
+		return
+	}
 
-	w.Write([]byte("Hey du må ikke få mine fucking devices!"))
+	w.Write(devicesJson)
 }
 
 func configureDevice(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Du er færdig mester, ingen konfiguration til dig!"))
 }
-
-// TODO Make sure that ip is not empty.
 
 // newDevice
 // Called by devices when they are booted up for the first time

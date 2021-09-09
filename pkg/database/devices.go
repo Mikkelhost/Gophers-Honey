@@ -136,25 +136,27 @@ func AddDevice(ipStr string) (uint32, error) {
 // GetAllDevices retrieves and returns a list of all devices currently in
 // the database. Specifically it retrieves all devices contained in the
 // "device_collection" collection.
-func GetAllDevices() []Device {
+func GetAllDevices() ([]Device, error) {
 	var deviceList []Device
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 	results, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).Find(ctx, bson.M{})
 	if err != nil {
-		log.Logger.Warn().Msgf("Error retrieving device list")
+		log.Logger.Warn().Msgf("Error retrieving device list: %s", err)
+		return nil, err
 	}
 
 	for results.Next(ctx) {
 		var device Device
-		if err := results.Decode(&device); err != nil {
+		if err = results.Decode(&device); err != nil {
 			log.Logger.Warn().Msgf("Error decoding result: %s", err)
+			return nil, err
 		}
 		deviceList = append(deviceList, device)
 	}
 	for _, device := range deviceList {
-			log.Logger.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
+			log.Logger.Debug().Msgf("Found device with uuid: %d, ip: %s", device.UUID, device.IpStr)
 	}
-	return deviceList
+	return deviceList, nil
 }

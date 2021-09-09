@@ -6,7 +6,10 @@
 export default{
   name: "Login",
   mounted() {
-    console.log(process.env.VUE_APP_API_ROOT)
+
+  },
+  methods: {
+
   }
 }
 </script>

@@ -18,9 +18,9 @@ All functions should write json data to the responsewriter
 
 func usersSubrouter(r *mux.Router) {
 	usersAPI := r.PathPrefix("/api/users").Subrouter()
-	usersAPI.HandleFunc("/getUsers", getUsers)
-	usersAPI.HandleFunc("/login", loginUser)
-	usersAPI.HandleFunc("/register", registerUser)
+	usersAPI.HandleFunc("/getUsers", getUsers).Methods("GET")
+	usersAPI.HandleFunc("/login", loginUser).Methods("POST")
+	usersAPI.HandleFunc("/register", registerUser).Methods("POST")
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,8 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Logging in user"))
+
+	getDevices(w,r)
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
