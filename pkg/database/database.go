@@ -45,9 +45,6 @@ func Connect() {
 		log.Logger.Fatal().Msgf("Error connecting to DB: %s", err)
 	}
 	db = client
-	//ConfigureDevice(Service{RDP: true, FTP: true}, 3311712553)
-	//AddDevice("10.0.0.3")
-	_ = GetAllDevices()
 }
 
 // Disconnect shuts down the current database connection.

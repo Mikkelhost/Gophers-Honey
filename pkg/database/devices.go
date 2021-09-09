@@ -114,7 +114,7 @@ func ConfigureDevice(service Service, uuid uint32) {
 
 // AddDevice assigns a device ID to the device and adds it to the
 // database.
-func AddDevice(ipStr string) {
+func AddDevice(ipStr string) (uint32, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
@@ -126,13 +126,11 @@ func AddDevice(ipStr string) {
 		Configured: false,
 		IP:         ip,
 	}
-
 	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).InsertOne(ctx, device)
-
 	if err != nil {
-		log.Logger.Fatal().Msgf("Error adding device: %s", err)
-		return
+		return 0, err
 	}
+	return uuid, nil
 }
 
 // GetAllDevices retrieves and returns a list of all devices currently in
@@ -155,10 +153,8 @@ func GetAllDevices() []Device {
 		}
 		deviceList = append(deviceList, device)
 	}
-	if DEBUG {
-		for _, device := range deviceList {
+	for _, device := range deviceList {
 			log.Logger.Debug().Msgf("Found device with uuid: %i, ip: %s", device.UUID, device.IpStr)
-		}
 	}
 	return deviceList
 }

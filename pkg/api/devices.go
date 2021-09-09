@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"net/http"
+	"strings"
 )
 /*
 The devices API handles everything about devices/raspberry pis
@@ -19,6 +20,8 @@ type DeviceAuth struct {
 }
 var DEVICE_KEY = getenv("DEVICE_KEY","XxPFUhQ8R7kKhpgubt7v")
 
+// devicesSubrouter
+// Sets up a devices API subrouter
 func devicesSubrouter(r *mux.Router){
 	deviceAPI := r.PathPrefix("/api/devices").Subrouter()
 	deviceAPI.HandleFunc("/getdevices", tokenAuthMiddleware(getDevices)).Methods("GET")
@@ -27,6 +30,7 @@ func devicesSubrouter(r *mux.Router){
 }
 
 func getDevices(w http.ResponseWriter, r *http.Request) {
+
 	w.Write([]byte("Hey du må ikke få mine fucking devices!"))
 }
 
@@ -35,6 +39,10 @@ func configureDevice(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO Make sure that ip is not empty.
+
+// newDevice
+// Called by devices when they are booted up for the first time
+// Will return an unique id for the device to use going forward
 func newDevice(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var ipStruct = database.Device{}
@@ -43,11 +51,34 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("Success")))
+
+	//Checking if the ipstr is a valid IP address
+	found, err := checkForValidIp(ipStruct.IpStr)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error in regex: %s", err)
+		w.Write([]byte("Internal server error"))
+		return
+	}
+	if !found {
+		log.Logger.Debug().Msg("Ip is invalid")
+		w.Write([]byte("Ip is invalid"))
+		return
+	}
+
 	log.Logger.Debug().Msgf("Received new device with IP: %s Adding to DB", ipStruct.IpStr)
-	database.AddDevice(ipStruct.IpStr)
+	uuid, err := database.AddDevice(strings.TrimSpace(ipStruct.IpStr))
+	if err != nil {
+		log.Logger.Warn().Msgf("Error adding device: %s", err)
+		w.Write([]byte("Error adding device"))
+		return
+	}
+
+	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"uuid\": %d}", uuid)))
 }
 
+// deviceSecretMiddleware
+// Middleware function for authenticating devices before they get access
+// to the end API call.
 func deviceSecretMiddleware(next http.HandlerFunc) http.HandlerFunc{
 	return func(w http.ResponseWriter, r *http.Request) {
 		deviceKey := extractToken(r)

@@ -29,7 +29,7 @@ func ip2int(ipStr string) uint32 {
 	var long uint32
 	err := binary.Read(bytes.NewBuffer(net.ParseIP(ipStr).To4()), binary.BigEndian, &long)
 	if err != nil {
-		log.Fatal().Msgf("Error converting IP to int: %s", err)
+		log.Warn().Msgf("Error converting IP to int: %s", err)
 		return 0
 	}
 	return long

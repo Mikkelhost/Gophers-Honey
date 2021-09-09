@@ -12,7 +12,6 @@ subrouters.
 */
 var (
 	SECRET_KEY = getenv("SECRET_KEY", "UWKvPGDYd2zmAmbYQB2K")
-	DEBUG      = false
 )
 
 func getenv(key, fallback string) string {

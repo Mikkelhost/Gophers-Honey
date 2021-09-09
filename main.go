@@ -6,9 +6,10 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 )
 
+var DEBUG = true
 
 func main() {
-	log.InitLog()
+	log.InitLog(DEBUG)
 	log.Logger.Info().Msg("Setting up database")
 	//Setting up database
 	database.Connect()

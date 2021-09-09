@@ -7,8 +7,10 @@ import (
 
 var Logger zerolog.Logger
 
-func InitLog(){
+func InitLog(debug bool){
 	consoleWrite := zerolog.ConsoleWriter{Out: os.Stderr}
-	multi := zerolog.MultiLevelWriter(consoleWrite, os.Stdout)
-	Logger = zerolog.New(multi).With().Timestamp().Logger()
+	Logger = zerolog.New(consoleWrite).With().Timestamp().Logger().Level(zerolog.InfoLevel)
+	if debug {
+		Logger = zerolog.New(consoleWrite).With().Timestamp().Logger().Level(zerolog.DebugLevel)
+	}
 }
