@@ -34,6 +34,7 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Getting users"))
 }
 
+// TODO Finish the loginUser api endpoint, return token to user.
 func loginUser(w http.ResponseWriter, r *http.Request) {
 	var userInfo = UserAuth{}
 	enableCors(&w)
