@@ -60,7 +60,8 @@ func isUserInCollection(value, key, collection string) bool {
 	return false
 }
 
-// RemoveUser removes a user, with the specified username, from the database.
+// RemoveUser removes a user, with the specified username, from the
+// database.
 func RemoveUser(username string) {
 	if !isUserInCollection(username, "username", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", username).Msgf("Username not found")

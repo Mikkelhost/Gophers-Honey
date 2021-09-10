@@ -18,6 +18,7 @@ func main() {
 	defer database.Disconnect()
 	database.Test()
 
+	// Set up server.
 	log.Logger.Info().Msg("Running server")
 	httpserver.RunServer()
 }
