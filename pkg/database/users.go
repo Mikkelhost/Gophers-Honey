@@ -10,13 +10,14 @@ import (
 // TODO: ADD functionality for case-sensitive usernames and/or username checks.
 
 type User struct {
-	USERNAME string `bson:"username"`
+	Username     string `bson:"username"`
+	PasswordHash string `bson:"password_hash"`
 }
 
 // AddNewUser adds a new user, with a specified username, to the database.
 // TODO: HANDLE password info, salt and hash info when adding user.
-func AddNewUser(username, salt, hash string) {
-	if isUserInCollection(username, "username", DB_USER_COLL) {
+func AddNewUser(username, hashedAndSaltedPwd string) {
+	if IsUserInCollection(username, "username", DB_USER_COLL) {
 		log.Logger.Warn().Msgf("Username already in use")
 		return
 	}
@@ -25,7 +26,8 @@ func AddNewUser(username, salt, hash string) {
 	defer cancel()
 
 	user := User{
-		USERNAME: username,
+		Username:     username,
+		PasswordHash: hashedAndSaltedPwd,
 	}
 
 	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, user)
@@ -36,10 +38,10 @@ func AddNewUser(username, salt, hash string) {
 	}
 }
 
-// TODO: CHECK if this method can be combined with isDeviceInCollection as they both do the same.
-// isUserInCollection reports whether a document with the specified
+// IsUserInCollection reports whether a document with the specified
 // username occurs in the given collection.
-func isUserInCollection(value, key, collection string) bool {
+// TODO: CHECK if this method can be combined with isDeviceInCollection as they both do the same.
+func IsUserInCollection(value, key, collection string) bool {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
@@ -63,7 +65,7 @@ func isUserInCollection(value, key, collection string) bool {
 // RemoveUser removes a user, with the specified username, from the
 // database.
 func RemoveUser(username string) {
-	if !isUserInCollection(username, "username", DB_USER_COLL) {
+	if !IsUserInCollection(username, "username", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", username).Msgf("Username not found")
 		return
 	}
@@ -81,4 +83,26 @@ func RemoveUser(username string) {
 		log.Logger.Warn().Msgf("Error removing user: %s", err)
 		return
 	}
+}
+
+// GetPasswordHash retrieves the stored password hash for the specified
+// username.
+func GetPasswordHash(username string) (string, error) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := User{
+		Username: username,
+	}
+
+	var user User
+
+	result := db.Database(DB_NAME).Collection(DB_USER_COLL).FindOne(ctx, filter)
+
+	if err := result.Decode(&user); err != nil {
+		log.Logger.Warn().Msgf("Error decoding result: %s", err)
+		return "", err
+	}
+
+	return user.PasswordHash, nil
 }

@@ -9,7 +9,7 @@ import (
 
 type Log struct {
 	GUID      primitive.ObjectID `bson:"_id, omitempty"`
-	UUID      uint32             `bson:"uuid, omitempty"`
+	LogID     uint32             `bson:"log_id, omitempty"`
 	TimeStamp time.Time          `bson:"time_stamp, omitempty"`
 	Message   string             `bson:"message, omitempty"`
 }
@@ -17,12 +17,12 @@ type Log struct {
 // AddLog assigns a log with timestamp and message tied to a device ID and adds it to the
 // database.
 // TODO: timestamp needs proper implementation
-func AddLog(uuid uint32, timeStamp time.Time, message string) (uint32, error) {
+func AddLog(logID uint32, timeStamp time.Time, message string) (uint32, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
 	dlog := Log{
-		UUID:      uuid,
+		LogID:     logID,
 		TimeStamp: timeStamp,
 		Message:   message,
 	}
@@ -32,7 +32,7 @@ func AddLog(uuid uint32, timeStamp time.Time, message string) (uint32, error) {
 		return 0, err
 	}
 
-	return uuid, nil
+	return logID, nil
 }
 
 // GetAllLogs retrieves and returns a list of all logs currently in
@@ -62,14 +62,15 @@ func GetAllLogs() ([]Log, error) {
 	}
 
 	for _, dlog := range logList {
-		log.Logger.Debug().Msgf("Found log for device with uuid: %d", dlog.UUID)
+		log.Logger.Debug().Msgf("Found log with log ID: %d", dlog.LogID)
 	}
 
 	return logList, nil
 }
 
+/*
 //TODO: work in progress
-func GetLog(uuid uint32) (Log, error) {
+func GetLog(logID uint32) (Log, error) {
 	var logList []Log
 
 	ctx, cancel := getContextWithTimeout()
@@ -94,21 +95,22 @@ func GetLog(uuid uint32) (Log, error) {
 	}
 
 	for _, dlog := range logList {
-		log.Logger.Debug().Msgf("Found log for device with uuid: %d", dlog.UUID)
+		log.Logger.Debug().Msgf("Found log with log ID: %d", dlog.LogID)
 	}
 
 	return dlog, nil
 }
+*/
 
 // RemoveLog removes a log, with the specified ID, from the
 // database.
-func RemoveLog(uuid uint32) error {
+func RemoveLog(logID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(uuid, "uuid", DB_CONF_COLL) {
+	if isDeviceInCollection(logID, "logID", DB_CONF_COLL) {
 		dlog := Log{
-			UUID: uuid,
+			LogID: logID,
 		}
 
 		_, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).DeleteOne(ctx, dlog)
@@ -118,7 +120,7 @@ func RemoveLog(uuid uint32) error {
 			return err
 		}
 	} else {
-		log.Logger.Warn().Msgf("Device ID: %d not found", uuid)
+		log.Logger.Warn().Msgf("Log ID: %d not found", logID)
 		// TODO: Perhaps we need to return an error here.
 	}
 

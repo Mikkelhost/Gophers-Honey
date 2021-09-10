@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
-	"github.com/gorilla/mux"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 )

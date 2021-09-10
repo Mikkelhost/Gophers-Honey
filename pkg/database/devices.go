@@ -20,7 +20,7 @@ type Service struct {
 // Device struct is used to specify device information.
 type Device struct {
 	GUID       primitive.ObjectID `bson:"_id,omitempty"`
-	UUID       uint32             `bson:"uuid,omitempty"`
+	DeviceID   uint32             `bson:"device_id,omitempty"`
 	IP         uint32             `bson:"ip,omitempty"`
 	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
 	Configured bool               `bson:"configured"`
@@ -53,14 +53,14 @@ func isDeviceInCollection(value uint32, key, collection string) bool {
 
 // updateConfiguration updates the device configuration data contained in
 // the "configuration_collection" collection.
-func updateConfiguration(service Service, uuid uint32) error {
+func updateConfiguration(service Service, deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(uuid, "uuid", DB_CONF_COLL) {
+	if isDeviceInCollection(deviceID, "deviceID", DB_CONF_COLL) {
 
 		filter := bson.M{
-			"uuid": uuid,
+			"deviceID": deviceID,
 		}
 		config := bson.M{
 			"services": service,
@@ -73,21 +73,21 @@ func updateConfiguration(service Service, uuid uint32) error {
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("uuid", uuid).
+				Uint32("deviceID", deviceID).
 				Msgf("Error updating device config collection: %s", err)
 			return err
 		}
 	} else {
 
 		config := bson.M{
-			"uuid":     uuid,
+			"deviceID": deviceID,
 			"services": service,
 		}
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, config)
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("uuid", uuid).
+				Uint32("deviceID", deviceID).
 				Msgf("Error adding device config to config collection %s", err)
 			return err
 		}
@@ -139,10 +139,10 @@ func AddDevice(ipStr string) (uint32, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	uuid := createRandUuid()
+	deviceID := createRandDeviceID()
 	ip := ip2int(ipStr)
 	device := Device{
-		UUID:       uuid,
+		DeviceID:   deviceID,
 		IpStr:      ipStr,
 		Configured: false,
 		IP:         ip,
@@ -153,7 +153,7 @@ func AddDevice(ipStr string) (uint32, error) {
 		return 0, err
 	}
 
-	return uuid, nil
+	return deviceID, nil
 }
 
 // GetAllDevices retrieves and returns a list of all devices currently in
@@ -184,7 +184,7 @@ func GetAllDevices() ([]Device, error) {
 	}
 
 	for _, device := range deviceList {
-		log.Logger.Debug().Msgf("Found device with uuid: %d, ip: %s", device.UUID, device.IpStr)
+		log.Logger.Debug().Msgf("Found device with deviceID: %d, ip: %s", device.DeviceID, device.IpStr)
 	}
 
 	return deviceList, nil
@@ -192,13 +192,13 @@ func GetAllDevices() ([]Device, error) {
 
 // RemoveDevice removes a device, with the specified device ID, from the
 // database.
-func RemoveDevice(uuid uint32) error {
+func RemoveDevice(devideID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(uuid, "uuid", DB_CONF_COLL) {
+	if isDeviceInCollection(devideID, "devideID", DB_CONF_COLL) {
 		device := Device{
-			UUID: uuid,
+			DeviceID: devideID,
 		}
 
 		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).DeleteOne(ctx, device)
@@ -208,7 +208,7 @@ func RemoveDevice(uuid uint32) error {
 			return err
 		}
 	} else {
-		log.Logger.Warn().Msgf("Device ID: %d not found", uuid)
+		log.Logger.Warn().Msgf("Device ID: %d not found", devideID)
 		// TODO: Perhaps we need to return an error here.
 	}
 
