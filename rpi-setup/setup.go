@@ -10,8 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"time"
-
-	"net.DialTimeout"
 )
 
 func get_ip() net.IP {
@@ -75,6 +73,7 @@ func api_call_addDevice() {
 	if err != nil {
 		log.Println("Site unreachable, error: ", err)
 	}
+	fmt.Printf("\n CONN -> %s", conn)
 	// Create a Bearer string by appending string access token
 	var bearer = "Bearer " + "XxPFUhQ8R7kKhpgubt7v"
 
