@@ -4,21 +4,22 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"strings"
 )
 
 // TODO: ADD error handling for usernames (empty string "", special chars, etc.).
-// TODO: ADD functionality for case-sensitive usernames and/or username checks.
 
 type User struct {
-	Username     string `bson:"username"`
-	PasswordHash string `bson:"password_hash"`
+	Username      string `bson:"username"`
+	UsernameLower string `bson:"username_lower"`
+	PasswordHash  string `bson:"password_hash"`
 }
 
 // AddNewUser adds a new user, with a specified username, to the database.
 // TODO: HANDLE password info, salt and hash info when adding user.
 func AddNewUser(username, hashedAndSaltedPwd string) {
-	if IsUserInCollection(username, "username", DB_USER_COLL) {
-		log.Logger.Warn().Msgf("Username already in use")
+	if IsUserInCollection(username, "username_lower", DB_USER_COLL) {
+		log.Logger.Warn().Str("username", username).Msgf("Username already in use")
 		return
 	}
 
@@ -26,8 +27,9 @@ func AddNewUser(username, hashedAndSaltedPwd string) {
 	defer cancel()
 
 	user := User{
-		Username:     username,
-		PasswordHash: hashedAndSaltedPwd,
+		Username:      username,
+		UsernameLower: strings.ToLower(username),
+		PasswordHash:  hashedAndSaltedPwd,
 	}
 
 	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, user)
@@ -46,7 +48,7 @@ func IsUserInCollection(value, key, collection string) bool {
 	defer cancel()
 
 	filter := bson.M{
-		key: value,
+		key: strings.ToLower(value),
 	}
 
 	countOptions := options.Count().SetLimit(1)
@@ -65,7 +67,7 @@ func IsUserInCollection(value, key, collection string) bool {
 // RemoveUser removes a user, with the specified username, from the
 // database.
 func RemoveUser(username string) {
-	if !IsUserInCollection(username, "username", DB_USER_COLL) {
+	if !IsUserInCollection(username, "username_lower", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", username).Msgf("Username not found")
 		return
 	}
@@ -92,7 +94,7 @@ func GetPasswordHash(username string) (string, error) {
 	defer cancel()
 
 	filter := User{
-		Username: username,
+		UsernameLower: strings.ToLower(username),
 	}
 
 	var user User

@@ -9,6 +9,9 @@ import (
 
 var DEBUG = true
 
+// hashAndSaltPassword takes a password byte string and hashes and salts
+// it using bcrypt. The hashed and salted password is returned as a string
+// for storage.
 func hashAndSaltPassword(pwd []byte) string {
 	cost := 14
 	hash, err := bcrypt.GenerateFromPassword(pwd, cost)
