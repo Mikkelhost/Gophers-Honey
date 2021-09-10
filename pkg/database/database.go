@@ -61,7 +61,7 @@ func Disconnect() {
 
 // Test is used for testing the database package.
 func Test() {
-	RemoveUser("Deus")
+	//RemoveUser("Deus")
 	// if err != nil {
 	// 	log.Logger.Fatal().Msgf("Test failed")
 	// 	return
