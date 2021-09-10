@@ -20,7 +20,6 @@ var (
 	DB_LOG_COLL  = "log_collection"
 	DB_CONF_COLL = "config_collection"
 	DB_USER_COLL = "user_collection"
-	DEBUG        = false
 )
 
 // getenv retrieves the value of the environment variable named by the
@@ -58,4 +57,13 @@ func Disconnect() {
 	if err != nil {
 		log.Logger.Fatal().Msgf("Error disconnecting from DB: %s", err)
 	}
+}
+
+// Test is used for testing the database package.
+func Test() {
+	RemoveUser("Deus")
+	// if err != nil {
+	// 	log.Logger.Fatal().Msgf("Test failed")
+	// 	return
+	// }
 }

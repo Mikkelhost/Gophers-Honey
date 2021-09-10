@@ -13,11 +13,11 @@ type User struct {
 	USERNAME string `bson:"username"`
 }
 
-// AddNewUser adds a new user, with a specified username to the database.
+// AddNewUser adds a new user, with a specified username, to the database.
 // TODO: HANDLE password info, salt and hash info when adding user.
 func AddNewUser(username, salt, hash string) {
 	if isUserInCollection(username, "username", DB_USER_COLL) {
-		log.Logger.Fatal().Msgf("Username already in use")
+		log.Logger.Warn().Msgf("Username already in use")
 		return
 	}
 
@@ -31,7 +31,7 @@ func AddNewUser(username, salt, hash string) {
 	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, user)
 
 	if err != nil {
-		log.Logger.Fatal().Msgf("Error adding username: %s", err)
+		log.Logger.Warn().Msgf("Error adding username: %s", err)
 		return
 	}
 }
@@ -58,4 +58,26 @@ func isUserInCollection(value, key, collection string) bool {
 		return true
 	}
 	return false
+}
+
+// RemoveUser removes a user, with the specified username, from the database.
+func RemoveUser(username string) {
+	if !isUserInCollection(username, "username", DB_USER_COLL) {
+		log.Logger.Warn().Str("username", username).Msgf("Username not found")
+		return
+	}
+
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		"username": username,
+	}
+
+	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).DeleteOne(ctx, filter)
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error removing user: %s", err)
+		return
+	}
 }
