@@ -13,14 +13,14 @@ import (
 // createRandUuid pseudo-randomly generates a number which is checked
 // against the device IDs currently in the collection. Returns when no
 // collision is detected.
-func createRandUuid() uint32 {
+func createRandDeviceID() uint32 {
 	rand.Seed(time.Now().Unix())
-	uuid := rand.Uint32()
-	for isDeviceInCollection(uuid, "uuid", DB_DEV_COLL) {
-		uuid = rand.Uint32()
+	deviceID := rand.Uint32()
+	for isDeviceInCollection(deviceID, "deviceID", DB_DEV_COLL) {
+		deviceID = rand.Uint32()
 		log.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
 	}
-	return uuid
+	return deviceID
 }
 
 // ip2int converts an IP address from its string representation to its
