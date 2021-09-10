@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// createRandUuid pseudo-randomly generates a number which is checked
+// createRandDeviceID pseudo-randomly generates a number which is checked
 // against the device IDs currently in the collection. Returns when no
 // collision is detected.
 func createRandDeviceID() uint32 {
