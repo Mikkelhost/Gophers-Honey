@@ -16,6 +16,7 @@ type Log struct {
 
 // AddLog assigns a log with timestamp and message tied to a device ID and adds it to the
 // database.
+// TODO: timestamp needs proper implementation
 func AddLog(uuid uint32, timeStamp time.Time, message string) (uint32, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -67,6 +68,40 @@ func GetAllLogs() ([]Log, error) {
 	return logList, nil
 }
 
+//TODO: work in progress
+func GetLog(uuid uint32) (Log, error) {
+	var logList []Log
+
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	results, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).Find(ctx, bson.M{})
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error retrieving log list: %s", err)
+		return nil, err
+	}
+
+	for results.Next(ctx) {
+		var dlog Log
+
+		if err = results.Decode(&dlog); err != nil {
+			log.Logger.Warn().Msgf("Error decoding result: %s", err)
+			return nil, err
+		}
+
+		logList = append(logList, dlog)
+	}
+
+	for _, dlog := range logList {
+		log.Logger.Debug().Msgf("Found log for device with uuid: %d", dlog.UUID)
+	}
+
+	return dlog, nil
+}
+
+// RemoveLog removes a log, with the specified ID, from the
+// database.
 func RemoveLog(uuid uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
