@@ -42,12 +42,22 @@ func checkForInternet() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+	// fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+	cmd := exec.Command("tail", "/var/log/syslog")
+	// cmd.Stderr = os.Stdout
+	// cmd.Stdout = os.Stdout
+	// err := cmd.Run()
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	fmt.Fprintf(w, "%s %s\n", cmd.Run(), r.URL.Path[1:])
+	fmt.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL.Path[1:])
+
 }
 
 func main() {
+	fmt.Println("\n [+] Server running!")
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
-	fmt.Println("\n [+] Server running!")
 	checkForInternet()
 }
