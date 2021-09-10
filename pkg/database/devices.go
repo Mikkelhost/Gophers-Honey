@@ -100,12 +100,12 @@ func updateConfiguration(service Service, uuid uint32) error {
 // services. Specifically it updates the value of "services" for the
 // specific device ID in both the "device_collection" and
 // "configuration_collection" collections.
-func ConfigureDevice(service Service, uuid uint32) error {
+func ConfigureDevice(service Service, deviceId uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
 	filter := bson.M{
-		"uuid": uuid,
+		"device_id": deviceId,
 	}
 	config := Device{
 		Configured: true,
@@ -119,12 +119,12 @@ func ConfigureDevice(service Service, uuid uint32) error {
 
 	if err != nil {
 		log.Logger.Warn().
-			Uint32("uuid", uuid).
+			Uint32("deviceID", deviceId).
 			Msgf("Error updating device: %s", err)
 		return err
 	}
 
-	err = updateConfiguration(service, uuid)
+	err = updateConfiguration(service, deviceId)
 
 	if err != nil {
 		return err

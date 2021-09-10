@@ -9,20 +9,22 @@ import (
 	"net/http"
 	"strings"
 )
+
 /*
 The devices API handles everything about devices/raspberry pis
 
 All functions should write json data to the responsewriter
 */
 type DeviceAuth struct {
-	DeviceId uint32 `json:"device_id"`
+	DeviceId  uint32 `json:"device_id"`
 	DeviceKey string `json:"deviceKey"`
 }
-var DEVICE_KEY = getenv("DEVICE_KEY","XxPFUhQ8R7kKhpgubt7v")
+
+var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
 
 // devicesSubrouter
 // Sets up a devices API subrouter
-func devicesSubrouter(r *mux.Router){
+func devicesSubrouter(r *mux.Router) {
 	deviceAPI := r.PathPrefix("/api/devices").Subrouter()
 	deviceAPI.HandleFunc("/getdevices", tokenAuthMiddleware(getDevices)).Methods("GET")
 	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST")
@@ -36,7 +38,7 @@ func getDevices(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Error retrieving devices"))
 		return
 	}
-	if len(devices) == 0{
+	if len(devices) == 0 {
 		w.Write([]byte("No devices in DB"))
 		return
 	}
@@ -79,20 +81,20 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Logger.Debug().Msgf("Received new device with IP: %s Adding to DB", ipStruct.IpStr)
-	uuid, err := database.AddDevice(strings.TrimSpace(ipStruct.IpStr))
+	deviceID, err := database.AddDevice(strings.TrimSpace(ipStruct.IpStr))
 	if err != nil {
 		log.Logger.Warn().Msgf("Error adding device: %s", err)
 		w.Write([]byte("Error adding device"))
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"uuid\": %d}", uuid)))
+	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d}", deviceID)))
 }
 
 // deviceSecretMiddleware
 // Middleware function for authenticating devices before they get access
 // to the end API call.
-func deviceSecretMiddleware(next http.HandlerFunc) http.HandlerFunc{
+func deviceSecretMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		deviceKey := extractToken(r)
 		log.Logger.Debug().Msgf("Received authentication attempt with key: %s", deviceKey)

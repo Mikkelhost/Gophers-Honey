@@ -13,7 +13,7 @@ import (
 // createRandUuid pseudo-randomly generates a number which is checked
 // against the device IDs currently in the collection. Returns when no
 // collision is detected.
-func createRandUuid() uint32 {
+func createRandDeviceID() uint32 {
 	rand.Seed(time.Now().Unix())
 	uuid := rand.Uint32()
 	for isDeviceInCollection(uuid, "uuid", DB_DEV_COLL) {
