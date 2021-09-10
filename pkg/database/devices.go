@@ -156,13 +156,13 @@ func GetAllDevices() ([]Device, error) {
 		deviceList = append(deviceList, device)
 	}
 	for _, device := range deviceList {
-			log.Logger.Debug().Msgf("Found device with uuid: %d, ip: %s", device.UUID, device.IpStr)
+		log.Logger.Debug().Msgf("Found device with uuid: %d, ip: %s", device.UUID, device.IpStr)
 	}
 	return deviceList, nil
 }
 
-// RemoveDevice removes the given device from collection,
-// if the given uuid is valid
+// RemoveDevice removes a device, with the specified device ID, from the
+// database.
 func RemoveDevice(uuid uint32) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()

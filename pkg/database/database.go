@@ -20,7 +20,6 @@ var (
 	DB_LOG_COLL  = "log_collection"
 	DB_CONF_COLL = "config_collection"
 	DB_USER_COLL = "user_collection"
-	DEBUG        = false
 )
 
 // getenv retrieves the value of the environment variable named by the
@@ -46,9 +45,6 @@ func Connect() {
 		log.Logger.Fatal().Msgf("Error connecting to DB: %s", err)
 	}
 	db = client
-	//ConfigureDevice(Service{RDP: true, FTP: true}, 3311712553)
-	//AddDevice("10.0.0.3")
-	_ = GetAllDevices()
 }
 
 // Disconnect shuts down the current database connection.
@@ -61,4 +57,13 @@ func Disconnect() {
 	if err != nil {
 		log.Logger.Fatal().Msgf("Error disconnecting from DB: %s", err)
 	}
+}
+
+// Test is used for testing the database package.
+func Test() {
+	RemoveUser("Deus")
+	// if err != nil {
+	// 	log.Logger.Fatal().Msgf("Test failed")
+	// 	return
+	// }
 }
