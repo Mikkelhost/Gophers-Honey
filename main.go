@@ -1,24 +1,23 @@
 package main
 
 import (
-	"github.com/GeekMuch/GoHoney/pkg/httpserver"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"os"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/httpserver"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 )
 
-
-
+var DEBUG = true
 
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Info().Msg("Setting up database")
-	//Setting up database
-	//db := database.Connect("gohoney", "password", "127.0.0.1", "gohoney")
-	//database.ConfigureDb()
-	//defer db.Close()
+	// Initialize logger and set logging level.
+	log.InitLog(DEBUG)
 
-	log.Info().Msg("Running server")
+	// Set up database connection.
+	log.Logger.Info().Msg("Setting up database connection")
+	database.Connect()
+	defer database.Disconnect()
+	database.Test()
 
+	log.Logger.Info().Msg("Running server")
 	httpserver.RunServer()
 }
