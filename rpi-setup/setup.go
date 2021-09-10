@@ -65,7 +65,7 @@ func api_call_addDevice() {
 
 	ipAddr := get_ip().String()
 
-	url := "http://localhost:8000/api/devices/addDevice"
+	url := "http://192.168.206-210:8000/api/devices/addDevice"
 
 	// Create a Bearer string by appending string access token
 	var bearer = "Bearer " + "XxPFUhQ8R7kKhpgubt7v"
