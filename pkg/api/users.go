@@ -49,7 +49,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Logger.Debug().Msgf("Username: %s, Password: %s", userInfo.Username, userInfo.Password)
 
-	json.NewEncoder(w).Encode(userInfo)
+	w.Write([]byte("fucker"))
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {

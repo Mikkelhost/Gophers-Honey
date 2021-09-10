@@ -79,16 +79,21 @@ export default{
       this.dismissCountDown = this.dismissSecs
     },
     login: function() {
+      let that = this
       if (!this.userinfo.username.length || !this.userinfo.password.length) {
         this.alert = "Username or password is empty"
         this.showAlert("danger")
         return
       }
       let userinfoJson = JSON.stringify(this.userinfo)
-      window.console.log(userinfoJson)
+
       axios.post(
         process.env.VUE_APP_API_ROOT+"/users/login", userinfoJson
-      )
+      ).then(response => {
+        if (response.status == 200) {
+          that.$cookies.set("session",response.data,"30min","/")
+        }
+      })
     }
   }
 }
