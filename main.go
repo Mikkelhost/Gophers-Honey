@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/httpserver"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 )
 
@@ -17,6 +18,6 @@ func main() {
 	defer database.Disconnect()
 	database.Test()
 
-	//log.Logger.Info().Msg("Running server")
-	//httpserver.RunServer()
+	log.Logger.Info().Msg("Running server")
+	httpserver.RunServer()
 }
