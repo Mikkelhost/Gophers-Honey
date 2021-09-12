@@ -1,20 +1,25 @@
 package httpserver
 
 import (
-	"fmt"
-	"github.com/GeekMuch/GoHoney/pkg/api"
-	"github.com/GeekMuch/GoHoney/pkg/websocket"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/api"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/websocket"
 	"github.com/gorilla/mux"
-	"log"
+	sLog "log"
 	"net/http"
 )
+
+var DEV = true
 
 var configured bool
 
 func RunServer() {
-	fmt.Println("Starting websocket")
+	log.Logger.Debug().Msgf("Starting websocket")
 	r := mux.NewRouter()
 	websocket.SetupRouter(r)
 	api.SetupRouters(r)
-	log.Fatal(http.ListenAndServeTLS(":8443", "certs/nginx-selfsigned.crt", "certs/nginx-selfsigned.key", r))
+	if !DEV {
+		sLog.Fatal(http.ListenAndServeTLS(":8443", "certs/nginx-selfsigned.crt", "certs/nginx-selfsigned.key", r))
+	}
+	sLog.Fatal(http.ListenAndServe(":8000", r))
 }

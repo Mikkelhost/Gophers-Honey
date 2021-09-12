@@ -1,44 +1,69 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"os"
 )
-var db *sql.DB
 
-func Connect(username, password, host, dbName string) *sql.DB{
-	log.Info().Msgf("Connecting to sql server with: %s, %s, %s, %s", username, password, host, dbName)
-	connectString := fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, host, dbName)
-	log.Info().Msgf("Connectstring: %s", connectString)
-	database, err := sql.Open("mysql", connectString)
-	if err != nil {
-		log.Fatal().Msgf("Error: %s", err)
+var db *mongo.Client
+
+var (
+	DB_NAME      = "honeyDB"
+	DB_HOST      = getenv("DB_HOST", "cluster0.sb5ex.mongodb.net")
+	DB_USER      = getenv("DB_USER", "goadmin")
+	DB_PASS      = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
+	DB_DEV_COLL  = "device_collection"
+	DB_LOG_COLL  = "log_collection"
+	DB_CONF_COLL = "config_collection"
+	DB_USER_COLL = "user_collection"
+)
+
+// getenv retrieves the value of the environment variable named by the
+// key. If no environment variable of the provided key is found a
+// fallback is used as a default value.
+func getenv(key, fallback string) string {
+	value := os.Getenv(key)
+	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
+	if len(value) == 0 {
+		return fallback
 	}
-	db = database
-	return db
+	return value
 }
 
-func ConfigureDb() {
-	log.Info().Msg("Configuring DB")
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS devices (id INT NOT NULL PRIMARY KEY, configured BOOL, services CHAR(255), ipAddress CHAR(255));"); err != nil {
-		log.Fatal().Msgf("Error: %s", err)
+// Connect creates a connection to the database.
+func Connect() {
+	URI := fmt.Sprintf("mongodb+srv://%s:%s@%s/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME)
+	clientOptions := options.Client().ApplyURI(URI)
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		log.Logger.Fatal().Msgf("Error connecting to DB: %s", err)
 	}
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS backend (configured BOOL);"); err != nil {
-		log.Fatal().Msgf("Error: %s", err)
-	}
+	db = client
+}
 
-	var conf bool
-
-	row := db.QueryRow("SELECT * FROM backend")
-	if err := row.Scan(&conf); err == sql.ErrNoRows || err != nil {
-		log.Fatal().Msgf("Error: %s", err)
-		log.Info().Msg("No config in database, inserting not configured to DB")
-		if err == sql.ErrNoRows {
-			if _, err := db.Exec("INSERT INTO backend (configured) VALUES(false)"); err != nil {
-				log.Fatal().Msgf("Error: %s", err)
-			}
-		}
+// Disconnect shuts down the current database connection.
+func Disconnect() {
+	if db == nil {
+		log.Logger.Warn().Msgf("No database connection to disconnect.")
+		return
 	}
+	err := db.Disconnect(context.Background())
+	if err != nil {
+		log.Logger.Fatal().Msgf("Error disconnecting from DB: %s", err)
+	}
+}
+
+// Test is used for testing the database package.
+func Test() {
+	//RemoveUser("Deus")
+	// if err != nil {
+	// 	log.Logger.Fatal().Msgf("Test failed")
+	// 	return
+	// }
 }
