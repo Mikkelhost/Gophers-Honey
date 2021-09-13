@@ -46,7 +46,7 @@
           <b-row>
             <b-col md="4" class="submit">
               <b-button
-                  :disabled="(userinfo.username.length == 0 || userinfo.password.length == 0)"
+                  :disabled="(userinfo.username.length === 0 || userinfo.password.length === 0)"
                   type="submit"
                   class="submit-button"
               >Login</b-button>
@@ -99,12 +99,12 @@ export default{
       axios.post(
         process.env.VUE_APP_API_ROOT+"/users/login", userinfoJson
       ).then(response => {
-        if (response.status == 200) {
+        if (response.status === 200) {
           that.loading = false
-          if (response.data.error == "") {
-            that.$cookies.set("session",response.data.token,"30min","/")
+          if (response.data.error === "") {
+            that.$cookies.set("token",response.data.token,"24h","/")
             router.push('/').catch(()=>{})
-          } else if (response.data.error == "Incorrect username or password") {
+          } else if (response.data.error === "Incorrect username or password") {
             that.alert = response.data.error
             that.showAlert("danger")
           } else {
