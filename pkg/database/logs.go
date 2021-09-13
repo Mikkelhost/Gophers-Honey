@@ -68,39 +68,24 @@ func GetAllLogs() ([]Log, error) {
 	return logList, nil
 }
 
-/*
-//TODO: work in progress
+// GetLog gets a single log from the database based on the given logID
 func GetLog(logID uint32) (Log, error) {
-	var logList []Log
-
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	results, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).Find(ctx, bson.M{})
-
-	if err != nil {
-		log.Logger.Warn().Msgf("Error retrieving log list: %s", err)
-		return nil, err
+	filter := bson.M{
+		"logID": logID,
 	}
+	var dlog Log
 
-	for results.Next(ctx) {
-		var dlog Log
+	result := db.Database(DB_NAME).Collection(DB_LOG_COLL).FindOne(ctx, filter)
 
-		if err = results.Decode(&dlog); err != nil {
-			log.Logger.Warn().Msgf("Error decoding result: %s", err)
-			return nil, err
-		}
-
-		logList = append(logList, dlog)
+	if err := result.Decode(&dlog); err != nil {
+		log.Logger.Warn().Msgf("Error decoding result: %s", err)
+		return Log{}, err
 	}
-
-	for _, dlog := range logList {
-		log.Logger.Debug().Msgf("Found log with log ID: %d", dlog.LogID)
-	}
-
 	return dlog, nil
 }
-*/
 
 // RemoveLog removes a log, with the specified ID, from the
 // database.
