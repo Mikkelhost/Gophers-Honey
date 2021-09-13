@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {BootstrapVue, BootstrapVueIcons} from 'bootstrap-vue'
+import {BootstrapVue, BootstrapVueIcons, NavbarPlugin} from 'bootstrap-vue'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import App from './App.vue'
@@ -8,6 +8,7 @@ import VueCookies from 'vue-cookies'
 
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
+Vue.use(NavbarPlugin)
 Vue.use(VueCookies)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'

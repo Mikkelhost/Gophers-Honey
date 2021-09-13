@@ -1,9 +1,16 @@
 <template>
-  <h3>Welcome to home</h3>
+  <div>
+    <Navbar/>
+    <p>Hello</p>
+    <Footer/>
+  </div>
 </template>
 
 <script>
+  import Navbar from "../components/Navbar";
+  import Footer from "../components/Footer";
   export default{
-    name: "Home"
+    name: "Home",
+    components: {Footer, Navbar},
   }
 </script>
