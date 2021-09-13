@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"net"
 	"time"
@@ -18,7 +19,7 @@ func createRandDeviceID() uint32 {
 	deviceID := rand.Uint32()
 	for isDeviceInCollection(deviceID, "deviceID", DB_DEV_COLL) {
 		deviceID = rand.Uint32()
-		log.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
+		log.Logger.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
 	}
 	return deviceID
 }
@@ -29,15 +30,29 @@ func ip2int(ipStr string) uint32 {
 	var long uint32
 	err := binary.Read(bytes.NewBuffer(net.ParseIP(ipStr).To4()), binary.BigEndian, &long)
 	if err != nil {
-		log.Warn().Msgf("Error converting IP to int: %s", err)
+		log.Logger.Warn().Msgf("Error converting IP to int: %s", err)
 		return 0
 	}
 	return long
 }
 
 // getContextWithTimeout is used to get a timeout context used when
-// communicating with MongoDB.
+// communicating with MongoDB.CompareHashAndPassword
 func getContextWithTimeout() (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	return ctx, cancel
+}
+
+// verifyPassword compares a plaintext password with a hashed and salted
+// password and returns true if they match
+func verifyPassword(hashedPwd string, plainPwd []byte) bool {
+	byteHash := []byte(hashedPwd)
+
+	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
+
+	if err != nil {
+		log.Logger.Warn().Str("hash", hashedPwd).Msg("Password does not match hash")
+		return false
+	}
+	return true
 }

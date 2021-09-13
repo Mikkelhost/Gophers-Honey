@@ -4,7 +4,6 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/crypto/bcrypt"
 	"strings"
 )
 
@@ -94,8 +93,8 @@ func GetPasswordHash(username string) (string, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 	log.Logger.Debug().Msgf("Getting hash for username: %s", username)
-	filter := User{
-		UsernameLower: strings.ToLower(username),
+	filter := bson.M{
+		"username_lower": strings.ToLower(username),
 	}
 
 	var user User
@@ -110,25 +109,11 @@ func GetPasswordHash(username string) (string, error) {
 	return user.PasswordHash, nil
 }
 
-// verifyPassword compares a plaintext password with a hashed and salted
-// password and returns true if they match
-func verifyPassword(hashedPwd string, plainPwd []byte) bool {
-	byteHash := []byte(hashedPwd)
-
-	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
-
-	if err != nil {
-		log.Logger.Warn().Str("hash", hashedPwd).Msgf("Password does not match hash")
-		return false
-	}
-	return true
-}
-
 // loginUser verifies a user login by checking whether the password
-func loginUser(username, stringPwd string) (bool, error) {
+func LoginUser(username, stringPwd string) (bool, error) {
 	pwd := []byte(stringPwd)
 
-	if IsUserInCollection(username, "username", DB_USER_COLL) {
+	if IsUserInCollection(username, "username_lower", DB_USER_COLL) {
 		hashedPwd, err := GetPasswordHash(username)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error retrieving password hash")
@@ -139,6 +124,11 @@ func loginUser(username, stringPwd string) (bool, error) {
 			return false, nil
 		}
 		return true, nil
+	} else {
+		//TODO Important to mention in report
+		dummyhash := "$2a$14$V4MAXIGnk26YP9xOlhxUn.PW45vqUzLtoE4eGz0TD1m1R6i6IcMEq"
+		_ = verifyPassword(dummyhash, []byte("dummypw"))
+		return false, nil
 	}
 	return false, nil
 }
