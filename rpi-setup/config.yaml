@@ -1,0 +1,6 @@
+Settings:
+    SomeRandomHostname: ChangedToSomething
+    DeviceID: 2469985480
+Services:
+    SSH: false
+    FTP: false

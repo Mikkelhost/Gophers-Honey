@@ -11,6 +11,11 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 )
 
+// Create struct to recive JSON format
+type responseStruct struct {
+	DeviceID uint32 `json:"device_id"`
+}
+
 /*
 	Get local ip of this RPI
 */
@@ -84,7 +89,7 @@ func getURLForC2Server() string {
 	Makes a post resquest to API
 	Receives JSON data with DeviceID for RPI
 */
-func api_call_addDevice() {
+func api_call_addDevice() uint32 {
 
 	ipAddr := get_ip().String()
 	// Create a Bearer string by appending string access token
@@ -112,10 +117,7 @@ func api_call_addDevice() {
 		log.Logger.Error().Msgf("[X]\tError on response.\n[ERROR] -", err)
 
 	}
-	// Create struct to recive JSON format
-	type responseStruct struct {
-		DeviceID uint32 `json:"device_id"`
-	}
+
 	var respStruct responseStruct
 
 	decoder := json.NewDecoder(resp.Body)
@@ -126,6 +128,8 @@ func api_call_addDevice() {
 	defer resp.Body.Close()
 
 	log.Logger.Info().Msgf("[+]\tDONE")
+
+	return respStruct.DeviceID
 }
 
 /*
@@ -133,8 +137,8 @@ func api_call_addDevice() {
 */
 func main() {
 	log.InitLog(true)
-	checkForInternet()
-	api_call_addDevice()
+	// checkForInternet()
+	createConfigFile()
 	// fmt.Println("\n [+] Server running!")
 	// http.HandleFunc("/", handler)
 	// log.Fatal(http.ListenAndServe(":8080", nil))
