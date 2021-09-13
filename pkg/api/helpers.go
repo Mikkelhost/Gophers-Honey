@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func checkForValidIp(ipStr string) (bool, error)  {
+func checkForValidIp(ipStr string) (bool, error) {
 	if strings.TrimSpace(ipStr) == "" {
 		return false, errors.New("Error: Empty IP")
 	}
@@ -50,6 +50,7 @@ func extractToken(request *http.Request) string {
 	bearToken := request.Header.Get("Authorization")
 	//normally Authorization the_token_xxx
 	strArr := strings.Split(bearToken, " ")
+	// TODO: Explain this.
 	if len(strArr) == 2 {
 		return strArr[1]
 	}
@@ -60,7 +61,7 @@ func verifyToken(request *http.Request) (*jwt.Token, error) {
 	tokenString := extractToken(request)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(SECRET_KEY), nil
 	})
@@ -76,7 +77,7 @@ func tokenValid(request *http.Request) error {
 		return err
 	}
 	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		return errors.New("Token invalid")
+		return errors.New("token invalid")
 	}
 	return nil
 }
@@ -93,10 +94,10 @@ func tokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// hashAndSaltPassword takes a password byte string and hashes and salts
+// HashAndSaltPassword takes a password byte string and hashes and salts
 // it using bcrypt. The hashed and salted password is returned as a string
 // for storage.
-func hashAndSaltPassword(pwd []byte) string {
+func HashAndSaltPassword(pwd []byte) string {
 	cost := 14
 	hash, err := bcrypt.GenerateFromPassword(pwd, cost)
 	if err != nil {

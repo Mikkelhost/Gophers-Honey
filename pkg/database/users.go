@@ -16,7 +16,6 @@ type User struct {
 }
 
 // AddNewUser adds a new user, with a specified username, to the database.
-// TODO: HANDLE password info, salt and hash info when adding user.
 func AddNewUser(username, hashedAndSaltedPwd string) {
 	if IsUserInCollection(username, "username_lower", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", username).Msgf("Username already in use")
@@ -93,6 +92,7 @@ func GetPasswordHash(username string) (string, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 	log.Logger.Debug().Msgf("Getting hash for username: %s", username)
+
 	filter := bson.M{
 		"username_lower": strings.ToLower(username),
 	}
@@ -102,14 +102,15 @@ func GetPasswordHash(username string) (string, error) {
 	result := db.Database(DB_NAME).Collection(DB_USER_COLL).FindOne(ctx, filter)
 
 	if err := result.Decode(&user); err != nil {
-		//log.Logger.Warn().Msgf("Error decoding result: %s", err)
+		log.Logger.Warn().Msgf("Error decoding result: %s", err)
 		return "", err
 	}
 
 	return user.PasswordHash, nil
 }
 
-// loginUser verifies a user login by checking whether the password
+// LoginUser verifies a user login by checking whether provided password
+// matches the hashed password stored under the specified username.
 func LoginUser(username, stringPwd string) (bool, error) {
 	pwd := []byte(stringPwd)
 
@@ -125,10 +126,12 @@ func LoginUser(username, stringPwd string) (bool, error) {
 		}
 		return true, nil
 	} else {
-		//TODO Important to mention in report
-		dummyhash := "$2a$14$V4MAXIGnk26YP9xOlhxUn.PW45vqUzLtoE4eGz0TD1m1R6i6IcMEq"
-		_ = verifyPassword(dummyhash, []byte("dummypw"))
+		// If the username is not valid we do a faux password hash compare
+		// in order for attackers not to be able to enumerate usernames by
+		// timing hash compare time.
+		// TODO: Important to mention in report
+		dummyHash := "$2a$14$V4MAXIGnk26YP9xOlhxUn.PW45vqUzLtoE4eGz0TD1m1R6i6IcMEq"
+		_ = verifyPassword(dummyHash, pwd)
 		return false, nil
 	}
-	return false, nil
 }

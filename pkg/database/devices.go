@@ -17,6 +17,13 @@ type Service struct {
 	SMB    bool `bson:"smb"`
 }
 
+// Configuration struct matches a device ID with enabled services. Is only
+// used when retrieving configuration data from the database.
+type Configuration struct {
+	DeviceID uint32  `bson:"device_id,omitempty"`
+	Services Service `bson:"services"`
+}
+
 // Device struct is used to specify device information.
 type Device struct {
 	GUID       primitive.ObjectID `bson:"_id,omitempty"`
@@ -57,10 +64,10 @@ func updateConfiguration(service Service, deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(deviceID, "deviceID", DB_CONF_COLL) {
+	if isDeviceInCollection(deviceID, "device_id", DB_CONF_COLL) {
 
 		filter := bson.M{
-			"deviceID": deviceID,
+			"device_id": deviceID,
 		}
 		config := bson.M{
 			"services": service,
@@ -73,21 +80,21 @@ func updateConfiguration(service Service, deviceID uint32) error {
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("deviceID", deviceID).
+				Uint32("device_id", deviceID).
 				Msgf("Error updating device config collection: %s", err)
 			return err
 		}
 	} else {
 
 		config := bson.M{
-			"deviceID": deviceID,
-			"services": service,
+			"device_id": deviceID,
+			"services":  service,
 		}
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, config)
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("deviceID", deviceID).
+				Uint32("device_id", deviceID).
 				Msgf("Error adding device config to config collection %s", err)
 			return err
 		}
@@ -119,7 +126,7 @@ func ConfigureDevice(service Service, deviceId uint32) error {
 
 	if err != nil {
 		log.Logger.Warn().
-			Uint32("deviceID", deviceId).
+			Uint32("device_id", deviceId).
 			Msgf("Error updating device: %s", err)
 		return err
 	}
@@ -184,7 +191,7 @@ func GetAllDevices() ([]Device, error) {
 	}
 
 	for _, device := range deviceList {
-		log.Logger.Debug().Msgf("Found device with deviceID: %d, ip: %s", device.DeviceID, device.IpStr)
+		log.Logger.Debug().Msgf("Found device with device ID: %d, ip: %s", device.DeviceID, device.IpStr)
 	}
 
 	return deviceList, nil
@@ -196,7 +203,7 @@ func RemoveDevice(devideID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(devideID, "devideID", DB_CONF_COLL) {
+	if isDeviceInCollection(devideID, "device_id", DB_CONF_COLL) {
 		device := Device{
 			DeviceID: devideID,
 		}
@@ -213,4 +220,36 @@ func RemoveDevice(devideID uint32) error {
 	}
 
 	return nil
+}
+
+// GetDeviceConfiguration retrieves the configuration information stored
+// for a specific device and returns which services are enabled/disabled
+// for that device.
+func GetDeviceConfiguration(deviceID uint32) (Service, error) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		"device_id": deviceID,
+	}
+
+	var result Configuration
+
+	temp := db.Database(DB_NAME).Collection(DB_CONF_COLL).FindOne(ctx, filter)
+
+	if err := temp.Decode(&result); err != nil {
+		log.Logger.Warn().Msgf("Error decoding result: %s", err)
+		return Service{}, err
+	}
+
+	log.Logger.Debug().Msgf("Found configurations for device ID %d:\n"+
+		"SSH enabled: %t\n"+
+		"FTP enabled: %t\n"+
+		"Telnet enabled: %t\n"+
+		"RDP enabled: %t\n"+
+		"SMB enabled: %t",
+		result.DeviceID, result.Services.SSH, result.Services.FTP,
+		result.Services.TELNET, result.Services.RDP, result.Services.SMB)
+
+	return result.Services, nil
 }
