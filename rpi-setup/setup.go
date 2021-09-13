@@ -3,92 +3,103 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net"
 	"net/http"
-	"os"
 	"os/exec"
 	"time"
+
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 )
 
+/*
+	Get local ip of this RPI
+*/
 func get_ip() net.IP {
+
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		log.Print(err)
-		fmt.Println("[X] Connection is down!")
+		log.Logger.Info().Err(err)
+		log.Logger.Error().Msgf("[X]\tConnection is down! [ERROR] - ", err)
 	}
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 
 	return localAddr.IP
 }
 
-func runCommand() {
-	cmd := exec.Command("bash", "-c", "sudo apt update && sudo apt upgrade -y")
-	cmd.Stderr = os.Stdout
-	cmd.Stdout = os.Stdout
+/*
+	Runs update command to update RPI
+*/
+func updateSystem() {
+	log.Logger.Info().Msg("[+]\tFetching updates!")
+	// fmt.Println("[+] Fetching updates!")
+	cmd := exec.Command("bash", "-c", "sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y &> /dev/null")
+	// cmd.Stderr = os.Stdout
+	// cmd.Stdout = os.Stdout
 	err := cmd.Run()
+	log.Logger.Info().Msgf("[+]\t[DONE] Updating")
 	if err != nil {
-		log.Println(err)
+		log.Logger.Error().Msgf("[X]\tCommand running failed [ERROR] - ", err)
 	}
 }
-func updateSystem() {
-	fmt.Println("[+] Fetching updates!")
-	runCommand()
-}
 
-// Get preferred outbound ip of this machine
+/*
+	Checks if RPI has internet
+*/
 func checkForInternet() {
 
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 
 	if err != nil {
-		log.Print(err)
-		fmt.Println("[X] Connection is down!")
+		log.Logger.Info().Err(err)
+		log.Logger.Error().Msgf("[X]\tConnection is down!")
 	} else {
-		fmt.Println("[+] Connection is up!")
-		localAddr := conn.LocalAddr().(*net.UDPAddr)
-		fmt.Printf("[**] IP is -> %s\n", localAddr.IP)
+		log.Logger.Info().Msgf("[+]\tConnection is up!")
+		log.Logger.Info().Msgf("[*]\tIP is -> %s", get_ip())
 		updateSystem()
 		defer conn.Close()
 	}
-
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	cmd := exec.Command("ls", "-al")
-	fmt.Fprintf(w, "%s %s\n", cmd.Run(), r.URL.Path[1:])
-	fmt.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL.Path[1:])
+/*
+	Returns URL
+*/
+func getURLForC2Server() string {
 
-}
-
-func api_call_addDevice() {
-
-	ipAddr := get_ip().String()
 	c2_host := "127.0.0.1"
 	url := "http://" + c2_host + ":8000/api/devices/addDevice"
 
 	timeout := 1 * time.Second
 	conn, err := net.DialTimeout("tcp", c2_host+":8000", timeout)
 	if err != nil {
-		log.Println("Site unreachable, error: ", err)
-		log.Fatal(1)
+		log.Logger.Error().Msgf("[+]\tSite unreachable, [ERROR] -", err)
+		log.Logger.Fatal()
 	}
-	fmt.Printf("\n [+] C2 is Alive -> %s", conn.LocalAddr().String())
+	log.Logger.Info().Msgf("[+]\tC2 is Alive -> %s", conn.LocalAddr().String())
+
+	return url
+}
+
+/*
+	Makes API call to C&C server
+	Makes a post resquest to API
+	Receives JSON data with DeviceID for RPI
+*/
+func api_call_addDevice() {
+
+	ipAddr := get_ip().String()
 	// Create a Bearer string by appending string access token
 	var bearer = "Bearer " + "XxPFUhQ8R7kKhpgubt7v"
 
 	//Encode the data
 	postBody, _ := json.Marshal(map[string]string{
-		"deviceKey": "XxPFUhQ8R7kKhpgubt7v",
-		"ip_str":    ipAddr,
+		"ip_str": ipAddr,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 
 	// Create a new request using http
-	req, err := http.NewRequest("POST", url, responseBody)
+	req, err := http.NewRequest("POST", getURLForC2Server(), responseBody)
 	if err != nil {
-		log.Println("Error on response.\n[ERROR] -", err)
+		log.Logger.Error().Msgf("[X]\tError on response.\n[ERROR] -", err)
 
 	}
 	// add authorization header to the req
@@ -98,46 +109,34 @@ func api_call_addDevice() {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Error on response.\n[ERROR] -", err)
+		log.Logger.Error().Msgf("[X]\tError on response.\n[ERROR] -", err)
 
 	}
+	// Create struct to recive JSON format
 	type responseStruct struct {
 		DeviceID uint32 `json:"device_id"`
 	}
 	var respStruct responseStruct
 
 	decoder := json.NewDecoder(resp.Body)
-	// decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&respStruct); err != nil {
-		log.Println("Error in decode")
+		log.Logger.Error().Msgf("[X]\tError in decode.\n[ERROR] -", err)
 	}
-	fmt.Printf("\n\n Respons -> %d", respStruct.DeviceID)
-	fmt.Printf("\n\n NEW Respons -> %s", decoder)
+	log.Logger.Info().Msgf("[*]\tNew DeviceID -> %d", respStruct.DeviceID)
 	defer resp.Body.Close()
 
-	// resp, err := http.Post(url,"application/json", responseBody)
-
-	// //Handle Error
-	// if err != nil {
-	// 	log.Fatalf("An Error Occured %v", err)
-	// }
-	// defer resp.Body.Close()
-
-	// //Read the response body
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// sb := string(body)
-	// log.Printf(sb)
-	// }
-	fmt.Println("[+] DONE")
+	log.Logger.Info().Msgf("[+]\tDONE")
 }
 
+/*
+	Runs fucntions in order.
+*/
 func main() {
+	log.InitLog(true)
+	checkForInternet()
 	api_call_addDevice()
 	// fmt.Println("\n [+] Server running!")
 	// http.HandleFunc("/", handler)
 	// log.Fatal(http.ListenAndServe(":8080", nil))
-	// checkForInternet()
+
 }
