@@ -31,4 +31,5 @@ func SetupRouters(r *mux.Router, c *config.Config) {
 	devicesSubrouter(r)
 	usersSubrouter(r)
 	configSubrouter(r)
+	logsSubrouter(r)
 }

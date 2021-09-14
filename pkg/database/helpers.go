@@ -24,6 +24,19 @@ func createRandDeviceID() uint32 {
 	return deviceID
 }
 
+// createRandLogID pseudo-randomly generates a number which is checked
+// against the log IDs currently in the collection. Returns when no
+// collision is detected.
+func createRandLogID() uint32 {
+	rand.Seed(time.Now().Unix())
+	logID := rand.Uint32()
+	for isLogInCollection(logID, "logID", DB_LOG_COLL) {
+		logID = rand.Uint32()
+		log.Logger.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
+	}
+	return logID
+}
+
 // ip2int converts an IP address from its string representation to its
 // integer value.
 func ip2int(ipStr string) uint32 {

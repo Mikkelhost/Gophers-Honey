@@ -18,8 +18,8 @@ All functions should write json data to the responsewriter
 type UserAuth struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
-	Token string `json:"token,omitempty"`
-	Error string  `json:"error"`
+	Token    string `json:"token,omitempty"`
+	Error    string `json:"error"`
 }
 
 func usersSubrouter(r *mux.Router) {
@@ -45,17 +45,17 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&userInfo); err != nil {
-		log.Logger.Warn().Msgf("Failehttps://tarunbatra.com/data/images/Error-messages-in-login-process-Privacy-and-Security/twitter-github-spotify.pngd decoding json: %s", err)
+		log.Logger.Warn().Msgf("Failed decoding json: %s", err)
 		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
 		return
 	}
 	log.Logger.Debug().Msgf("Username: %s, Password: %s", userInfo.Username, userInfo.Password)
-	loginStatus, err := database.LoginUser(userInfo.Username,userInfo.Password)
-	log.Logger.Debug().Bool("loginStatus",loginStatus).Msg("GetPasswordHash result")
+	loginStatus, err := database.LoginUser(userInfo.Username, userInfo.Password)
+	log.Logger.Debug().Bool("loginStatus", loginStatus).Msg("GetPasswordHash result")
 	if err != nil {
 		log.Logger.Warn().Msgf("Error Loggin in user: /%s", err)
 		//TODO return something to user
-		json.NewEncoder(w).Encode(UserAuth{Error: fmt.Sprintf("%s",err)})
+		json.NewEncoder(w).Encode(UserAuth{Error: fmt.Sprintf("%s", err)})
 		return
 	}
 	if !loginStatus {
@@ -66,8 +66,8 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
 	token, err := createToken(userInfo.Username)
 	if err != nil {
-		log.Logger.Warn().Msgf("Error creating token: %s",err)
-		json.NewEncoder(w).Encode(UserAuth{Error: fmt.Sprintf("%s",err)})
+		log.Logger.Warn().Msgf("Error creating token: %s", err)
+		json.NewEncoder(w).Encode(UserAuth{Error: fmt.Sprintf("%s", err)})
 		return
 	}
 	json.NewEncoder(w).Encode(UserAuth{Token: token})
