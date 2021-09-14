@@ -75,8 +75,15 @@ export default{
       loading: false,
     }
   },
-  mounted() {
-
+  async beforeCreate() {
+    //Checking if the service has been configured yet
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config/getConfig")
+    if (resp.status === 200) {
+      window.console.log(resp.data.configured)
+      if (!resp.data.configured) {
+        router.push("/setup")
+      }
+    }
   },
   methods: {
     countDownChanged: function (dismissCountDown) {

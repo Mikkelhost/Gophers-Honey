@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/gorilla/mux"
 	"os"
@@ -14,6 +15,8 @@ var (
 	SECRET_KEY = getenv("SECRET_KEY", "UWKvPGDYd2zmAmbYQB2K")
 )
 
+var conf *config.Config
+
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)
 	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
@@ -23,7 +26,9 @@ func getenv(key, fallback string) string {
 	return value
 }
 
-func SetupRouters(r *mux.Router) {
+func SetupRouters(r *mux.Router, c *config.Config) {
+	conf = c
 	devicesSubrouter(r)
 	usersSubrouter(r)
+	configSubrouter(r)
 }
