@@ -4,24 +4,52 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
 
 type Log struct {
-	GUID      primitive.ObjectID `bson:"_id, omitempty"`
-	LogID     uint32             `bson:"log_id, omitempty"`
-	TimeStamp time.Time          `bson:"time_stamp, omitempty"`
-	Message   string             `bson:"message, omitempty"`
+	GUID      primitive.ObjectID `bson:"_id,omitempty"`
+	DeviceID  uint32             `bson:"device_id,omitempty" json:"device_id"`
+	LogID     uint32             `bson:"log_id,omitempty" json:"log_id"`
+	TimeStamp time.Time          `bson:"time_stamp,omitempty" json:"time_stamp"`
+	Message   string             `bson:"message,omitempty" json:"message"`
+}
+
+// isDeviceInCollection reports whether a document with the specified
+// log ID occurs in the given collection.
+func isLogInCollection(value uint32, key, collection string) bool {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		key: value,
+	}
+
+	countOptions := options.Count().SetLimit(1)
+	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error counting documents: %s", err)
+	}
+
+	if count > 0 {
+		return true
+	}
+
+	return false
 }
 
 // AddLog assigns a log with timestamp and message tied to a device ID and adds it to the
 // database.
-// TODO: timestamp needs proper implementation
-func AddLog(logID uint32, timeStamp time.Time, message string) (uint32, error) {
+// TODO: timestamp needs proper implementation + message
+func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
+	logID := createRandLogID()
 	dlog := Log{
+		DeviceID:  deviceID,
 		LogID:     logID,
 		TimeStamp: timeStamp,
 		Message:   message,
@@ -29,10 +57,10 @@ func AddLog(logID uint32, timeStamp time.Time, message string) (uint32, error) {
 	_, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).InsertOne(ctx, dlog)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return logID, nil
+	return nil
 }
 
 // GetAllLogs retrieves and returns a list of all logs currently in
@@ -93,7 +121,7 @@ func RemoveLog(logID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(logID, "logID", DB_CONF_COLL) {
+	if isLogInCollection(logID, "log_id", DB_LOG_COLL) {
 		dlog := Log{
 			LogID: logID,
 		}

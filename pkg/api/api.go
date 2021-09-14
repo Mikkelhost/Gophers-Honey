@@ -26,4 +26,5 @@ func getenv(key, fallback string) string {
 func SetupRouters(r *mux.Router) {
 	devicesSubrouter(r)
 	usersSubrouter(r)
+	logsSubrouter(r)
 }
