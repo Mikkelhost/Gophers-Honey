@@ -223,9 +223,8 @@ func RemoveDevice(devideID uint32) error {
 }
 
 // GetDeviceConfiguration retrieves the configuration information stored
-// for a specific device and returns which services are enabled/disabled
-// for that device.
-func GetDeviceConfiguration(deviceID uint32) (Service, error) {
+// for a specific device.
+func GetDeviceConfiguration(deviceID uint32) (Configuration, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
@@ -233,13 +232,13 @@ func GetDeviceConfiguration(deviceID uint32) (Service, error) {
 		"device_id": deviceID,
 	}
 
-	var result Configuration
+	var configuration Configuration
 
-	temp := db.Database(DB_NAME).Collection(DB_CONF_COLL).FindOne(ctx, filter)
+	result := db.Database(DB_NAME).Collection(DB_CONF_COLL).FindOne(ctx, filter)
 
-	if err := temp.Decode(&result); err != nil {
-		log.Logger.Warn().Msgf("Error decoding result: %s", err)
-		return Service{}, err
+	if err := result.Decode(&configuration); err != nil {
+		log.Logger.Warn().Msgf("Error decoding configuration: %s", err)
+		return Configuration{}, err
 	}
 
 	log.Logger.Debug().Msgf("Found configurations for device ID %d:\n"+
@@ -248,8 +247,8 @@ func GetDeviceConfiguration(deviceID uint32) (Service, error) {
 		"Telnet enabled: %t\n"+
 		"RDP enabled: %t\n"+
 		"SMB enabled: %t",
-		result.DeviceID, result.Services.SSH, result.Services.FTP,
-		result.Services.TELNET, result.Services.RDP, result.Services.SMB)
+		configuration.DeviceID, configuration.Services.SSH, configuration.Services.FTP,
+		configuration.Services.TELNET, configuration.Services.RDP, configuration.Services.SMB)
 
-	return result.Services, nil
+	return configuration, nil
 }

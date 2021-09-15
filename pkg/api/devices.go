@@ -15,6 +15,7 @@ The devices API handles everything about devices/raspberry pis
 
 All functions should write json data to the responsewriter
 */
+
 type DeviceAuth struct {
 	DeviceId  uint32 `json:"device_id"`
 	DeviceKey string `json:"deviceKey"`
@@ -26,9 +27,10 @@ var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
 // Sets up a devices API subrouter
 func devicesSubrouter(r *mux.Router) {
 	deviceAPI := r.PathPrefix("/api/devices").Subrouter()
-	deviceAPI.HandleFunc("/getdevices", tokenAuthMiddleware(getDevices)).Methods("GET")
+	deviceAPI.HandleFunc("/getDevices", tokenAuthMiddleware(getDevices)).Methods("GET")
 	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
+	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("POST")
 }
 
 func getDevices(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +53,36 @@ func getDevices(w http.ResponseWriter, r *http.Request) {
 	w.Write(devicesJson)
 }
 
+// getDeviceConfiguration retrieves the configuration information stored
+// for a specific device and sends a JSON response containing the device
+// configuration to the requester.
+func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
+	var configuration database.Configuration
+	var deviceID uint32
+	var err error
+
+	decoder := json.NewDecoder(r.Body)
+
+	if err = decoder.Decode(&deviceID); err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+	}
+
+	configuration, err = database.GetDeviceConfiguration(deviceID)
+
+	if err != nil {
+		return
+	}
+
+	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d, \"services\": {"+
+		"\"SSH:\": %t, "+
+		"\"FTP:\": %t, "+
+		"\"Telnet:\": %t, "+
+		"\"RDP:\": %t, "+
+		"\"SMB:\": %t }",
+		deviceID, configuration.Services.SSH, configuration.Services.FTP,
+		configuration.Services.TELNET, configuration.Services.RDP, configuration.Services.SMB)))
+}
+
 func configureDevice(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Du er færdig mester, ingen konfiguration til dig!"))
 }
@@ -62,8 +94,8 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var ipStruct = database.Device{}
 	if err := decoder.Decode(&ipStruct); err != nil {
-		log.Logger.Warn().Msgf("Failed decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
 		return
 	}
 
