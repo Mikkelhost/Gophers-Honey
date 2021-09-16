@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/binary"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"net"
@@ -68,4 +69,36 @@ func verifyPassword(hashedPwd string, plainPwd []byte) bool {
 		return false
 	}
 	return true
+}
+
+// stringAppearsInArray checks whether a given string occurs in an array.
+func stringAppearsInArray(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+// getIndexNames returns the index names of a given collection.
+func getIndexNames(collection string) ([]string, error) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	var indexNames []string
+	results, _ := db.Database(DB_NAME).Collection(collection).Indexes().List(ctx)
+
+	for results.Next(ctx) {
+		var indexName mongo.IndexSpecification
+
+		err := results.Decode(&indexName)
+
+		indexNames = append(indexNames, indexName.Name)
+		if err != nil {
+			log.Logger.Warn().Msgf("Error decoding indexes: %s", err)
+			return nil, nil
+		}
+	}
+	return indexNames, nil
 }

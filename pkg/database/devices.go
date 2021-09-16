@@ -199,13 +199,13 @@ func GetAllDevices() ([]Device, error) {
 
 // RemoveDevice removes a device, with the specified device ID, from the
 // database.
-func RemoveDevice(devideID uint32) error {
+func RemoveDevice(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(devideID, "device_id", DB_CONF_COLL) {
+	if isDeviceInCollection(deviceID, "device_id", DB_CONF_COLL) {
 		device := Device{
-			DeviceID: devideID,
+			DeviceID: deviceID,
 		}
 
 		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).DeleteOne(ctx, device)
@@ -215,7 +215,7 @@ func RemoveDevice(devideID uint32) error {
 			return err
 		}
 	} else {
-		log.Logger.Warn().Msgf("Device ID: %d not found", devideID)
+		log.Logger.Warn().Msgf("Device ID: %d not found", deviceID)
 		// TODO: Perhaps we need to return an error here.
 	}
 
