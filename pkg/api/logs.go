@@ -17,7 +17,7 @@ All functions should write json data to the responsewriter
 */
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
-	logAPI.HandleFunc("/getlogs", tokenAuthMiddleware(getLogs)).Methods("GET")
+	logAPI.HandleFunc("/getlogs", TokenAuthMiddleware(getLogs)).Methods("GET")
 	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
 }
 

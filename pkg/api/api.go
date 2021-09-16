@@ -15,8 +15,6 @@ var (
 	SECRET_KEY = getenv("SECRET_KEY", "UWKvPGDYd2zmAmbYQB2K")
 )
 
-var conf *config.Config
-
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)
 	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
@@ -27,9 +25,10 @@ func getenv(key, fallback string) string {
 }
 
 func SetupRouters(r *mux.Router, c *config.Config) {
-	conf = c
+	config.Conf = c
 	devicesSubrouter(r)
 	usersSubrouter(r)
 	configSubrouter(r)
 	logsSubrouter(r)
+	imageSubRouter(r)
 }

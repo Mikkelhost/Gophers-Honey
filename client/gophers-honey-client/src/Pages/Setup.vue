@@ -66,7 +66,7 @@
                   <b-form-input
                       id="input-3"
                       v-model="form.userInfo.email"
-                      type="text"
+                      type="email"
                       placeholder="Email address"
                       required
                       @input.native="checkUserForm()"
@@ -212,7 +212,27 @@
                 <b-button @click="$refs.setupCarousel.prev()" class="carousel-button" style="margin-right: 30px">Prev</b-button>
                 <b-button type="submit" class="carousel-button">Submit</b-button>
               </div>
-
+            </b-form-row>
+            <template v-if="loading">
+              <b-form-row>
+                <b-col class="text-center">
+                  <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                </b-col>
+              </b-form-row>
+            </template>
+            <b-form-row>
+              <b-col class="input">
+                <b-alert
+                    :show="dismissCountDown"
+                    dismissible
+                    :variant="variant"
+                    fade
+                    @dismissed="dismissCountDown=0"
+                    @dismiss-count-down="countDownChanged"
+                >
+                  {{ alert }}
+                </b-alert>
+              </b-col>
             </b-form-row>
           </template>
         </b-carousel-slide>
@@ -225,6 +245,9 @@
 </template>
 
 <script>
+import axios from "axios";
+import {router} from "../router";
+
 export default {
   name: "Setup",
   data() {
@@ -244,10 +267,31 @@ export default {
           port: null,
         }
       },
-      formValid: false
+      formValid: false,
+      dismissCountDown: 0,
+      dismissSecs: 3,
+      alert: "",
+      variant: "",
+      loading: false,
+    }
+  },
+  async beforeCreate() {
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config/getConfig")
+    if (resp.status === 200) {
+      window.console.log(resp.data.configured)
+      if (resp.data.configured) {
+        router.push("/")
+      }
     }
   },
   methods: {
+    countDownChanged: function (dismissCountDown) {
+      this.dismissCountDown = dismissCountDown
+    },
+    showAlert: function (variant) {
+      this.variant = variant
+      this.dismissCountDown = this.dismissSecs
+    },
     checkUserForm: function() {
       if(this.form.userInfo.firstName.length === 0 || this.form.userInfo.lastName.length === 0 ||
           this.form.userInfo.email.length === 0 || this.form.userInfo.username.length === 0 ||
@@ -261,7 +305,26 @@ export default {
     },
     submitSetup: function() {
       window.console.log(this.form)
-    }
+      let that = this
+      let setupInfoJson = JSON.stringify(this.form)
+      this.loading = true
+      this.dismissCountDown = 0
+      axios.post(
+          process.env.VUE_APP_API_ROOT+"/config/setupService", setupInfoJson
+      ).then(response => {
+        if (response.status === 200) {
+          that.loading = false
+          window.console.log(response.data.error)
+          if (response.data.error === "") {
+            that.$cookies.set("token",response.data.token,"24h","/")
+            router.push('/').catch(()=>{})
+          } else {
+            that.alert = response.data.error
+            that.showAlert("danger")
+          }
+        }
+      })
+    },
   }
 }
 </script>
@@ -293,7 +356,81 @@ export default {
   box-shadow: 2px 3px 15px 5px #888888;
 }
 
+@media screen and (max-height: 820px){
+  .setup-carousel{
+    top: 35%;
+  }
+}
+
+@media screen and (max-height: 685px){
+  .setup-carousel{
+    top: 40%;
+  }
+}
+@media screen and (max-height: 600px){
+  .setup-carousel{
+    top: 45%;
+  }
+}
+
 .carousel-button{
   width: 75px;
+}
+
+.lds-ellipsis {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: auto;
+}
+.lds-ellipsis div {
+  position: absolute;
+  top: 33px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #7e7e7e;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+.lds-ellipsis div:nth-child(1) {
+  left: 8px;
+  animation: lds-ellipsis1 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(2) {
+  left: 8px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(3) {
+  left: 32px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(4) {
+  left: 56px;
+  animation: lds-ellipsis3 0.6s infinite;
+}
+@keyframes lds-ellipsis1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes lds-ellipsis3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+@keyframes lds-ellipsis2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
 }
 </style>

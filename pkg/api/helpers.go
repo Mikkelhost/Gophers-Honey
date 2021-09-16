@@ -82,7 +82,7 @@ func tokenValid(request *http.Request) error {
 	return nil
 }
 
-func tokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := tokenValid(r)
 		if err != nil {

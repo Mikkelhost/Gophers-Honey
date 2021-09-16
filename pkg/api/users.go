@@ -15,9 +15,13 @@ The users API handles everything about users
 All functions should write json data to the responsewriter
 */
 
-type UserAuth struct {
+type User struct {
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
+	Email     string `json:"email,omitempty"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
+	ConfirmPw string `json:"confirmPw,omitempty"`
 	Token    string `json:"token,omitempty"`
 	Error    string `json:"error"`
 }
@@ -38,7 +42,7 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 // It returns a JWT token for the user to use as a session cookie.
 // The JWT will be used forward as authentication for authenticated API endpoints.
 func loginUser(w http.ResponseWriter, r *http.Request) {
-	var userInfo = UserAuth{}
+	var userInfo = User{}
 	enableCors(&w)
 	if r.Method == "OPTIONS" {
 		return
@@ -55,22 +59,22 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Logger.Warn().Msgf("Error Loggin in user: /%s", err)
 		//TODO return something to user
-		json.NewEncoder(w).Encode(UserAuth{Error: fmt.Sprintf("%s", err)})
+		json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
 		return
 	}
 	if !loginStatus {
 		log.Logger.Debug().Msg("Incorrect username or password")
-		json.NewEncoder(w).Encode(UserAuth{Error: "Incorrect username or password"})
+		json.NewEncoder(w).Encode(User{Error: "Incorrect username or password"})
 		return
 	}
 
 	token, err := createToken(userInfo.Username)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error creating token: %s", err)
-		json.NewEncoder(w).Encode(UserAuth{Error: fmt.Sprintf("%s", err)})
+		json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
 		return
 	}
-	json.NewEncoder(w).Encode(UserAuth{Token: token})
+	json.NewEncoder(w).Encode(User{Token: token})
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {

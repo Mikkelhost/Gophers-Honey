@@ -27,8 +27,8 @@ var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
 // Sets up a devices API subrouter
 func devicesSubrouter(r *mux.Router) {
 	deviceAPI := r.PathPrefix("/api/devices").Subrouter()
-	deviceAPI.HandleFunc("/getDevices", tokenAuthMiddleware(getDevices)).Methods("GET")
-	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST")
+	deviceAPI.HandleFunc("/getDevices", TokenAuthMiddleware(getDevices)).Methods("GET")
+	deviceAPI.HandleFunc("/configure", TokenAuthMiddleware(configureDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("POST")
 }
