@@ -58,6 +58,31 @@ func isDeviceInCollection(value uint32, key, collection string) bool {
 	return false
 }
 
+// setDefaultConfiguration sets a default configuration when a new PI is connected
+func setDefaultConfiguration(deviceID uint32) error {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	services := Service{
+		SSH:    false,
+		FTP:    false,
+		TELNET: false,
+		RDP:    false,
+		SMB:    false,
+	}
+	configuration := Configuration{
+		DeviceID: deviceID,
+		Services: services,
+	}
+
+	_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, configuration)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error adding default configuration to config collection")
+		return err
+	}
+	return nil
+}
+
 // updateConfiguration updates the device configuration data contained in
 // the "configuration_collection" collection.
 func updateConfiguration(service Service, deviceID uint32) error {
@@ -156,6 +181,11 @@ func AddDevice(ipStr string) (uint32, error) {
 	}
 	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).InsertOne(ctx, device)
 
+	if err != nil {
+		return 0, err
+	}
+
+	err = setDefaultConfiguration(deviceID)
 	if err != nil {
 		return 0, err
 	}
