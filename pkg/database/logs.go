@@ -61,7 +61,7 @@ func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 		if stringAppearsInArray(ttlIndexName, indexNames) {
 			ttlIndexSet = true
 		} else {
-			err = setTTLIndex(7889231) // 7889231 seconds = 3 month expiration date
+			err = setTTLIndex(7889231) // 7889231 seconds = 3 months default expiration date
 			if err != nil {
 				return err
 			}
@@ -111,8 +111,8 @@ func GetAllLogs() ([]Log, error) {
 		logList = append(logList, deviceLog)
 	}
 
-	for _, dlog := range logList {
-		log.Logger.Debug().Msgf("Found log with log ID: %d", dlog.LogID)
+	for _, deviceLog := range logList {
+		log.Logger.Debug().Msgf("Found log with log ID: %d", deviceLog.LogID)
 	}
 
 	return logList, nil
@@ -178,6 +178,29 @@ func setTTLIndex(seconds int32) error {
 	}
 
 	_, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).Indexes().CreateOne(ctx, ttlIndex)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error creating TTL index: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+// UpdateTTLIndex updates the "setExpireAfterSeconds" index of the
+// "log_collection" collection by removing and resetting the index.
+func UpdateTTLIndex(seconds int32) error {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	_, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).Indexes().DropOne(ctx, ttlIndexName)
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error removing TTL index: &s", err)
+		return err
+	}
+
+	err = setTTLIndex(seconds)
+
 	if err != nil {
 		return err
 	}
