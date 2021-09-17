@@ -11,7 +11,7 @@ type Config struct {
 	Configured bool `yaml:"configured,omitempty"`
 }
 
-var conf *Config
+var Conf *Config
 func CreateConfFile(){
 	// Checking if file already exists
 	if _, err := os.Stat("config.yml"); os.IsNotExist(err) {
@@ -43,6 +43,29 @@ func GetServiceConfig () (*Config, error){
 		log.Logger.Warn().Msgf("Error unmarshalling yaml: %s", err)
 		return nil, err
 	}
-	conf = &config
+	Conf = &config
 	return &config, nil
+}
+
+func SetConfig(config Config) error{
+	log.Logger.Debug().Msgf("Config to be set: %v",config)
+	Conf = &config
+	log.Logger.Debug().Msgf("conf: %v", *Conf)
+	f, err := os.OpenFile("config.yml",os.O_RDWR, 0644)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error opening config.yml: %s", err)
+		return err
+	}
+	yaml, err := yaml.Marshal(Conf)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error creating yaml string: %s", err)
+		return err
+	}
+	if _, err := f.Write(yaml); err != nil {
+		log.Logger.Warn().Msgf("Error writing conf",err)
+		return err
+	}
+
+	f.Close()
+	return nil
 }

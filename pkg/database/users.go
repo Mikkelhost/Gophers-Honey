@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -10,33 +11,40 @@ import (
 // TODO: ADD error handling for usernames (empty string "", special chars, etc.).
 
 type User struct {
+	FirstName     string `bson:"first_name"`
+	LastName      string `bson:"last_name"`
+	Email         string `bson:"email"`
 	Username      string `bson:"username"`
 	UsernameLower string `bson:"username_lower"`
 	PasswordHash  string `bson:"password_hash"`
 }
 
 // AddNewUser adds a new user, with a specified username, to the database.
-func AddNewUser(username, hashedAndSaltedPwd string) {
-	if IsUserInCollection(username, "username_lower", DB_USER_COLL) {
-		log.Logger.Warn().Str("username", username).Msgf("Username already in use")
-		return
+func AddNewUser(user User, hashedAndSaltedPwd string) error {
+	if IsUserInCollection(strings.ToLower(user.Username), "username_lower", DB_USER_COLL) {
+		log.Logger.Warn().Str("username", user.Username).Msgf("Username already in use")
+		return errors.New("Username already exists")
 	}
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	user := User{
-		Username:      username,
-		UsernameLower: strings.ToLower(username),
+	dbUser := User{
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Email:         user.Email,
+		Username:      user.Username,
+		UsernameLower: strings.ToLower(user.Username),
 		PasswordHash:  hashedAndSaltedPwd,
 	}
 
-	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, user)
+	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, dbUser)
 
 	if err != nil {
 		log.Logger.Warn().Msgf("Error adding username: %s", err)
-		return
+		return err
 	}
+	return nil
 }
 
 // IsUserInCollection reports whether a document with the specified
@@ -66,7 +74,7 @@ func IsUserInCollection(value, key, collection string) bool {
 // RemoveUser removes a user, with the specified username, from the
 // database.
 func RemoveUser(username string) {
-	if !IsUserInCollection(username, "username_lower", DB_USER_COLL) {
+	if !IsUserInCollection(strings.ToLower(username), "username_lower", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", username).Msgf("Username not found")
 		return
 	}
@@ -75,7 +83,7 @@ func RemoveUser(username string) {
 	defer cancel()
 
 	filter := bson.M{
-		"username": username,
+		"username_lower": strings.ToLower(username),
 	}
 
 	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).DeleteOne(ctx, filter)
