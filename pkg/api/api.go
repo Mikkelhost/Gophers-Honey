@@ -1,9 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
-	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/gorilla/mux"
+	logs "log"
 	"os"
 )
 
@@ -17,8 +18,8 @@ var (
 
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)
-	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
 	if len(value) == 0 {
+		logs.Println(fmt.Sprintf("Environment variable %s not set. Defaulting to %s", key, fallback))
 		return fallback
 	}
 	return value

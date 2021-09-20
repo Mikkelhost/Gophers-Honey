@@ -22,6 +22,7 @@ func main() {
 	// Set up server.
 	log.Logger.Info().Msg("Running server")
 	c, err := config.GetServiceConfig()
+
 	if err != nil {
 		log.Logger.Fatal().Msgf("Error getting config: %s", err)
 	}
@@ -29,6 +30,6 @@ func main() {
 		log.Logger.Info().Msg("Service has not yet been configured, access the webpage and follow " +
 			"the setup")
 	}
-	//piimage.InsertConfig(piimage.PiConf{}) //Pi image test
+
 	httpserver.RunServer(c)
 }

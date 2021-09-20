@@ -2,6 +2,7 @@
   <div>
     <Navbar/>
     <apexchart width="500" type="bar" :options="options" :series="series"></apexchart>
+    test test test
     <Footer/>
   </div>
 </template>
@@ -19,7 +20,7 @@
             id: 'vuechart-example'
           },
           xaxis: {
-            categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998]
+            categories: [1991, 1992, 1994, 1995, 1996, 1997, 1998]
           }
         },
         series: [{

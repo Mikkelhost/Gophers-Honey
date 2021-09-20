@@ -13,11 +13,12 @@ import (
 /*
 The logs API handles everything about logs/raspberry pis
 
-All functions should write json data to the responsewriter
+All functions should write json data to the responseWriter
 */
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
 	logAPI.HandleFunc("/getlogs", tokenAuthMiddleware(getLogs)).Methods("GET")
+	logAPI.HandleFunc("/updateTTLIndex", tokenAuthMiddleware(updateTTLIndex)).Methods("POST")
 	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
 }
 
@@ -29,8 +30,8 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 	var logStruct database.Log
 
 	if err := decoder.Decode(&logStruct); err != nil {
-		log.Logger.Warn().Msgf("Failed decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
 		return
 	}
 
@@ -47,6 +48,7 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// getLogs retrieves all logs currently present in the database.
 func getLogs(w http.ResponseWriter, r *http.Request) {
 	var logs []database.Log
 	logs, err := database.GetAllLogs()
@@ -65,4 +67,30 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(logsJson)
+}
+
+// updateTTLIndex updates the "setExpireAfterSeconds" index of the
+//// "log_collection" collection
+func updateTTLIndex(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+
+	var update struct {
+		ExpireAfterSeconds int32 `json:"expire_after_seconds"`
+	}
+
+	err := decoder.Decode(&update)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		return
+	}
+
+	log.Logger.Debug().Int32("expireAfterSeconds", update.ExpireAfterSeconds).Msgf("Value decoded as:")
+
+	err = database.UpdateTTLIndex(update.ExpireAfterSeconds)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		return
+	}
 }

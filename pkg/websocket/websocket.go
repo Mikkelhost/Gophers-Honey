@@ -38,13 +38,8 @@ func SetupRouter(r *mux.Router) {
 	go pool.Start()
 
 	ws := r.PathPrefix("/ws").Subrouter()
-	pi := r.PathPrefix("/pi").Subrouter()
 
 	ws.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(pool, w, r)
-	})
-
-	pi.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(pool, w, r)
 	})
 }

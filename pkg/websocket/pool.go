@@ -8,20 +8,14 @@ import(
 type Pool struct {
   Register    chan *Client
   Unregister  chan *Client
-  RegisterPi  chan *RPi
-  UnregisterPi  chan *RPi
   Clients     map[*Client]bool
-  RPis        map[*RPi]bool
 }
 
 func NewPool() *Pool {
   return &Pool{
-    RegisterPi:  make(chan *RPi),
-    UnregisterPi:  make(chan *RPi),
     Register: make(chan *Client),
     Unregister: make(chan *Client),
     Clients: make(map[*Client]bool),
-    RPis: make(map[*RPi]bool),
   }
 }
 

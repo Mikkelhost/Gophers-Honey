@@ -6,6 +6,7 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	logs "log"
 	"os"
 )
 
@@ -27,8 +28,8 @@ var (
 // fallback is used as a default value.
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)
-	log.Logger.Debug().Msgf("Env %s not set, using default of %s", key, fallback)
 	if len(value) == 0 {
+		logs.Println(fmt.Sprintf("Environment variable %s not set. Defaulting to %s", key, fallback))
 		return fallback
 	}
 	return value

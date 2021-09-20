@@ -23,7 +23,7 @@ type User struct {
 func AddNewUser(user User, hashedAndSaltedPwd string) error {
 	if IsUserInCollection(strings.ToLower(user.Username), "username_lower", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", user.Username).Msgf("Username already in use")
-		return errors.New("Username already exists")
+		return errors.New("username already exists")
 	}
 
 	ctx, cancel := getContextWithTimeout()
