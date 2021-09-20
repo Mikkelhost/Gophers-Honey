@@ -199,6 +199,7 @@
                       id="input-9"
                       v-model="form.imageInfo.port"
                       type="number"
+                      min="0"
                       placeholder="Port"
                       required
                       @input.native="checkUserForm()"

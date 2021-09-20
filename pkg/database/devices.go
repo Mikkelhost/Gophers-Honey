@@ -4,7 +4,6 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Service struct is used to specify enabled/disabled services in a
@@ -34,37 +33,13 @@ type Device struct {
 	Services   Service            `bson:"services"`
 }
 
-// isDeviceInCollection reports whether a document with the specified
-// device ID occurs in the given collection.
-func isDeviceInCollection(value uint32, key, collection string) bool {
-	ctx, cancel := getContextWithTimeout()
-	defer cancel()
-
-	filter := bson.M{
-		key: value,
-	}
-
-	countOptions := options.Count().SetLimit(1)
-	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
-
-	if err != nil {
-		log.Logger.Warn().Msgf("Error counting documents: %s", err)
-	}
-
-	if count > 0 {
-		return true
-	}
-
-	return false
-}
-
 // updateConfiguration updates the device configuration data contained in
 // the "configuration_collection" collection.
 func updateConfiguration(service Service, deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(deviceID, "device_id", DB_CONF_COLL) {
+	if isIdInCollection(deviceID, "device_id", DB_CONF_COLL) {
 
 		filter := bson.M{
 			"device_id": deviceID,
@@ -146,7 +121,7 @@ func AddDevice(ipStr string) (uint32, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	deviceID := createRandDeviceID()
+	deviceID := createRandID("device_id", DB_DEV_COLL)
 	ip := ip2int(ipStr)
 	device := Device{
 		DeviceID:   deviceID,
@@ -203,7 +178,7 @@ func RemoveDevice(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isDeviceInCollection(deviceID, "device_id", DB_CONF_COLL) {
+	if isIdInCollection(deviceID, "device_id", DB_CONF_COLL) {
 		device := Device{
 			DeviceID: deviceID,
 		}

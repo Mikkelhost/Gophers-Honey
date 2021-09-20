@@ -22,29 +22,6 @@ var (
 	ttlIndexSet  = false
 )
 
-// isDeviceInCollection reports whether a document with the specified
-// log ID occurs in the given collection.
-func isLogInCollection(value uint32, key, collection string) bool {
-	ctx, cancel := getContextWithTimeout()
-	defer cancel()
-	filter := bson.M{
-		key: value,
-	}
-
-	countOptions := options.Count().SetLimit(1)
-	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
-
-	if err != nil {
-		log.Logger.Warn().Msgf("Error counting documents: %s", err)
-	}
-
-	if count > 0 {
-		return true
-	}
-
-	return false
-}
-
 // AddLog assigns a log with timestamp and message tied to a device ID and adds it to the
 // database. Also sets a time to live index (if not set) of 3 months. This ensures that
 // logs are deleted from the database after 3 months.
@@ -69,7 +46,7 @@ func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 		}
 	}
 
-	logID := createRandLogID()
+	logID := createRandID("log_id", DB_LOG_COLL)
 	deviceLog := Log{
 		DeviceID:  deviceID,
 		LogID:     logID,
@@ -143,7 +120,7 @@ func RemoveLog(logID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isLogInCollection(logID, "log_id", DB_LOG_COLL) {
+	if isIdInCollection(logID, "log_id", DB_LOG_COLL) {
 		deviceLog := Log{
 			LogID: logID,
 		}

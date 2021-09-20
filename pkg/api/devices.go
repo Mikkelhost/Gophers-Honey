@@ -27,13 +27,17 @@ var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
 // Sets up a devices API subrouter
 func devicesSubrouter(r *mux.Router) {
 	deviceAPI := r.PathPrefix("/api/devices").Subrouter()
-	deviceAPI.HandleFunc("/getDevices", tokenAuthMiddleware(getDevices)).Methods("GET")
-	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST")
+	deviceAPI.HandleFunc("/getDevices", tokenAuthMiddleware(getDevices)).Methods("GET", "OPTIONS")
+	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST", "OPTIONS")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("POST")
 }
 
 func getDevices(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
 	var devices []database.Device
 	devices, err := database.GetAllDevices()
 	if err != nil {
@@ -84,6 +88,10 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 }
 
 func configureDevice(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
 	w.Write([]byte("Du er færdig mester, ingen konfiguration til dig!"))
 }
 

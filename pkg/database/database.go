@@ -21,6 +21,7 @@ var (
 	DB_LOG_COLL  = "log_collection"
 	DB_CONF_COLL = "config_collection"
 	DB_USER_COLL = "user_collection"
+	DB_IMAGE_COLL = "image_collection"
 )
 
 // getenv retrieves the value of the environment variable named by the

@@ -49,7 +49,7 @@ func AddNewUser(user User, hashedAndSaltedPwd string) error {
 
 // IsUserInCollection reports whether a document with the specified
 // username occurs in the given collection.
-// TODO: CHECK if this method can be combined with isDeviceInCollection as they both do the same.
+// TODO: CHECK if this method can be combined with isIdInCollection as they both do the same.
 func IsUserInCollection(value, key, collection string) bool {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
