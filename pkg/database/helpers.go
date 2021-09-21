@@ -5,37 +5,50 @@ import (
 	"context"
 	"encoding/binary"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"net"
 	"time"
 )
 
-// createRandDeviceID pseudo-randomly generates a number which is checked
+// createRandID pseudo-randomly generates a number which is checked
 // against the device IDs currently in the collection. Returns when no
 // collision is detected.
-func createRandDeviceID() uint32 {
+func createRandID(key, collection string) uint32 {
 	rand.Seed(time.Now().Unix())
 	deviceID := rand.Uint32()
-	for isDeviceInCollection(deviceID, "deviceID", DB_DEV_COLL) {
+	for isIdInCollection(deviceID, key, collection) {
 		deviceID = rand.Uint32()
 		log.Logger.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
 	}
 	return deviceID
 }
 
-// createRandLogID pseudo-randomly generates a number which is checked
-// against the log IDs currently in the collection. Returns when no
-// collision is detected.
-func createRandLogID() uint32 {
-	rand.Seed(time.Now().Unix())
-	logID := rand.Uint32()
-	for isLogInCollection(logID, "logID", DB_LOG_COLL) {
-		logID = rand.Uint32()
-		log.Logger.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
+// isIdInCollection reports whether a document with the specified
+// device ID occurs in the given collection.
+func isIdInCollection(value uint32, key, collection string) bool {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		key: value,
 	}
-	return logID
+
+	countOptions := options.Count().SetLimit(1)
+	count, err := db.Database(DB_NAME).Collection(collection).CountDocuments(ctx, filter, countOptions)
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error counting documents: %s", err)
+	}
+
+	if count > 0 {
+		return true
+	}
+
+	return false
 }
 
 // ip2int converts an IP address from its string representation to its

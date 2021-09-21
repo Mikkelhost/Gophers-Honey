@@ -6,8 +6,10 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/piimage"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 type ConfigResponse struct {
@@ -59,10 +61,42 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Logger.Debug().Msgf("setup params: %v", setup)
 
+		//Make first image
+		port, err := strconv.Atoi(setup.Image.Port)
+		if port < 0 {
+			log.Logger.Warn().Msg("Port smaller than 0, aboritng")
+			json.NewEncoder(w).Encode(User{Error: "Port cannot be smaller than 0"})
+			return
+		}
+		id, err := database.NewImage(database.Image{
+			Name: setup.Image.ImageName,
+		})
+		if err != nil {
+			log.Logger.Warn().Msgf("Error creating new image in db: %s", err)
+			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			return
+		}
+		if err != nil {
+			log.Logger.Warn().Msgf("Error converting port to int: %s", err)
+			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			return
+		}
+		err = piimage.InsertConfig(piimage.PiConf{
+			HostName: setup.Image.Hostname,
+			Port: port,
+			DeviceID: 0,
+			DeviceKey: DEVICE_KEY,
+		}, id)
+		if err != nil {
+			log.Logger.Warn().Msgf("Error inserting config into image: %s", err)
+			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			return
+		}
+
 		//Making first user
 		hash := HashAndSaltPassword([]byte(setup.User.Password))
 		log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", setup.User.Password)
-		err := database.AddNewUser(database.User{
+		err = database.AddNewUser(database.User{
 			FirstName: setup.User.FirstName,
 			LastName: setup.User.LastName,
 			Email: setup.User.Email,
@@ -79,9 +113,6 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
 			return
 		}
-
-		//Make first image
-
 
 		//Setting config
 		conff := config.Config{
