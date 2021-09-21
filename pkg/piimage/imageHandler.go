@@ -12,22 +12,21 @@ import (
 	diskfs "github.com/diskfs/go-diskfs"
 )
 
-
 type PiConf struct {
-	HostName string `yaml:"hostname"`
-	Port int `yaml:"port"`
-	DeviceID uint32 `yaml:"device_id"`
-	DeviceKey string `yaml:"device_key"`
-	Services database.Service `yaml:"services"`
+	HostName  string           `yaml:"hostname"`
+	Port      int              `yaml:"port"`
+	DeviceID  uint32           `yaml:"device_id"`
+	DeviceKey string           `yaml:"device_key"`
+	Services  database.Service `yaml:"services"`
 }
 
-func InsertConfig(conf PiConf, id uint32) error{
+func InsertConfig(conf PiConf, id uint32) error {
 	yaml, err := yaml.Marshal(&conf)
 	if err := copyImage(id); err != nil {
 		log.Logger.Warn().Msgf("Error copying base image: %s", err)
 		return err
 	}
-	disk, err := diskfs.Open("images/"+strconv.FormatUint(uint64(id), 10)+".img")
+	disk, err := diskfs.Open("images/" + strconv.FormatUint(uint64(id), 10) + ".img")
 	if err != nil {
 		log.Logger.Warn().Msgf("Error opening img: %s", err)
 		return err
@@ -48,8 +47,8 @@ func InsertConfig(conf PiConf, id uint32) error{
 	return nil
 }
 
-func copyImage(id uint32) error{
-	if _, err := os.Stat("images/"+strconv.FormatUint(uint64(id), 10)+".img"); os.IsNotExist(err) {
+func copyImage(id uint32) error {
+	if _, err := os.Stat("images/" + strconv.FormatUint(uint64(id), 10) + ".img"); os.IsNotExist(err) {
 		log.Logger.Info().Msg("Creating image")
 		baseFileStat, err := os.Stat("images/base.img")
 		if err != nil {
@@ -65,7 +64,7 @@ func copyImage(id uint32) error{
 			log.Logger.Warn().Msgf("Error Opening base image for copy: %s", err)
 			return err
 		}
-		custom, err := os.Create("images/"+strconv.FormatUint(uint64(id), 10)+".img")
+		custom, err := os.Create("images/" + strconv.FormatUint(uint64(id), 10) + ".img")
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating custom image destination: %s", err)
 			return err
@@ -78,8 +77,8 @@ func copyImage(id uint32) error{
 		}
 		log.Logger.Info().Msgf("Copied %s bytes!", nBytes)
 		return nil
-	}else {
+	} else {
 		log.Logger.Info().Msg("Image already exists")
-		return errors.New("Image already exists")
+		return errors.New("image already exists")
 	}
 }

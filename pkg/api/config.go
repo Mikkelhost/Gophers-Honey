@@ -18,7 +18,7 @@ type ConfigResponse struct {
 
 type SetupParams struct {
 	Image ImageInfo `json:"imageInfo"`
-	User  User  `json:"userInfo"`
+	User  User      `json:"userInfo"`
 }
 
 type ImageInfo struct {
@@ -82,9 +82,9 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		err = piimage.InsertConfig(piimage.PiConf{
-			HostName: setup.Image.Hostname,
-			Port: port,
-			DeviceID: 0,
+			HostName:  setup.Image.Hostname,
+			Port:      port,
+			DeviceID:  0,
 			DeviceKey: DEVICE_KEY,
 		}, id)
 		if err != nil {
@@ -98,9 +98,9 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", setup.User.Password)
 		err = database.AddNewUser(database.User{
 			FirstName: setup.User.FirstName,
-			LastName: setup.User.LastName,
-			Email: setup.User.Email,
-			Username: setup.User.Username,
+			LastName:  setup.User.LastName,
+			Email:     setup.User.Email,
+			Username:  setup.User.Username,
 		}, hash)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating user: %s", err)
@@ -120,7 +120,7 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := config.SetConfig(conff); err != nil {
 			log.Logger.Warn().Msgf("Error setting config: %s", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s",err)})
+			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		json.NewEncoder(w).Encode(User{Token: token})

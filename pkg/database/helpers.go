@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"fmt"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
+	logs "log"
 	"math/rand"
 	"net"
+	"os"
 	"time"
 )
 
@@ -19,12 +22,11 @@ import (
 // collision is detected.
 func createRandID(key, collection string) uint32 {
 	rand.Seed(time.Now().Unix())
-	deviceID := rand.Uint32()
-	for isIdInCollection(deviceID, key, collection) {
-		deviceID = rand.Uint32()
-		log.Logger.Debug().Msg("Running \"while loop\"") //TODO: No need to keep this?
+	id := rand.Uint32()
+	for isIdInCollection(id, key, collection) {
+		id = rand.Uint32()
 	}
-	return deviceID
+	return id
 }
 
 // isIdInCollection reports whether a document with the specified
@@ -114,4 +116,16 @@ func getIndexNames(collection string) ([]string, error) {
 		}
 	}
 	return indexNames, nil
+}
+
+// getenv retrieves the value of the environment variable named by the
+// key. If no environment variable of the provided key is found a
+// fallback is used as a default value.
+func getenv(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		logs.Println(fmt.Sprintf("Environment variable %s not set. Defaulting to %s", key, fallback))
+		return fallback
+	}
+	return value
 }

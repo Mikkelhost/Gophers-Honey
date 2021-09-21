@@ -6,35 +6,21 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	logs "log"
-	"os"
 )
 
 var db *mongo.Client
 
 var (
-	DB_NAME      = "honeyDB"
-	DB_HOST      = getenv("DB_HOST", "cluster0.sb5ex.mongodb.net")
-	DB_USER      = getenv("DB_USER", "goadmin")
-	DB_PASS      = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
-	DB_DEV_COLL  = "device_collection"
-	DB_LOG_COLL  = "log_collection"
-	DB_CONF_COLL = "config_collection"
-	DB_USER_COLL = "user_collection"
+	DB_NAME       = "honeyDB"
+	DB_HOST       = getenv("DB_HOST", "cluster0.sb5ex.mongodb.net")
+	DB_USER       = getenv("DB_USER", "goadmin")
+	DB_PASS       = getenv("DB_PASS", "vcSXbkA7pBNbKpE8")
+	DB_DEV_COLL   = "device_collection"
+	DB_LOG_COLL   = "log_collection"
+	DB_CONF_COLL  = "config_collection"
+	DB_USER_COLL  = "user_collection"
 	DB_IMAGE_COLL = "image_collection"
 )
-
-// getenv retrieves the value of the environment variable named by the
-// key. If no environment variable of the provided key is found a
-// fallback is used as a default value.
-func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		logs.Println(fmt.Sprintf("Environment variable %s not set. Defaulting to %s", key, fallback))
-		return fallback
-	}
-	return value
-}
 
 // Connect creates a connection to the database.
 func Connect() {
@@ -59,13 +45,4 @@ func Disconnect() {
 	if err != nil {
 		log.Logger.Fatal().Msgf("Error disconnecting from DB: %s", err)
 	}
-}
-
-// Test is used for testing the database package.
-func Test() {
-	//RemoveUser("Deus")
-	// if err != nil {
-	// 	log.Logger.Fatal().Msgf("Test failed")
-	// 	return
-	// }
 }
