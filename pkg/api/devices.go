@@ -31,6 +31,7 @@ func devicesSubrouter(r *mux.Router) {
 	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST", "OPTIONS")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("POST")
+	deviceAPI.HandleFunc("/removeDevice", tokenAuthMiddleware(removeDevice)).Methods("POST")
 }
 
 func getDevices(w http.ResponseWriter, r *http.Request) {
@@ -129,6 +130,27 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d}", deviceID)))
+}
+
+// removeDevice
+// TODO: in progress
+func removeDevice(w http.ResponseWriter, r *http.Request) {
+	var deviceID uint32
+	decoder := json.NewDecoder(r.Body)
+	var ipStruct = database.Device{}
+	if err := decoder.Decode(&ipStruct); err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
+		return
+	}
+	deviceID = ipStruct.DeviceID
+	err := database.RemoveDevice(deviceID)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error removing device: %s", err)
+		w.Write([]byte("Internal server error"))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": \"%d removed\"}", deviceID)))
 }
 
 // deviceSecretMiddleware
