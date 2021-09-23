@@ -5,15 +5,15 @@
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
-          <b-nav-item href="#" left>
-            <b-icon icon="file-earmark-image"></b-icon>
-            Images
+          <b-nav-item href="/" left>
+            <b-icon icon="graph-up"></b-icon>
+            Dashboard
           </b-nav-item>
           <b-nav-item href="#" left>
             <b-icon icon="cpu"></b-icon>
             Honeypots
           </b-nav-item>
-          <b-nav-item href="#" left>
+          <b-nav-item href="/settings" left>
             <b-icon-gear></b-icon-gear>
             Settings
           </b-nav-item>

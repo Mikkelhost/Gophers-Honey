@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import HomePage from './Pages/Home'
 import LoginPage from './Pages/Login'
 import SetupPage from './Pages/Setup'
+import SettingsPage from './Pages/Settings'
 
 
 Vue.use(Router);
@@ -11,6 +12,7 @@ export const router = new Router({
     mode: 'history',
     routes: [
         { name: 'home', path: '/', component: HomePage },
+        { name: 'settings', path: '/settings', component: SettingsPage },
         { name: 'login', path: '/login', component: LoginPage },
         { name: 'setup', path: '/setup', component: SetupPage },
         // otherwise redirect to home

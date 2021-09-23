@@ -1,14 +1,16 @@
 package database
 
 import (
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"time"
 )
 
 type Image struct {
 	GUID primitive.ObjectID `bson:"_id,omitempty"`
 	Name string `bson:"name"json:"name"`
+	DateCreated string `bson:"date_created"json:"date_created"`
 	Id uint32 `bson:"image_id"json:"image_id"`
 }
 
@@ -47,7 +49,7 @@ func GetImages() ([]Image, error) {
 func NewImage(image Image) (uint32, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
-
+	image.DateCreated = time.Now().Format(time.UnixDate)
 	imageId := createRandID("image_id", DB_IMAGE_COLL)
 	image.Id = imageId
 	_, err := db.Database(DB_NAME).Collection(DB_IMAGE_COLL).InsertOne(ctx, image)
