@@ -23,9 +23,10 @@
               <div id="images" aria-labelledby="images-tab" class="tab-pane fade" role="tabpanel">
                 <p>Images</p>
                 <b-row>
-                  <b-col v-for="image in images" :key="image.image_id">
+                  <b-col md="12" v-for="image in images" :key="image.image_id">
                     {{image.image_id}}
                     {{image.name}}
+                    {{image.date_created}}
                   </b-col>
                 </b-row>
               </div>
@@ -58,11 +59,11 @@
     methods: {
       getImages: function() {
         let that = this
+        this.images = []
         axios.get(process.env.VUE_APP_API_ROOT+"/images/getImages").then(function(response){
           if (response.status === 200) {
             that.images = response.data
           }
-          window.console.log("response data" + response.status)
         })
       }
     }
@@ -91,5 +92,8 @@
   border-radius: 10px;
   box-shadow: 1px 6px 16px -5px #888888;
   padding: 10px 0 10px 0;
+}
+.container{
+  height: calc(100vh - 116px);
 }
 </style>

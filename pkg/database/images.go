@@ -39,7 +39,7 @@ func GetImages() ([]Image, error) {
 	}
 
 	for _, image := range imageList {
-		log.Logger.Debug().Msgf("Found image with image ID: %d, ip: %s", image.Id, image.Name)
+		log.Logger.Debug().Msgf("Found image with image ID: %d, name: %s, date_created: %s", image.Id, image.Name, image.DateCreated)
 	}
 
 	return imageList, nil
