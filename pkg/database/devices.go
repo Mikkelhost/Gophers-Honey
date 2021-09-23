@@ -222,7 +222,6 @@ func RemoveDevice(deviceID uint32) error {
 		}
 	} else {
 		log.Logger.Warn().Msgf("Device ID: %d not found", deviceID)
-		// TODO: Perhaps we need to return an error here.
 		return errors.New("device ID not found")
 	}
 
