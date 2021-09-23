@@ -3,10 +3,11 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 /*
@@ -19,11 +20,11 @@ type User struct {
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Email     string `json:"email,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	Username  string `json:"username,omitempty"`
+	Password  string `json:"password,omitempty"`
 	ConfirmPw string `json:"confirmPw,omitempty"`
-	Token    string `json:"token,omitempty"`
-	Error    string `json:"error"`
+	Token     string `json:"token,omitempty"`
+	Error     string `json:"error"`
 }
 
 func usersSubrouter(r *mux.Router) {
@@ -34,7 +35,27 @@ func usersSubrouter(r *mux.Router) {
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Getting users"))
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	var users []database.User
+	users, err := database.GetAllUsers()
+	if err != nil {
+		w.Write([]byte("Error retrieving users"))
+		return
+	}
+	if len(users) == 0 {
+		w.Write([]byte("No users in DB"))
+		return
+	}
+	usersJson, err := json.Marshal(users)
+	if err != nil {
+		w.Write([]byte("Error Marshalling users"))
+		return
+	}
+	w.Write(usersJson)
 }
 
 // TODO Finish the loginUser api endpoint, return token to user.
