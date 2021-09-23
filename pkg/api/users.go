@@ -19,11 +19,11 @@ type User struct {
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Email     string `json:"email,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	Username  string `json:"username,omitempty"`
+	Password  string `json:"password,omitempty"`
 	ConfirmPw string `json:"confirmPw,omitempty"`
-	Token    string `json:"token,omitempty"`
-	Error    string `json:"error"`
+	Token     string `json:"token,omitempty"`
+	Error     string `json:"error"`
 }
 
 func usersSubrouter(r *mux.Router) {
@@ -77,6 +77,29 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(User{Token: token})
 }
 
+// registerUser creates a new user from the given information,
+// and hashes and salts password.
 func registerUser(w http.ResponseWriter, r *http.Request) {
+
+	var newUser = database.User{}
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&newUser); err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		return
+	}
+
+	hashedAndSaltedPassword := HashAndSaltPassword([]byte(newUser.PasswordHash))
+
+	err := database.AddNewUser(newUser, hashedAndSaltedPassword)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error registering user: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error registering user: %s", err)))
+	}
 	w.Write([]byte("Registering user"))
 }
