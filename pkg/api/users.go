@@ -33,6 +33,7 @@ func usersSubrouter(r *mux.Router) {
 	usersAPI.HandleFunc("/register", registerUser).Methods("POST")
 }
 
+// getUsers gets all information of all users, but the hashed passwords
 func getUsers(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	if r.Method == "OPTIONS" {

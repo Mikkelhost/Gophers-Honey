@@ -11,12 +11,12 @@ import (
 // TODO: ADD error handling for usernames (empty string "", special chars, etc.).
 
 type User struct {
-	FirstName     string `bson:"first_name"`
-	LastName      string `bson:"last_name"`
-	Email         string `bson:"email"`
-	Username      string `bson:"username"`
-	UsernameLower string `bson:"username_lower"`
-	PasswordHash  string `bson:"password_hash"`
+	FirstName     string `bson:"first_name"json:"first_name"`
+	LastName      string `bson:"last_name"json:"last_name"`
+	Email         string `bson:"email"json:"email"`
+	Username      string `bson:"username"json:"username"`
+	UsernameLower string `bson:"username_lower"json:"username_lower"`
+	PasswordHash  string `bson:"password_hash,omitempty"json:"password_hash,omitempty"`
 }
 
 // AddNewUser adds a new user, with a specified username, to the database.
@@ -144,7 +144,8 @@ func LoginUser(username, stringPwd string) (bool, error) {
 	}
 }
 
-// TODO: Remove hashed password from the answer
+// GetAllUsers retrieves all users currently in the database,
+// and removes the hashed password of the users before returning the information
 func GetAllUsers() ([]User, error) {
 	var userList []User
 
@@ -165,7 +166,7 @@ func GetAllUsers() ([]User, error) {
 			log.Logger.Warn().Msgf("Error decoding result: %s", err)
 			return nil, err
 		}
-
+		user.PasswordHash = ""
 		userList = append(userList, user)
 	}
 
