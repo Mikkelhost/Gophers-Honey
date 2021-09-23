@@ -34,7 +34,27 @@ func usersSubrouter(r *mux.Router) {
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Getting users"))
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	var users []database.User
+	users, err := database.GetAllUsers()
+	if err != nil {
+		w.Write([]byte("Error retrieving users"))
+		return
+	}
+	if len(users) == 0 {
+		w.Write([]byte("No users in DB"))
+		return
+	}
+	usersJson, err := json.Marshal(users)
+	if err != nil {
+		w.Write([]byte("Error Marshalling users"))
+		return
+	}
+	w.Write(usersJson)
 }
 
 // TODO Finish the loginUser api endpoint, return token to user.

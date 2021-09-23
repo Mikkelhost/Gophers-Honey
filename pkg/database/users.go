@@ -143,3 +143,35 @@ func LoginUser(username, stringPwd string) (bool, error) {
 		return false, nil
 	}
 }
+
+// TODO: Remove hashed password from the answer
+func GetAllUsers() ([]User, error) {
+	var userList []User
+
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	results, err := db.Database(DB_NAME).Collection(DB_USER_COLL).Find(ctx, bson.M{})
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error retrieving user list: %s", err)
+		return nil, err
+	}
+
+	for results.Next(ctx) {
+		var user User
+
+		if err = results.Decode(&user); err != nil {
+			log.Logger.Warn().Msgf("Error decoding result: %s", err)
+			return nil, err
+		}
+
+		userList = append(userList, user)
+	}
+
+	for _, user := range userList {
+		log.Logger.Debug().Msgf("Found user with user ID: %d", user.UsernameLower)
+	}
+
+	return userList, nil
+}
