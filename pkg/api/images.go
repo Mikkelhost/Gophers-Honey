@@ -12,7 +12,7 @@ func imageSubRouter(r *mux.Router) {
 	imageAPI := r.PathPrefix("/api/images").Subrouter()
 	//imageRouter.Handle("/", http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
 	imageAPI.Queries("download","{download:[0-9]+}").HandlerFunc(tokenAuthMiddleware(downloadImage)).Methods("GET", "OPTIONS").Name("download")
-	imageAPI.HandleFunc("/getImages", tokenAuthMiddleware((getImages)))
+	imageAPI.HandleFunc("/getImages", tokenAuthMiddleware(getImages))
 
 }
 
@@ -42,10 +42,5 @@ func getImages(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("No devices in DB"))
 		return
 	}
-	imagesJson, err := json.Marshal(images)
-	if err != nil {
-		w.Write([]byte("Error Marshalling devices"))
-		return
-	}
-	w.Write(imagesJson)
+	json.NewEncoder(w).Encode(images)
 }
