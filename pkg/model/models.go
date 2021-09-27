@@ -93,7 +93,13 @@ type ImageInfo struct {
 	Port      string `json:"port"`
 }
 
-/* RaspberryPi related structs.
+type PiConfResponse struct {
+	Status string `json:"status"`
+	DeviceId uint32 `json:"device_id"`
+	Services Service `json:"services"`
+}
+
+/* RaspberryPi image related structs.
 */
 
 type PiConf struct {

@@ -75,14 +75,18 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d, \"services\": {"+
-		"\"SSH:\": %t, "+
-		"\"FTP:\": %t, "+
-		"\"Telnet:\": %t, "+
-		"\"RDP:\": %t, "+
-		"\"SMB:\": %t }",
-		device.DeviceId, configuration.Services.SSH, configuration.Services.FTP,
-		configuration.Services.TELNET, configuration.Services.RDP, configuration.Services.SMB)))
+	response := model.PiConfResponse{
+		Status: "Success",
+		DeviceId: device.DeviceId,
+		Services: model.Service{
+			SSH: configuration.Services.SSH,
+			FTP: configuration.Services.FTP,
+			SMB: configuration.Services.SMB,
+			RDP: configuration.Services.RDP,
+			TELNET: configuration.Services.TELNET,
+		},
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func configureDevice(w http.ResponseWriter, r *http.Request) {
