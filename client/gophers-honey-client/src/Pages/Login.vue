@@ -27,7 +27,12 @@
             </b-col>
           </b-row>
           <template v-if="loading">
-            <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            <div class="lds-ellipsis">
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
           </template>
           <b-row>
             <b-col md="4" class="login-alert">
@@ -49,7 +54,8 @@
                   :disabled="(userinfo.username.length === 0 || userinfo.password.length === 0)"
                   type="submit"
                   class="submit-button"
-              >Login</b-button>
+              >Login
+              </b-button>
             </b-col>
           </b-row>
         </form>
@@ -61,11 +67,11 @@
 <script>
 
 import axios from 'axios';
-import { router } from '../router';
+import {router} from '../router';
 
-export default{
+export default {
   name: "Login",
-  data: function() {
+  data: function () {
     return {
       userinfo: {username: "", password: ""},
       dismissCountDown: 0,
@@ -77,7 +83,7 @@ export default{
   },
   async beforeCreate() {
     //Checking if the service has been configured yet
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config/getConfig")
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT + "/config/getConfig")
     if (resp.status === 200) {
       window.console.log(resp.data.configured)
       if (!resp.data.configured) {
@@ -93,7 +99,7 @@ export default{
       this.variant = variant
       this.dismissCountDown = this.dismissSecs
     },
-    login: function() {
+    login: function () {
       let that = this
       if (!this.userinfo.username.length || !this.userinfo.password.length) {
         this.alert = "Username or password is empty"
@@ -104,13 +110,14 @@ export default{
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-        process.env.VUE_APP_API_ROOT+"/users/login", userinfoJson
+          process.env.VUE_APP_API_ROOT + "/users/login", userinfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false
           if (response.data.error === "") {
-            that.$cookies.set("token",response.data.token,"24h","/")
-            router.push('/').catch(()=>{})
+            that.$cookies.set("token", response.data.token, "24h", "/")
+            router.push('/').catch(() => {
+            })
           } else if (response.data.error === "Incorrect username or password") {
             that.alert = response.data.error
             that.showAlert("danger")
@@ -130,34 +137,42 @@ p {
   text-align: left;
   margin-bottom: 0;
 }
-.input{
+
+.input {
   margin-top: 5px;
   margin-bottom: 15px;
 }
-.login-container{
+
+.login-container {
   position: relative;
   margin: auto;
   top: 50%;
   left: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   align-items: center;
 }
+
 .submit {
   margin: auto;
 }
-.login-alert{
+
+.login-alert {
   margin: auto;
 }
-.submit-button{
+
+.submit-button {
   width: 100%;
 }
-.container{
+
+.container {
   height: 100vh
 }
-.sub-container{
+
+.sub-container {
   height: 100vh
 }
-body{
+
+body {
   height: 100vh
 }
 
@@ -167,6 +182,7 @@ body{
   width: 80px;
   height: 80px;
 }
+
 .lds-ellipsis div {
   position: absolute;
   top: 33px;
@@ -176,22 +192,27 @@ body{
   background: #7e7e7e;
   animation-timing-function: cubic-bezier(0, 1, 1, 0);
 }
+
 .lds-ellipsis div:nth-child(1) {
   left: 8px;
   animation: lds-ellipsis1 0.6s infinite;
 }
+
 .lds-ellipsis div:nth-child(2) {
   left: 8px;
   animation: lds-ellipsis2 0.6s infinite;
 }
+
 .lds-ellipsis div:nth-child(3) {
   left: 32px;
   animation: lds-ellipsis2 0.6s infinite;
 }
+
 .lds-ellipsis div:nth-child(4) {
   left: 56px;
   animation: lds-ellipsis3 0.6s infinite;
 }
+
 @keyframes lds-ellipsis1 {
   0% {
     transform: scale(0);
@@ -200,6 +221,7 @@ body{
     transform: scale(1);
   }
 }
+
 @keyframes lds-ellipsis3 {
   0% {
     transform: scale(1);
@@ -208,6 +230,7 @@ body{
     transform: scale(0);
   }
 }
+
 @keyframes lds-ellipsis2 {
   0% {
     transform: translate(0, 0);

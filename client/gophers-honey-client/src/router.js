@@ -4,7 +4,7 @@ import HomePage from './Pages/Home'
 import LoginPage from './Pages/Login'
 import SetupPage from './Pages/Setup'
 import SettingsPage from './Pages/Settings'
-
+import DashboardPage from "./Pages/Dashboard";
 
 Vue.use(Router);
 
@@ -15,6 +15,7 @@ export const router = new Router({
         { name: 'settings', path: '/settings', component: SettingsPage },
         { name: 'login', path: '/login', component: LoginPage },
         { name: 'setup', path: '/setup', component: SetupPage },
+        { name: 'dashboard', path: '/dashboard', component: DashboardPage},
         // otherwise redirect to home
         { path: '*', redirect: '/' }
     ]
