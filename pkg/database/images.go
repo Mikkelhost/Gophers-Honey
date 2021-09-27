@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"time"
 )
-
+//TODO: Add/remove image functionality
 func GetImages() ([]model.Image, error) {
 	var imageList []model.Image
 
