@@ -3,50 +3,23 @@ package database
 import (
 	"errors"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-// Service struct is used to specify enabled/disabled services in a
-// configuration.
-type Service struct {
-	SSH    bool `bson:"ssh" yaml:"ssh"`
-	FTP    bool `bson:"ftp" yaml:"ftp"`
-	TELNET bool `bson:"telnet" yaml:"telnet"`
-	RDP    bool `bson:"rdp" yaml:"rdp"`
-	SMB    bool `bson:"smb" yaml:"smb"`
-}
-
-// Configuration struct matches a device ID with enabled services. Is only
-// used when retrieving configuration data from the database.
-type Configuration struct {
-	DeviceID uint32  `bson:"device_id,omitempty"`
-	Services Service `bson:"services"`
-}
-
-// Device struct is used to specify device information.
-type Device struct {
-	GUID       primitive.ObjectID `bson:"_id,omitempty"`
-	DeviceID   uint32             `bson:"device_id,omitempty" json:"device_id"`
-	IP         uint32             `bson:"ip,omitempty"`
-	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
-	Configured bool               `bson:"configured"`
-	Services   Service            `bson:"services"`
-}
 
 // setDefaultConfiguration sets a default configuration when a new PI is connected
 func setDefaultConfiguration(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	services := Service{
+	services := model.Service{
 		SSH:    false,
 		FTP:    false,
 		TELNET: false,
 		RDP:    false,
 		SMB:    false,
 	}
-	configuration := Configuration{
+	configuration := model.Configuration{
 		DeviceID: deviceID,
 		Services: services,
 	}
@@ -61,7 +34,7 @@ func setDefaultConfiguration(deviceID uint32) error {
 
 // updateConfiguration updates the device configuration data contained in
 // the "configuration_collection" collection.
-func updateConfiguration(service Service, deviceID uint32) error {
+func updateConfiguration(service model.Service, deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
@@ -108,14 +81,14 @@ func updateConfiguration(service Service, deviceID uint32) error {
 // services. Specifically it updates the value of "services" for the
 // specific device ID in both the "device_collection" and
 // "configuration_collection" collections.
-func ConfigureDevice(service Service, deviceId uint32) error {
+func ConfigureDevice(service model.Service, deviceId uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
 	filter := bson.M{
 		"device_id": deviceId,
 	}
-	config := Device{
+	config := model.Device{
 		Configured: true,
 		Services:   service,
 	}
@@ -149,7 +122,7 @@ func AddDevice(ipStr string) (uint32, error) {
 
 	deviceID := createRandID("device_id", DB_DEV_COLL)
 	ip := ip2int(ipStr)
-	device := Device{
+	device := model.Device{
 		DeviceID:   deviceID,
 		IpStr:      ipStr,
 		Configured: false,
@@ -172,8 +145,8 @@ func AddDevice(ipStr string) (uint32, error) {
 // GetAllDevices retrieves and returns a list of all devices currently in
 // the database. Specifically it retrieves all devices contained in the
 // "device_collection" collection.
-func GetAllDevices() ([]Device, error) {
-	var deviceList []Device
+func GetAllDevices() ([]model.Device, error) {
+	var deviceList []model.Device
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -186,7 +159,7 @@ func GetAllDevices() ([]Device, error) {
 	}
 
 	for results.Next(ctx) {
-		var device Device
+		var device model.Device
 
 		if err = results.Decode(&device); err != nil {
 			log.Logger.Warn().Msgf("Error decoding result: %s", err)
@@ -210,7 +183,7 @@ func RemoveDevice(deviceID uint32) error {
 	defer cancel()
 
 	if isIdInCollection(deviceID, "device_id", DB_DEV_COLL) {
-		device := Device{
+		device := model.Device{
 			DeviceID: deviceID,
 		}
 
@@ -230,7 +203,7 @@ func RemoveDevice(deviceID uint32) error {
 
 // GetDeviceConfiguration retrieves the configuration information stored
 // for a specific device.
-func GetDeviceConfiguration(deviceID uint32) (Configuration, error) {
+func GetDeviceConfiguration(deviceID uint32) (model.Configuration, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
@@ -238,13 +211,13 @@ func GetDeviceConfiguration(deviceID uint32) (Configuration, error) {
 		"device_id": deviceID,
 	}
 
-	var configuration Configuration
+	var configuration model.Configuration
 
 	result := db.Database(DB_NAME).Collection(DB_CONF_COLL).FindOne(ctx, filter)
 
 	if err := result.Decode(&configuration); err != nil {
 		log.Logger.Warn().Msgf("Error decoding configuration: %s", err)
-		return Configuration{}, err
+		return model.Configuration{}, err
 	}
 
 	log.Logger.Debug().Msgf("Found configurations for device ID %d:\n"+

@@ -2,8 +2,8 @@ package piimage
 
 import (
 	"errors"
-	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"gopkg.in/yaml.v2"
 	"io"
 	"os"
@@ -12,15 +12,7 @@ import (
 	diskfs "github.com/diskfs/go-diskfs"
 )
 
-type PiConf struct {
-	HostName  string           `yaml:"hostname"`
-	Port      int              `yaml:"port"`
-	DeviceID  uint32           `yaml:"device_id"`
-	DeviceKey string           `yaml:"device_key"`
-	Services  database.Service `yaml:"services"`
-}
-
-func InsertConfig(conf PiConf, id uint32) error {
+func InsertConfig(conf model.PiConf, id uint32) error {
 	yaml, err := yaml.Marshal(&conf)
 	if err := copyImage(id); err != nil {
 		log.Logger.Warn().Msgf("Error copying base image: %s", err)
@@ -79,6 +71,6 @@ func copyImage(id uint32) error {
 		return nil
 	} else {
 		log.Logger.Info().Msg("Image already exists")
-		return errors.New("image already exists")
+		return errors.New("Image already exists")
 	}
 }

@@ -2,20 +2,12 @@ package database
 
 import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
-
-type Log struct {
-	GUID      primitive.ObjectID `bson:"_id,omitempty"`
-	DeviceID  uint32             `bson:"device_id,omitempty" json:"device_id"`
-	LogID     uint32             `bson:"log_id,omitempty" json:"log_id"`
-	TimeStamp time.Time          `bson:"time_stamp,omitempty" json:"time_stamp"`
-	Message   string             `bson:"message,omitempty" json:"message"`
-}
 
 var (
 	ttlIndexName = "time_stamp_1"
@@ -47,7 +39,7 @@ func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 	}
 
 	logID := createRandID("log_id", DB_LOG_COLL)
-	deviceLog := Log{
+	deviceLog := model.Log{
 		DeviceID:  deviceID,
 		LogID:     logID,
 		TimeStamp: timeStamp,
@@ -64,8 +56,8 @@ func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 
 // GetAllLogs retrieves and returns a list of all logs currently in
 // the database.
-func GetAllLogs() ([]Log, error) {
-	var logList []Log
+func GetAllLogs() ([]model.Log, error) {
+	var logList []model.Log
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -78,7 +70,7 @@ func GetAllLogs() ([]Log, error) {
 	}
 
 	for results.Next(ctx) {
-		var deviceLog Log
+		var deviceLog model.Log
 
 		if err = results.Decode(&deviceLog); err != nil {
 			log.Logger.Warn().Msgf("Error decoding result: %s", err)
@@ -96,20 +88,20 @@ func GetAllLogs() ([]Log, error) {
 }
 
 // GetLog gets a single log from the database based on the given logID
-func GetLog(logID uint32) (Log, error) {
+func GetLog(logID uint32) (model.Log, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
 	filter := bson.M{
 		"logID": logID,
 	}
-	var deviceLog Log
+	var deviceLog model.Log
 
 	result := db.Database(DB_NAME).Collection(DB_LOG_COLL).FindOne(ctx, filter)
 
 	if err := result.Decode(&deviceLog); err != nil {
 		log.Logger.Warn().Msgf("Error decoding result: %s", err)
-		return Log{}, err
+		return model.Log{}, err
 	}
 	return deviceLog, nil
 }
@@ -121,7 +113,7 @@ func RemoveLog(logID uint32) error {
 	defer cancel()
 
 	if isIdInCollection(logID, "log_id", DB_LOG_COLL) {
-		deviceLog := Log{
+		deviceLog := model.Log{
 			LogID: logID,
 		}
 

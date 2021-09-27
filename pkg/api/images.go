@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -22,7 +23,7 @@ func downloadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	image := mux.Vars(r)["download"]
-	log.Logger.Debug().Msgf("User wants to download image: %s", image)
+	log.Logger.Debug().Msgf("APIUser wants to download image: %s", image)
 	w.Header().Set("Content-Disposition", "inline; filename=raspberrypi.img")
 	http.ServeFile(w, r, "./images/"+image+".img")
 }
@@ -32,7 +33,7 @@ func getImages(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	var images []database.Image
+	var images []model.Image
 	images, err := database.GetImages()
 	if err != nil {
 		w.Write([]byte("Error retrieving devices"))

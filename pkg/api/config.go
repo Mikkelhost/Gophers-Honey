@@ -6,26 +6,12 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/piimage"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
-
-type ConfigResponse struct {
-	Configured bool `json:"configured"`
-}
-
-type SetupParams struct {
-	Image ImageInfo `json:"imageInfo"`
-	User  User      `json:"userInfo"`
-}
-
-type ImageInfo struct {
-	ImageName string `json:"name"`
-	Hostname  string `json:"hostname"`
-	Port      string `json:"port"`
-}
 
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
@@ -40,7 +26,7 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Logger.Debug().Bool("configured", config.Conf.Configured)
 
-	json.NewEncoder(w).Encode(ConfigResponse{Configured: config.Conf.Configured})
+	json.NewEncoder(w).Encode(model.ConfigResponse{Configured: config.Conf.Configured})
 }
 
 // setupService is a function that will be called when the
@@ -52,7 +38,7 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !config.Conf.Configured {
-		var setup = SetupParams{}
+		var setup = model.SetupParams{}
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&setup); err != nil {
 			log.Logger.Warn().Msgf("Failed decoding json: %s", err)
@@ -65,52 +51,52 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		port, err := strconv.Atoi(setup.Image.Port)
 		if port < 0 {
 			log.Logger.Warn().Msg("Port smaller than 0, aboritng")
-			json.NewEncoder(w).Encode(User{Error: "Port cannot be smaller than 0"})
+			json.NewEncoder(w).Encode(model.APIUser{Error: "Port cannot be smaller than 0"})
 			return
 		}
-		id, err := database.NewImage(database.Image{
+		id, err := database.NewImage(model.Image{
 			Name: setup.Image.ImageName,
 		})
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating new image in db: %s", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		if err != nil {
 			log.Logger.Warn().Msgf("Error converting port to int: %s", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
 			return
 		}
-		err = piimage.InsertConfig(piimage.PiConf{
-			HostName:  setup.Image.Hostname,
-			Port:      port,
-			DeviceID:  0,
+		err = piimage.InsertConfig(model.PiConf{
+			HostName: setup.Image.Hostname,
+			Port: port,
+			DeviceID: 0,
 			DeviceKey: DEVICE_KEY,
 		}, id)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error inserting config into image: %s", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 
 		//Making first user
 		hash := HashAndSaltPassword([]byte(setup.User.Password))
 		log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", setup.User.Password)
-		err = database.AddNewUser(database.User{
+		err = database.AddNewUser(model.DBUser{
 			FirstName: setup.User.FirstName,
-			LastName:  setup.User.LastName,
-			Email:     setup.User.Email,
-			Username:  setup.User.Username,
+			LastName: setup.User.LastName,
+			Email: setup.User.Email,
+			Username: setup.User.Username,
 		}, hash)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating user: %s", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		token, err := createToken(setup.User.Username)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating token: ", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 
@@ -120,11 +106,11 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := config.SetConfig(conff); err != nil {
 			log.Logger.Warn().Msgf("Error setting config: %s", err)
-			json.NewEncoder(w).Encode(User{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s",err)})
 			return
 		}
-		json.NewEncoder(w).Encode(User{Token: token})
+		json.NewEncoder(w).Encode(model.APIUser{Token: token})
 	} else {
-		json.NewEncoder(w).Encode(User{Error: "Service has already been configured"})
+		json.NewEncoder(w).Encode(model.APIUser{Error: "Service has already been configured"})
 	}
 }
