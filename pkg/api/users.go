@@ -3,10 +3,11 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 /*
@@ -19,11 +20,11 @@ type User struct {
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Email     string `json:"email,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	Username  string `json:"username,omitempty"`
+	Password  string `json:"password,omitempty"`
 	ConfirmPw string `json:"confirmPw,omitempty"`
-	Token    string `json:"token,omitempty"`
-	Error    string `json:"error"`
+	Token     string `json:"token,omitempty"`
+	Error     string `json:"error"`
 }
 
 func usersSubrouter(r *mux.Router) {
@@ -33,8 +34,29 @@ func usersSubrouter(r *mux.Router) {
 	usersAPI.HandleFunc("/register", registerUser).Methods("POST")
 }
 
+// getUsers gets all information of all users, but the hashed passwords
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Getting users"))
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	var users []database.User
+	users, err := database.GetAllUsers()
+	if err != nil {
+		w.Write([]byte("Error retrieving users"))
+		return
+	}
+	if len(users) == 0 {
+		w.Write([]byte("No users in DB"))
+		return
+	}
+	usersJson, err := json.Marshal(users)
+	if err != nil {
+		w.Write([]byte("Error Marshalling users"))
+		return
+	}
+	w.Write(usersJson)
 }
 
 // TODO Finish the loginUser api endpoint, return token to user.
@@ -77,6 +99,29 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(User{Token: token})
 }
 
+// registerUser creates a new user from the given information,
+// and hashes and salts password.
 func registerUser(w http.ResponseWriter, r *http.Request) {
+
+	var newUser = database.User{}
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&newUser); err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		return
+	}
+
+	hashedAndSaltedPassword := HashAndSaltPassword([]byte(newUser.PasswordHash))
+
+	err := database.AddNewUser(newUser, hashedAndSaltedPassword)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error registering user: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error registering user: %s", err)))
+	}
 	w.Write([]byte("Registering user"))
 }

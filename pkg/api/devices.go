@@ -17,8 +17,8 @@ All functions should write json data to the responsewriter
 */
 
 type DeviceAuth struct {
-	DeviceId  uint32 `json:"device_id"`
-	DeviceKey string `json:"deviceKey"`
+	DeviceId  uint32 `json:"device_id,omitempty"`
+	DeviceKey string `json:"device_key,omitempty"`
 }
 
 var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
@@ -30,7 +30,8 @@ func devicesSubrouter(r *mux.Router) {
 	deviceAPI.HandleFunc("/getDevices", tokenAuthMiddleware(getDevices)).Methods("GET", "OPTIONS")
 	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST", "OPTIONS")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
-	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("POST")
+	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("GET")
+	deviceAPI.HandleFunc("/removeDevice", tokenAuthMiddleware(removeDevice)).Methods("POST")
 }
 
 func getDevices(w http.ResponseWriter, r *http.Request) {
@@ -62,18 +63,19 @@ func getDevices(w http.ResponseWriter, r *http.Request) {
 // configuration to the requester.
 func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 	var configuration database.Configuration
-	var deviceID uint32
+	var device = DeviceAuth{}
 	var err error
 
 	decoder := json.NewDecoder(r.Body)
 
-	if err = decoder.Decode(&deviceID); err != nil {
+	if err = decoder.Decode(&device); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 	}
 
-	configuration, err = database.GetDeviceConfiguration(deviceID)
+	configuration, err = database.GetDeviceConfiguration(device.DeviceId)
 
 	if err != nil {
+		w.Write([]byte(fmt.Sprintf("%s", err)))
 		return
 	}
 
@@ -83,7 +85,7 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 		"\"Telnet:\": %t, "+
 		"\"RDP:\": %t, "+
 		"\"SMB:\": %t }",
-		deviceID, configuration.Services.SSH, configuration.Services.FTP,
+		device.DeviceId, configuration.Services.SSH, configuration.Services.FTP,
 		configuration.Services.TELNET, configuration.Services.RDP, configuration.Services.SMB)))
 }
 
@@ -129,6 +131,27 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d}", deviceID)))
+}
+
+// removeDevice
+// TODO: in progress
+func removeDevice(w http.ResponseWriter, r *http.Request) {
+	var deviceID uint32
+	decoder := json.NewDecoder(r.Body)
+	var ipStruct = database.Device{}
+	if err := decoder.Decode(&ipStruct); err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
+		return
+	}
+	deviceID = ipStruct.DeviceID
+	err := database.RemoveDevice(deviceID)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error removing device: %s", err)
+		w.Write([]byte("Internal server error"))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": \"%d removed\"}", deviceID)))
 }
 
 // deviceSecretMiddleware

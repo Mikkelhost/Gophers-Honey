@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -26,11 +27,36 @@ type Configuration struct {
 // Device struct is used to specify device information.
 type Device struct {
 	GUID       primitive.ObjectID `bson:"_id,omitempty"`
-	DeviceID   uint32             `bson:"device_id,omitempty"`
+	DeviceID   uint32             `bson:"device_id,omitempty" json:"device_id"`
 	IP         uint32             `bson:"ip,omitempty"`
 	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
 	Configured bool               `bson:"configured"`
 	Services   Service            `bson:"services"`
+}
+
+// setDefaultConfiguration sets a default configuration when a new PI is connected
+func setDefaultConfiguration(deviceID uint32) error {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	services := Service{
+		SSH:    false,
+		FTP:    false,
+		TELNET: false,
+		RDP:    false,
+		SMB:    false,
+	}
+	configuration := Configuration{
+		DeviceID: deviceID,
+		Services: services,
+	}
+
+	_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, configuration)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error adding default configuration to config collection")
+		return err
+	}
+	return nil
 }
 
 // updateConfiguration updates the device configuration data contained in
@@ -135,6 +161,11 @@ func AddDevice(ipStr string) (uint32, error) {
 		return 0, err
 	}
 
+	err = setDefaultConfiguration(deviceID)
+	if err != nil {
+		return 0, err
+	}
+
 	return deviceID, nil
 }
 
@@ -178,7 +209,7 @@ func RemoveDevice(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isIdInCollection(deviceID, "device_id", DB_CONF_COLL) {
+	if isIdInCollection(deviceID, "device_id", DB_DEV_COLL) {
 		device := Device{
 			DeviceID: deviceID,
 		}
@@ -191,7 +222,7 @@ func RemoveDevice(deviceID uint32) error {
 		}
 	} else {
 		log.Logger.Warn().Msgf("Device ID: %d not found", deviceID)
-		// TODO: Perhaps we need to return an error here.
+		return errors.New("device ID not found")
 	}
 
 	return nil

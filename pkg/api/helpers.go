@@ -84,6 +84,10 @@ func tokenValid(request *http.Request) error {
 
 func tokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		err := tokenValid(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
