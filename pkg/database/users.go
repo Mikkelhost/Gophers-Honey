@@ -3,6 +3,7 @@ package database
 import (
 	"errors"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"strings"
@@ -10,17 +11,8 @@ import (
 
 // TODO: ADD error handling for usernames (empty string "", special chars, etc.).
 
-type User struct {
-	FirstName     string `bson:"first_name"json:"first_name"`
-	LastName      string `bson:"last_name"json:"last_name"`
-	Email         string `bson:"email"json:"email"`
-	Username      string `bson:"username"json:"username"`
-	UsernameLower string `bson:"username_lower"json:"username_lower"`
-	PasswordHash  string `bson:"password_hash,omitempty"json:"password_hash,omitempty"`
-}
-
 // AddNewUser adds a new user, with a specified username, to the database.
-func AddNewUser(user User, hashedAndSaltedPwd string) error {
+func AddNewUser(user model.DBUser, hashedAndSaltedPwd string) error {
 	if IsUserInCollection(strings.ToLower(user.Username), "username_lower", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", user.Username).Msgf("Username already in use")
 		return errors.New("username already exists")
@@ -29,7 +21,7 @@ func AddNewUser(user User, hashedAndSaltedPwd string) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	dbUser := User{
+	dbUser := model.DBUser{
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
 		Email:         user.Email,
@@ -105,7 +97,7 @@ func GetPasswordHash(username string) (string, error) {
 		"username_lower": strings.ToLower(username),
 	}
 
-	var user User
+	var user model.DBUser
 
 	result := db.Database(DB_NAME).Collection(DB_USER_COLL).FindOne(ctx, filter)
 
@@ -146,8 +138,8 @@ func LoginUser(username, stringPwd string) (bool, error) {
 
 // GetAllUsers retrieves all users currently in the database,
 // and removes the hashed password of the users before returning the information
-func GetAllUsers() ([]User, error) {
-	var userList []User
+func GetAllUsers() ([]model.DBUser, error) {
+	var userList []model.DBUser
 
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -160,7 +152,7 @@ func GetAllUsers() ([]User, error) {
 	}
 
 	for results.Next(ctx) {
-		var user User
+		var user model.DBUser
 
 		if err = results.Decode(&user); err != nil {
 			log.Logger.Warn().Msgf("Error decoding result: %s", err)

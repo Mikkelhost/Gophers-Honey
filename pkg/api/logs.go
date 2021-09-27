@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
@@ -27,7 +28,7 @@ func logsSubrouter(r *mux.Router) {
 func newLog(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
-	var logStruct database.Log
+	var logStruct model.Log
 
 	if err := decoder.Decode(&logStruct); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
@@ -50,7 +51,7 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 
 // getLogs retrieves all logs currently present in the database.
 func getLogs(w http.ResponseWriter, r *http.Request) {
-	var logs []database.Log
+	var logs []model.Log
 	logs, err := database.GetAllLogs()
 	if err != nil {
 		w.Write([]byte("Error retrieving devices"))

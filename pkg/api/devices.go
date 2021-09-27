@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
@@ -15,11 +16,6 @@ The devices API handles everything about devices/raspberry pis
 
 All functions should write json data to the responsewriter
 */
-
-type DeviceAuth struct {
-	DeviceId  uint32 `json:"device_id,omitempty"`
-	DeviceKey string `json:"device_key,omitempty"`
-}
 
 var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
 
@@ -39,7 +35,7 @@ func getDevices(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	var devices []database.Device
+	var devices []model.Device
 	devices, err := database.GetAllDevices()
 	if err != nil {
 		w.Write([]byte("Error retrieving devices"))
@@ -62,8 +58,8 @@ func getDevices(w http.ResponseWriter, r *http.Request) {
 // for a specific device and sends a JSON response containing the device
 // configuration to the requester.
 func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
-	var configuration database.Configuration
-	var device = DeviceAuth{}
+	var configuration model.Configuration
+	var device = model.DeviceAuth{}
 	var err error
 
 	decoder := json.NewDecoder(r.Body)
@@ -102,7 +98,7 @@ func configureDevice(w http.ResponseWriter, r *http.Request) {
 // Will return an unique id for the device to use going forward
 func newDevice(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var ipStruct = database.Device{}
+	var ipStruct = model.Device{}
 	if err := decoder.Decode(&ipStruct); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
@@ -138,7 +134,7 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 func removeDevice(w http.ResponseWriter, r *http.Request) {
 	var deviceID uint32
 	decoder := json.NewDecoder(r.Body)
-	var ipStruct = database.Device{}
+	var ipStruct = model.Device{}
 	if err := decoder.Decode(&ipStruct); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
