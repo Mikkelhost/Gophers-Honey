@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"

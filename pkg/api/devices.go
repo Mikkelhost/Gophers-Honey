@@ -66,6 +66,7 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 
 	if err = decoder.Decode(&device); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		return
 	}
 
 	configuration, err = database.GetDeviceConfiguration(device.DeviceId)
@@ -129,8 +130,11 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Error adding device"))
 		return
 	}
-
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d}", deviceID)))
+	response := model.PiConfResponse{
+		Status: "Success",
+		DeviceId: deviceID,
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 // removeDevice
@@ -151,7 +155,11 @@ func removeDevice(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Internal server error"))
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": \"%d removed\"}", deviceID)))
+	response := model.PiConfResponse{
+		Status: "Succesfully removed device",
+		DeviceId: deviceID,
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 // deviceSecretMiddleware
