@@ -11,11 +11,11 @@ import (
 // Service struct is used to specify enabled/disabled services in a
 // configuration.
 type Service struct {
-	SSH    bool `bson:"ssh" yaml:"ssh"`
-	FTP    bool `bson:"ftp" yaml:"ftp"`
-	TELNET bool `bson:"telnet" yaml:"telnet"`
-	RDP    bool `bson:"rdp" yaml:"rdp"`
-	SMB    bool `bson:"smb" yaml:"smb"`
+	SSH    bool `bson:"ssh" yaml:"ssh"json:"ssh"`
+	FTP    bool `bson:"ftp" yaml:"ftp"json:"ftp"`
+	TELNET bool `bson:"telnet" yaml:"telnet"json:"telnet"`
+	RDP    bool `bson:"rdp" yaml:"rdp"json:"rdp"`
+	SMB    bool `bson:"smb" yaml:"smb"json:"smb"`
 }
 
 // Configuration struct matches a device ID with enabled services. Is only
