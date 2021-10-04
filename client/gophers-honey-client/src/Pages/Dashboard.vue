@@ -23,9 +23,9 @@
           <b-col md="10" class="dashboard-container">
             <b-row class="custom-row">
               <b-col class="dashboard-card">
-                <b-col class="dashboard-card-header">
-                  <p class="dashboard-card-header-p-small">Dashboard</p>
-                  <p>Alerts over time</p>
+                <b-col>
+                  <p class="header">Dashboard</p>
+                  <p class="large">Alerts over time</p>
                 </b-col>
                 <b-col class="dashboard-card-body">
                   <apexchart type="bar" height="250px" :options="options" :series="series"></apexchart>
@@ -111,16 +111,19 @@ export default {
 
 }
 
-.dashboard-card-header {
+p.large {
   font-family: Poppins, sans-serif;
   font-weight: lighter;
-  font-size: xx-large;
+  font-size: x-large;
   padding: 5px;
+  margin-bottom: 5px;
 }
 
-.dashboard-card-header-p-small {
+p.header {
   font-size: large;
   font-weight: normal;
+  padding: 5px;
+  margin-bottom: 5px;
 }
 
 
