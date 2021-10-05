@@ -79,7 +79,7 @@ func copyImage(id uint32) error {
 func DeleteImage(imageID uint32) error {
 	filePath := "images/" + strconv.FormatUint(uint64(imageID), 10) + ".img"
 
-	if _, err := os.Stat(filePath); os.IsExist(err) {
+	if _, err := os.Stat(filePath); err == nil{
 		log.Logger.Info().Msg("Deleting image")
 		err := os.Remove(filePath)
 		if err != nil {

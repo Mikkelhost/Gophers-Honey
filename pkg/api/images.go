@@ -16,7 +16,7 @@ func imageSubRouter(r *mux.Router) {
 	imageAPI := r.PathPrefix("/api/images").Subrouter()
 	//imageRouter.Handle("/", http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
 	imageAPI.Queries("download","{download:[0-9]+}").HandlerFunc(tokenAuthMiddleware(downloadImage)).Methods("GET", "OPTIONS").Name("download")
-	imageAPI.HandleFunc("", tokenAuthMiddleware(imageHandler))
+	imageAPI.HandleFunc("", tokenAuthMiddleware(imageHandler)).Methods("GET", "POST", "DELETE", "OPTIONS")
 
 }
 //TODO: Add/remove image functionality
@@ -118,15 +118,18 @@ func removeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Remove image from DB collection.
+	log.Logger.Debug().Uint32("id", image.Id).Msg("Deleting image from db")
 	if err = database.RemoveImage(image.Id); err != nil {
 		log.Logger.Warn().Msgf("Error removing image from collection: %s", err)
 		json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("Error removing image from db: %s", err)})
-
+		return
 	}
 	// Delete image file from disk
+	log.Logger.Debug().Uint32("id", image.Id).Msg("Deleting image from disk")
 	if err = piimage.DeleteImage(image.Id); err != nil {
 		log.Logger.Warn().Msgf("Error deleting image from disk: %s", err)
 		json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("Error deleting image from disk: %s", err)})
+		return
 	}
 
 	json.NewEncoder(w).Encode(model.APIUser{Error: ""})
