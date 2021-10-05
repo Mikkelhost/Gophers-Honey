@@ -7,8 +7,8 @@ import { router } from './router'
 import VueCookies from 'vue-cookies'
 import VueJwtDecode from 'vue-jwt-decode'
 import VueApexCharts from 'vue-apexcharts'
-
-
+import VueAuthHref from 'vue-auth-href'
+import ProgressBar from 'vue-simple-progress'
 
 
 Vue.use(BootstrapVue)
@@ -18,6 +18,9 @@ Vue.use(SidebarPlugin)
 Vue.use(VueCookies)
 Vue.use(VueJwtDecode)
 Vue.use(VueApexCharts)
+Vue.use(VueAuthHref)
+
+Vue.component('progressbar', ProgressBar)
 Vue.component('apexchart', VueApexCharts)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'

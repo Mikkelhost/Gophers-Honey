@@ -70,7 +70,26 @@ func copyImage(id uint32) error {
 		log.Logger.Info().Msgf("Copied %s bytes!", nBytes)
 		return nil
 	} else {
-		log.Logger.Info().Msg("Image already exists")
-		return errors.New("Image already exists")
+		log.Logger.Info().Msgf("Image already exists")
+		return errors.New("image already exists")
 	}
 }
+
+// deleteImage finds the specified image file and deletes it from disk.
+func deleteImage(imageID uint32) error {
+	filePath := "images/" + strconv.FormatUint(uint64(imageID), 10) + ".img"
+
+	if _, err := os.Stat(filePath); os.IsExist(err) {
+		log.Logger.Info().Msg("Deleting image")
+		err := os.Remove(filePath)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		log.Logger.Warn().Msgf("Image not found")
+		return errors.New("image not found")
+	}
+}
+
+

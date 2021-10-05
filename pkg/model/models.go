@@ -6,16 +6,16 @@ import (
 )
 
 /* Database related structs.
-*/
+ */
 
 // Service struct is used to specify enabled/disabled services in a
 // configuration.
 type Service struct {
-	SSH    bool `bson:"ssh" yaml:"ssh"json:"ssh"`
-	FTP    bool `bson:"ftp" yaml:"ftp"json:"ftp"`
-	TELNET bool `bson:"telnet" yaml:"telnet"json:"telnet"`
-	RDP    bool `bson:"rdp" yaml:"rdp"json:"rdp"`
-	SMB    bool `bson:"smb" yaml:"smb"json:"smb"`
+	SSH    bool `bson:"ssh" yaml:"ssh" json:"ssh"`
+	FTP    bool `bson:"ftp" yaml:"ftp" json:"ftp"`
+	TELNET bool `bson:"telnet" yaml:"telnet" json:"telnet"`
+	RDP    bool `bson:"rdp" yaml:"rdp" json:"rdp"`
+	SMB    bool `bson:"smb" yaml:"smb" json:"smb"`
 }
 
 // Configuration struct matches a device ID with enabled services. Is only
@@ -45,9 +45,9 @@ type Log struct {
 
 type Image struct {
 	GUID        primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `bson:"name"json:"name"`
-	DateCreated string             `bson:"date_created"json:"date_created"`
-	Id          uint32             `bson:"image_id"json:"image_id"`
+	Name        string             `bson:"name" json:"name"`
+	DateCreated string             `bson:"date_created" json:"date_created"`
+	Id          uint32             `bson:"image_id" json:"image_id"`
 }
 
 type DeviceAuth struct {
@@ -56,12 +56,12 @@ type DeviceAuth struct {
 }
 
 type DBUser struct {
-	FirstName     string `bson:"first_name"json:"first_name"`
-	LastName      string `bson:"last_name"json:"last_name"`
-	Email         string `bson:"email"json:"email"`
-	Username      string `bson:"username"json:"username"`
-	UsernameLower string `bson:"username_lower"json:"username_lower"`
-	PasswordHash  string `bson:"password_hash,omitempty"json:"password_hash,omitempty"`
+	FirstName     string `bson:"first_name" json:"first_name"`
+	LastName      string `bson:"last_name" json:"last_name"`
+	Email         string `bson:"email" json:"email"`
+	Username      string `bson:"username" json:"username"`
+	UsernameLower string `bson:"username_lower" json:"username_lower"`
+	PasswordHash  string `bson:"password_hash,omitempty" json:"password_hash,omitempty"`
 }
 
 /* API Call related structs.
@@ -94,19 +94,20 @@ type ImageInfo struct {
 }
 
 type PiConfResponse struct {
-	Status string `json:"status"`
-	DeviceId uint32 `json:"device_id"`
+	Status   string  `json:"status"`
+	DeviceId uint32  `json:"device_id"`
 	Services Service `json:"services"`
 }
 
 /* RaspberryPi image related structs.
-*/
+ */
 
 type PiConf struct {
-	HostName  string  `yaml:"hostname"`
-	Port      int     `yaml:"port"`
-	DeviceID  uint32  `yaml:"device_id"`
-	DeviceKey string  `yaml:"device_key"`
-	Services  Service `yaml:"services"`
+	HostName   string  `yaml:"hostname"`
+	IpStr      string  `yaml:"ip_str"`
+	Configured bool    `yaml:"configured"`
+	Port       int     `yaml:"port"`
+	DeviceID   uint32  `yaml:"device_id"`
+	DeviceKey  string  `yaml:"device_key"`
+	Services   Service `yaml:"services"`
 }
-

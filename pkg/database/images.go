@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
@@ -54,6 +55,27 @@ func NewImage(image model.Image) (uint32, error) {
 	return imageId, nil
 }
 
-func RemoveImage(model.Image) error {
+// RemoveImage removes a specified image from the "image_collection"
+// collection.
+func RemoveImage(imageID uint32) error {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	if isIdInCollection(imageID, "image_id", DB_IMAGE_COLL) {
+		image := model.Image{
+			Id: imageID,
+		}
+
+		_, err := db.Database(DB_NAME).Collection(DB_IMAGE_COLL).DeleteOne(ctx, image)
+
+		if err != nil {
+			log.Logger.Warn().Msgf("Error removing image: %s", err)
+			return err
+		}
+	} else {
+		log.Logger.Warn().Msgf("Image ID: %d not found", imageID)
+		return errors.New("image ID not found")
+	}
+
 	return nil
 }

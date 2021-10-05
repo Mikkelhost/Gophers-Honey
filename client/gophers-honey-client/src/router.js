@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import HomePage from './Pages/Home'
 import LoginPage from './Pages/Login'
 import SetupPage from './Pages/Setup'
 import SettingsPage from './Pages/Settings'
@@ -11,11 +10,10 @@ Vue.use(Router);
 export const router = new Router({
     mode: 'history',
     routes: [
-        { name: 'home', path: '/', component: HomePage },
+        { name: 'home', path: '/', component: DashboardPage },
         { name: 'settings', path: '/settings', component: SettingsPage },
         { name: 'login', path: '/login', component: LoginPage },
         { name: 'setup', path: '/setup', component: SetupPage },
-        { name: 'dashboard', path: '/dashboard', component: DashboardPage},
         // otherwise redirect to home
         { path: '*', redirect: '/' }
     ]

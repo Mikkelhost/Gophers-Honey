@@ -16,7 +16,7 @@ func imageSubRouter(r *mux.Router) {
 	imageAPI.HandleFunc("/getImages", tokenAuthMiddleware(getImages))
 
 }
-
+//TODO: Add/remove image functionality
 func downloadImage(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	if r.Method == "OPTIONS" {

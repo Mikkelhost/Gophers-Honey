@@ -23,18 +23,33 @@ var DEVICE_KEY = getenv("DEVICE_KEY", "XxPFUhQ8R7kKhpgubt7v")
 // Sets up a devices API subrouter
 func devicesSubrouter(r *mux.Router) {
 	deviceAPI := r.PathPrefix("/api/devices").Subrouter()
-	deviceAPI.HandleFunc("/getDevices", tokenAuthMiddleware(getDevices)).Methods("GET", "OPTIONS")
-	deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST", "OPTIONS")
+	deviceAPI.HandleFunc("", tokenAuthMiddleware(deviceHandler)).Methods("GET", "PUT", "DELETE", "OPTIONS")
+	//deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST", "OPTIONS")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("GET")
-	deviceAPI.HandleFunc("/removeDevice", tokenAuthMiddleware(removeDevice)).Methods("POST")
+	//deviceAPI.HandleFunc("/removeDevice", tokenAuthMiddleware(removeDevice)).Methods("POST")
 }
 
-func getDevices(w http.ResponseWriter, r *http.Request) {
+func deviceHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
+	// CORS preflight handling
 	if r.Method == "OPTIONS" {
 		return
 	}
+	switch r.Method {
+	case "GET":
+		getDevices(w, r)
+		return
+	case "PUT":
+		configureDevice(w, r)
+		return
+	case "DELETE":
+		removeDevice(w, r)
+		return
+	}
+}
+
+func getDevices(w http.ResponseWriter, r *http.Request) {
 	var devices []model.Device
 	devices, err := database.GetAllDevices()
 	if err != nil {

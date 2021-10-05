@@ -357,20 +357,38 @@ export default {
   box-shadow: 2px 3px 15px 5px #888888;
 }
 
-@media screen and (max-height: 820px){
+@media screen and (max-height: 920px){
   .setup-carousel{
     top: 35%;
   }
 }
 
-@media screen and (max-height: 685px){
+@media screen and (max-height: 800px){
+  .setup-carousel{
+    top: 37%;
+  }
+}
+
+@media screen and (max-height: 760px){
   .setup-carousel{
     top: 40%;
   }
 }
-@media screen and (max-height: 600px){
+
+@media screen and (max-height: 720px){
+  .setup-carousel{
+    top: 43%;
+  }
+}
+
+@media screen and (max-height: 685px){
   .setup-carousel{
     top: 45%;
+  }
+}
+@media screen and (max-height: 650px){
+  .setup-carousel{
+    top: 48%;
   }
 }
 
