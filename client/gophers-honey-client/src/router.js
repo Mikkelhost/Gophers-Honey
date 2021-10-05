@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import HomePage from './Pages/Home'
 import LoginPage from './Pages/Login'
 import SetupPage from './Pages/Setup'
 import SettingsPage from './Pages/Settings'
