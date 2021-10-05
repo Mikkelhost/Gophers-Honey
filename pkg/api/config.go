@@ -21,6 +21,7 @@ func configSubrouter(r *mux.Router) {
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
+	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
 		return
 	}
@@ -34,6 +35,7 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 // has submitted all the user details and image details
 func setupService(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
+	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
 		return
 	}
@@ -49,6 +51,11 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 
 		//Make first image
 		port, err := strconv.Atoi(setup.Image.Port)
+		if err != nil {
+			log.Logger.Warn().Msgf("Error converting port to int: %s", err)
+			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
+			return
+		}
 		if port < 0 {
 			log.Logger.Warn().Msg("Port smaller than 0, aboritng")
 			json.NewEncoder(w).Encode(model.APIUser{Error: "Port cannot be smaller than 0"})
@@ -62,11 +69,7 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
 			return
 		}
-		if err != nil {
-			log.Logger.Warn().Msgf("Error converting port to int: %s", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
-			return
-		}
+
 		err = piimage.InsertConfig(model.PiConf{
 			HostName: setup.Image.Hostname,
 			Port: port,

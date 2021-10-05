@@ -75,8 +75,8 @@ func copyImage(id uint32) error {
 	}
 }
 
-// deleteImage finds the specified image file and deletes it from disk.
-func deleteImage(imageID uint32) error {
+// DeleteImage finds the specified image file and deletes it from disk.
+func DeleteImage(imageID uint32) error {
 	filePath := "images/" + strconv.FormatUint(uint64(imageID), 10) + ".img"
 
 	if _, err := os.Stat(filePath); os.IsExist(err) {
