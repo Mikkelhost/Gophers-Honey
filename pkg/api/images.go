@@ -93,7 +93,7 @@ func newImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = piimage.InsertConfig(model.PiConf{
-		HostName: imgInfo.Hostname,
+		C2: imgInfo.C2,
 		Port: port,
 		DeviceID: 0,
 		DeviceKey: DEVICE_KEY,
