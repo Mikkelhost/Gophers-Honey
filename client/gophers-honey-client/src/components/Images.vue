@@ -213,11 +213,8 @@ export default {
         }).then(function (response){
           if (response.data.error === "") {
             this.images = this.removeItem(this.images, "id", imageId)
-            this.alert = "Successfully deleted " + imageId
-            this.showAlert("success")
           } else {
-            this.alert = response.data.error
-            this.showAlert("danger")
+            window.console.log("Error deleting image: "+response.data.error)
           }
         }.bind(this))
       } else {

@@ -188,13 +188,19 @@ func RemoveDevice(deviceID uint32) error {
 	defer cancel()
 
 	if isIdInCollection(deviceID, "device_id", DB_DEV_COLL) {
-		device := model.Device{
-			DeviceID: deviceID,
+		device := bson.M{
+			"device_id": deviceID,
 		}
 
 		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).DeleteOne(ctx, device)
 
 		if err != nil {
+			log.Logger.Warn().Msgf("Error removing device: %s", err)
+			return err
+		}
+
+		_, err = db.Database(DB_NAME).Collection(DB_CONF_COLL).DeleteOne(ctx, device)
+		if err != nil{
 			log.Logger.Warn().Msgf("Error removing device: %s", err)
 			return err
 		}

@@ -179,7 +179,7 @@ func removeDevice(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
-
+	log.Logger.Debug().Uint32("device_id", device.DeviceID).Msg("Deleting device")
 	deviceID = device.DeviceID
 	err := database.RemoveDevice(deviceID)
 	if err != nil {
