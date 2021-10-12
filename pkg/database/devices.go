@@ -252,7 +252,7 @@ func HandleHeartbeat(deviceID uint32, timestamp time.Time) error {
 	}
 
 	update := bson.M{
-		"&set": config,
+		"$set": config,
 	}
 
 	if isIdInCollection(deviceID, "device_id", DB_DEV_COLL) {
