@@ -1,3 +1,4 @@
+<!-- TODO Add configure device modal -->
 <template>
   <div>
     <Navbar></Navbar>
@@ -52,6 +53,7 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
+import moment from "moment"
 export default {
   name: "Honeypots",
   components: {Navbar, Footer},
@@ -105,9 +107,14 @@ export default {
       }).then(function (response){
         if (response.data.error == null) {
           devices = response.data
+          devices.forEach(function (device){
+            let date = new moment.utc(device.last_seen).format('dddd YYYY-MM-DD, HH:mm:ss[Z]')
+            device.last_seen = date
+          })
           const index = devices.findIndex(obj => obj["device_id"] === device_id)
           window.console.log("Index of updated device: "+index)
-          this.devices[index] = devices[index]
+          this.$set(this.devices, index, devices[index])
+          window.console.log(this.devices)
         }
       }.bind(this))
     },
@@ -120,6 +127,10 @@ export default {
       }).then(function (response){
         if (response.data.error == null) {
           this.devices = response.data
+          this.devices.forEach(function (device){
+            let date = new moment.utc(device.last_seen).format('dddd YYYY-MM-DD, HH:mm:ss[Z]')
+            device.last_seen = date
+          })
           window.console.log("Succesfully got devices")
           window.console.log(this.devices)
         }

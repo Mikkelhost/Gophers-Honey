@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 )
 
@@ -26,18 +25,11 @@ func (pool *Pool) Start() {
 		select {
 		case client := <-pool.Register:
 			pool.Clients[client] = true
-			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				fmt.Println(client)
-				client.Conn.WriteJSON(Message{Type: 1, Body: "New User Joined..."})
-			}
+			log.Logger.Debug().Msgf("Size of Connection Pool: %d", len(pool.Clients))
 			break
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
-			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
-			}
+			log.Logger.Debug().Msgf("Size of Connection Pool: %d", len(pool.Clients))
 			break
 		case id := <-pool.Heartbeat:
 			log.Logger.Debug().Msg("Sending heartbeat notification to clients")
