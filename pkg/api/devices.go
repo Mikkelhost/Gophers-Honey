@@ -227,5 +227,6 @@ func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Logger.Debug().Msg("Heartbeat successfully handled")
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }

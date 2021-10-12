@@ -268,5 +268,6 @@ func HandleHeartbeat(deviceID uint32, timestamp time.Time) error {
 		log.Logger.Warn().Msgf("Device ID: %d not found", deviceID)
 		return errors.New("device ID not found")
 	}
+	log.Logger.Debug().Uint32("device_id", deviceID).Msgf("Successfully added timestamp: %v to device", timestamp)
 	return nil
 }
