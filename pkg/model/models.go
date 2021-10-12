@@ -107,7 +107,6 @@ type PiConfResponse struct {
 
 type Heartbeat struct {
 	DeviceID  uint32    `json:"device_id"`
-	IpStr     string    `json:"ip_str"`
 	TimeStamp time.Time `json:"time_stamp"`
 }
 

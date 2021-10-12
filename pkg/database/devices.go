@@ -5,6 +5,7 @@ import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 )
 
 // setDefaultConfiguration sets a default configuration when a new PI is connected
@@ -234,4 +235,38 @@ func GetDeviceConfiguration(deviceID uint32) (model.Configuration, error) {
 		configuration.Services.TELNET, configuration.Services.RDP, configuration.Services.SMB)
 
 	return configuration, nil
+}
+
+// HandleHeartbeat retrieves a timestamp from the API and sets/updates the
+// "last_seen" field for a given device.
+func HandleHeartbeat(deviceID uint32, timestamp time.Time) error {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		"device_id": deviceID,
+	}
+
+	config := bson.M{
+		"last_seen": timestamp,
+	}
+
+	update := bson.M{
+		"&set": config,
+	}
+
+	if isIdInCollection(deviceID, "device_id", DB_DEV_COLL) {
+		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
+
+		if err != nil {
+			log.Logger.Warn().
+				Uint32("device_id", deviceID).
+				Msgf("Error updating device: %s", err)
+			return err
+		}
+	} else {
+		log.Logger.Warn().Msgf("Device ID: %d not found", deviceID)
+		return errors.New("device ID not found")
+	}
+	return nil
 }
