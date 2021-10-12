@@ -63,6 +63,25 @@ export default {
   created() {
     axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
     this.getDevices()
+    console.log("Starting connection to WebSocket Server")
+    let loc = window.location, new_uri;
+    if(loc.protocol === "https:"){
+      new_uri = "wss:"
+    } else {
+      new_uri = "ws:"
+    }
+    new_uri += "//" + loc.hostname + ":8000/ws";
+    window.console.log("Trying to connect to ws on: " + new_uri)
+    this.connection = new WebSocket(new_uri)
+
+    this.connection.onmessage = function(event) {
+      console.log(event);
+    }
+
+    this.connection.onopen = function(event) {
+      console.log(event)
+      console.log("Successfully connected to the echo websocket server...")
+    }
   },
   methods: {
     removeItem: function(array, key, value) {
