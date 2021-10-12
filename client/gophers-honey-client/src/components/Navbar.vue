@@ -9,7 +9,7 @@
             <b-icon icon="graph-up"></b-icon>
             Dashboard
           </b-nav-item>
-          <b-nav-item href="#" left>
+          <b-nav-item href="/honeypots" left>
             <b-icon icon="cpu"></b-icon>
             Honeypots
           </b-nav-item>

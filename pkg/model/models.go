@@ -27,13 +27,13 @@ type Configuration struct {
 
 // Device struct is used to specify device information.
 type Device struct {
-	GUID       primitive.ObjectID `bson:"_id,omitempty"`
+	GUID       primitive.ObjectID `bson:"_id,omitempty" json:"guid"`
 	DeviceID   uint32             `bson:"device_id,omitempty" json:"device_id"`
 	IP         uint32             `bson:"ip,omitempty"`
 	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
-	Configured bool               `bson:"configured"`
-	Services   Service            `bson:"services"`
-	LastSeen   time.Time          `bson:"last_seen"`
+	Configured bool               `bson:"configured" json:"configured"`
+	Services   Service            `bson:"services" json:"services"`
+	LastSeen   time.Time          `bson:"last_seen" json:"last_seen"`
 }
 
 type Log struct {

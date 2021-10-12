@@ -4,6 +4,7 @@ import LoginPage from './Pages/Login'
 import SetupPage from './Pages/Setup'
 import SettingsPage from './Pages/Settings'
 import DashboardPage from "./Pages/Dashboard";
+import HoneypotsPage from "./Pages/Honeypots";
 
 Vue.use(Router);
 
@@ -12,6 +13,7 @@ export const router = new Router({
     routes: [
         { name: 'home', path: '/', component: DashboardPage },
         { name: 'settings', path: '/settings', component: SettingsPage },
+        { name: 'honeypots', path: '/honeypots', component: HoneypotsPage},
         { name: 'login', path: '/login', component: LoginPage },
         { name: 'setup', path: '/setup', component: SetupPage },
         // otherwise redirect to home
@@ -22,7 +24,7 @@ export const router = new Router({
 
 router.beforeEach(async(to, from, next) => {
     // redirect to login page if not logged in and trying to access a restricted page
-    const publicPages = ['/login', '/signup', '/setup'];
+    const publicPages = ['/login', '/setup'];
     const authRequired = !publicPages.includes(to.path);
     const token = Vue.$cookies.get("token")
     var validJwt = null
