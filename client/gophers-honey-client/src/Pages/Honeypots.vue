@@ -11,6 +11,7 @@
             <th>Last seen</th>
             <th>Configured</th>
             <th class="text-center">Services</th>
+            <th>Configure Device</th>
             <th>Delete</th>
           </tr>
           <template v-if="devices.length !== 0">
@@ -31,7 +32,11 @@
               <template v-else>
                 <td>Device not yet configured</td>
               </template>
-
+              <td>
+                <div style="margin: auto; width: fit-content">
+                  <b-button>Configure</b-button>
+                </div>
+              </td>
               <td class="text-center">
                 <b-icon-trash class="click-icon" v-on:click="removeDevice(device.device_id)" variant="danger"></b-icon-trash>
               </td>
