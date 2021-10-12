@@ -239,9 +239,11 @@ func GetDeviceConfiguration(deviceID uint32) (model.Configuration, error) {
 
 // HandleHeartbeat retrieves a timestamp from the API and sets/updates the
 // "last_seen" field for a given device.
-func HandleHeartbeat(deviceID uint32, timestamp time.Time) error {
+func HandleHeartbeat(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
+
+	timestamp := time.Now()
 
 	filter := bson.M{
 		"device_id": deviceID,
