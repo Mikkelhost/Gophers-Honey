@@ -8,7 +8,7 @@ import (
 type Pool struct {
 	Register   chan *Client
 	Unregister chan *Client
-	Heartbeat  chan string
+	Heartbeat  chan uint32
 	Clients    map[*Client]bool
 }
 
@@ -16,7 +16,7 @@ func NewPool() *Pool {
 	return &Pool{
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
-		Heartbeat:  make(chan string),
+		Heartbeat:  make(chan uint32),
 		Clients:    make(map[*Client]bool),
 	}
 }
@@ -39,10 +39,10 @@ func (pool *Pool) Start() {
 				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
 			}
 			break
-		case _ = <-pool.Heartbeat:
+		case id := <-pool.Heartbeat:
 			log.Logger.Debug().Msg("Sending heartbeat notification to clients")
 			for client, _ := range pool.Clients{
-				client.Conn.WriteJSON(Message{Type: 1, Body: "Heartbeat recieved"})
+				client.Conn.WriteJSON(Message{Type: 2, DeviceID: id})
 			}
 		}
 	}

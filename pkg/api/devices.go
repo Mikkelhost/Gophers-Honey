@@ -230,6 +230,6 @@ func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Logger.Debug().Msg("Heartbeat successfully handled")
-	ClientPool.Heartbeat <- "Recieved heartbeat"
+	ClientPool.Heartbeat <- heartbeat.DeviceID
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }

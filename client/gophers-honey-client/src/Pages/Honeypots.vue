@@ -63,6 +63,8 @@ export default {
   created() {
     axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
     this.getDevices()
+  },
+  mounted() {
     console.log("Starting connection to WebSocket Server")
     let loc = window.location, new_uri;
     if(loc.protocol === "https:"){
@@ -75,11 +77,15 @@ export default {
     this.connection = new WebSocket(new_uri)
 
     this.connection.onmessage = function(event) {
-      console.log(event);
-    }
+      let data = JSON.parse(event.data)
+      window.console.log(data)
+      if (data.type == 2) {
+        window.console.log("Recieved heartbeat event")
+        this.updateDevice(data.device_id)
+      }
+    }.bind(this)
 
-    this.connection.onopen = function(event) {
-      console.log(event)
+    this.connection.onopen = function() {
       console.log("Successfully connected to the echo websocket server...")
     }
   },
@@ -90,6 +96,20 @@ export default {
         ...array.slice(0, index),
         ...array.slice(index+1)
       ] : array;
+    },
+    updateDevice: function (device_id) {
+      let devices = []
+      axios({
+        url: process.env.VUE_APP_API_ROOT+"/devices",
+        method: "GET",
+      }).then(function (response){
+        if (response.data.error == null) {
+          devices = response.data
+          const index = devices.findIndex(obj => obj["device_id"] === device_id)
+          window.console.log("Index of updated device: "+index)
+          this.devices[index] = devices[index]
+        }
+      }.bind(this))
     },
     getDevices: function(){
       window.console.log("Getting devices")

@@ -14,7 +14,8 @@ type Client struct {
 
 type Message struct {
     Type int    `json:"type"`
-    Body string `json:"body"`
+    Body string `json:"body,omitempty"`
+    DeviceID uint32 `json:"device_id,omitempty"`
 }
 
 func (c *Client) Read() {
