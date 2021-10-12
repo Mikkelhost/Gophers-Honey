@@ -220,6 +220,8 @@ func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Logger.Debug().Uint32("device_id", heartbeat.DeviceID).Msg("Received heartbeat from device")
+
 	err := database.HandleHeartbeat(heartbeat.DeviceID, heartbeat.TimeStamp)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error handling heartbeat: %s", err)
