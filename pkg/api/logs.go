@@ -18,9 +18,24 @@ All functions should write json data to the responseWriter
 */
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
-	logAPI.HandleFunc("/getlogs", tokenAuthMiddleware(getLogs)).Methods("GET")
-	logAPI.HandleFunc("/updateTTLIndex", tokenAuthMiddleware(updateTTLIndex)).Methods("POST")
+	logAPI.HandleFunc("",tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
 	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
+}
+
+func logHandler (w http.ResponseWriter, r *http.Request){
+	enableCors(&w)
+	// CORS preflight handling.
+	if r.Method == "OPTIONS" {
+		return
+	}
+	switch r.Method {
+	case "GET":
+		getLogs(w, r)
+		return
+	case "PUT":
+		updateTTLIndex(w, r)
+		return
+	}
 }
 
 // newLog is called by devices when they create a new log
@@ -32,7 +47,7 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 
 	if err := decoder.Decode(&logStruct); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 
@@ -40,12 +55,11 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 	err := database.AddLog(logStruct.DeviceID, logStruct.TimeStamp, strings.TrimSpace(logStruct.Message))
 	if err != nil {
 		log.Logger.Warn().Msgf("Error adding log: %s", err)
-		w.Write([]byte("Error adding log"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error adding log"})
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"Success\", \"device_id\": %d,\"log_id\": %d }",
-		logStruct.DeviceID, logStruct.LogID)))
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 
 }
 
@@ -54,16 +68,16 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 	var logs []model.Log
 	logs, err := database.GetAllLogs()
 	if err != nil {
-		w.Write([]byte("Error retrieving devices"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error retrieving logs"})
 		return
 	}
 	if len(logs) == 0 {
-		w.Write([]byte("No logs in DB"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "No logs in DB"})
 		return
 	}
 	logsJson, err := json.Marshal(logs)
 	if err != nil {
-		w.Write([]byte("Error Marshalling logs"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error Marshalling logs"})
 		return
 	}
 
@@ -82,7 +96,7 @@ func updateTTLIndex(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&update)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 
@@ -91,7 +105,9 @@ func updateTTLIndex(w http.ResponseWriter, r *http.Request) {
 	err = database.UpdateTTLIndex(update.ExpireAfterSeconds)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }

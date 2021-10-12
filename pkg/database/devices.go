@@ -95,20 +95,24 @@ func ConfigureDevice(service model.Service, deviceId uint32) error {
 	update := bson.M{
 		"$set": config,
 	}
+	if isIdInCollection(deviceId, "device_id", DB_DEV_COLL) {
+		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
 
-	_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
+		if err != nil {
+			log.Logger.Warn().
+				Uint32("device_id", deviceId).
+				Msgf("Error updating device: %s", err)
+			return err
+		}
 
-	if err != nil {
-		log.Logger.Warn().
-			Uint32("device_id", deviceId).
-			Msgf("Error updating device: %s", err)
-		return err
-	}
+		err = updateConfiguration(service, deviceId)
 
-	err = updateConfiguration(service, deviceId)
-
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Logger.Warn().Msgf("Device ID: %d not found", deviceId)
+		return errors.New("device ID not found")
 	}
 
 	return nil

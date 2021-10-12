@@ -15,16 +15,28 @@ import (
 
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
-	configAPI.HandleFunc("/getConfig", getConfig).Methods("GET", "OPTIONS")
-	configAPI.HandleFunc("/setupService", setupService).Methods("POST", "OPTIONS")
+	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "OPTIONS")
+	//configAPI.HandleFunc("/getConfig", getConfig).Methods("GET", "OPTIONS")
+	//configAPI.HandleFunc("/setupService", setupService).Methods("POST", "OPTIONS")
 }
 
-func getConfig(w http.ResponseWriter, r *http.Request) {
+func configHandler(w http.ResponseWriter, r *http.Request){
 	enableCors(&w)
 	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
 		return
 	}
+	switch r.Method {
+	case "GET":
+		getConfig(w, r)
+		return
+	case "POST":
+		setupService(w, r)
+		return
+	}
+}
+
+func getConfig(w http.ResponseWriter, r *http.Request) {
 	log.Logger.Debug().Bool("configured", config.Conf.Configured)
 
 	json.NewEncoder(w).Encode(model.ConfigResponse{Configured: config.Conf.Configured})
@@ -34,17 +46,12 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 // service has been run for the first time and the user has
 // has submitted all the user details and image details
 func setupService(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	// CORS preflight handling.
-	if r.Method == "OPTIONS" {
-		return
-	}
 	if !config.Conf.Configured {
 		var setup = model.SetupParams{}
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&setup); err != nil {
 			log.Logger.Warn().Msgf("Failed decoding json: %s", err)
-			w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Failed decoding json: %s", err)})
 			return
 		}
 		log.Logger.Debug().Msgf("setup params: %v", setup)
@@ -53,12 +60,12 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		port, err := strconv.Atoi(setup.Image.Port)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error converting port to int: %s", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		if port < 0 {
 			log.Logger.Warn().Msg("Port smaller than 0, aboritng")
-			json.NewEncoder(w).Encode(model.APIUser{Error: "Port cannot be smaller than 0"})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: "Port cannot be smaller than 0"})
 			return
 		}
 		id, err := database.NewImage(model.Image{
@@ -66,7 +73,7 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating new image in db: %s", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 
@@ -78,7 +85,7 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}, id)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error inserting config into image: %s", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 
@@ -93,13 +100,13 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}, hash)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating user: %s", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		token, err := createToken(setup.User.Username)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating token: ", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s", err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 
@@ -109,11 +116,11 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := config.SetConfig(conff); err != nil {
 			log.Logger.Warn().Msgf("Error setting config: %s", err)
-			json.NewEncoder(w).Encode(model.APIUser{Error: fmt.Sprintf("%s",err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s",err)})
 			return
 		}
 		json.NewEncoder(w).Encode(model.APIUser{Token: token})
 	} else {
-		json.NewEncoder(w).Encode(model.APIUser{Error: "Service has already been configured"})
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Service has already been configured"})
 	}
 }

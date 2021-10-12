@@ -61,6 +61,8 @@ func SetConfig(config Config) error{
 		log.Logger.Warn().Msgf("Error creating yaml string: %s", err)
 		return err
 	}
+	f.Truncate(0)
+	f.Seek(0,0)
 	if _, err := f.Write(yaml); err != nil {
 		log.Logger.Warn().Msgf("Error writing conf",err)
 		return err

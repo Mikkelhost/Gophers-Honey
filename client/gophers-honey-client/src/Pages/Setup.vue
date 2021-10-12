@@ -171,15 +171,15 @@
               <b-col class="input">
                 <b-form-group
                     id="input-group-8"
-                    label="Hostname*"
+                    label="C2 Hostname*"
                     label-for="input-8"
-                    description="The hostname/url for your the api"
+                    description="The C2 hostname is the url for your the api"
                 >
                   <b-form-input
                       id="input-8"
-                      v-model="form.imageInfo.hostname"
+                      v-model="form.imageInfo.c2"
                       type="text"
-                      placeholder="Hostname"
+                      placeholder="C2 Hostname"
                       required
                       @input.native="checkUserForm()"
                   >
@@ -264,7 +264,7 @@ export default {
         },
         imageInfo: {
           name: "",
-          hostname: "",
+          c2: "",
           port: null,
         }
       },
@@ -277,7 +277,7 @@ export default {
     }
   },
   async beforeCreate() {
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config/getConfig")
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config")
     if (resp.status === 200) {
       window.console.log(resp.data.configured)
       if (resp.data.configured) {
@@ -311,12 +311,12 @@ export default {
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-          process.env.VUE_APP_API_ROOT+"/config/setupService", setupInfoJson
+          process.env.VUE_APP_API_ROOT+"/config", setupInfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false
           window.console.log(response.data.error)
-          if (response.data.error === "") {
+          if (response.data.token != null) {
             that.$cookies.set("token",response.data.token,"24h","/")
             router.push('/').catch(()=>{})
           } else {

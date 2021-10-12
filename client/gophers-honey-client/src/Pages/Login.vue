@@ -83,7 +83,7 @@ export default {
   },
   async beforeCreate() {
     //Checking if the service has been configured yet
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT + "/config/getConfig")
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT + "/config")
     if (resp.status === 200) {
       window.console.log(resp.data.configured)
       if (!resp.data.configured) {
@@ -114,7 +114,8 @@ export default {
       ).then(response => {
         if (response.status === 200) {
           that.loading = false
-          if (response.data.error === "") {
+          window.console.log(response.data)
+          if (response.data.token != null) {
             that.$cookies.set("token", response.data.token, "24h", "/")
             router.push('/').catch(() => {
             })

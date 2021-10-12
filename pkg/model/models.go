@@ -21,8 +21,8 @@ type Service struct {
 // Configuration struct matches a device ID with enabled services. Is only
 // used when retrieving configuration data from the database.
 type Configuration struct {
-	DeviceID uint32  `bson:"device_id,omitempty"`
-	Services Service `bson:"services"`
+	DeviceID uint32  `bson:"device_id,omitempty" json:"device_id"`
+	Services Service `bson:"services" json:"services"`
 }
 
 // Device struct is used to specify device information.
@@ -33,6 +33,7 @@ type Device struct {
 	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
 	Configured bool               `bson:"configured"`
 	Services   Service            `bson:"services"`
+	LastSeen   time.Time          `bson:"last_seen"`
 }
 
 type Log struct {
@@ -66,6 +67,9 @@ type DBUser struct {
 
 /* API Call related structs.
  */
+type APIResponse struct {
+	Error string `json:"error"`
+}
 
 type APIUser struct {
 	FirstName string `json:"firstName,omitempty"`
@@ -75,7 +79,6 @@ type APIUser struct {
 	Password  string `json:"password,omitempty"`
 	ConfirmPw string `json:"confirmPw,omitempty"`
 	Token     string `json:"token,omitempty"`
-	Error     string `json:"error"`
 }
 
 type ConfigResponse struct {
@@ -101,6 +104,12 @@ type PiConfResponse struct {
 
 /* RaspberryPi image related structs.
  */
+
+type Heartbeat struct {
+	DeviceID  uint32    `json:"device_id"`
+	IpStr     string    `json:"ip_str"`
+	TimeStamp time.Time `json:"time_stamp"`
+}
 
 type PiConf struct {
 	C2         string  `yaml:"c2"`
