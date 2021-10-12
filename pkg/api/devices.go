@@ -27,6 +27,7 @@ func devicesSubrouter(r *mux.Router) {
 	//deviceAPI.HandleFunc("/configure", tokenAuthMiddleware(configureDevice)).Methods("POST", "OPTIONS")
 	deviceAPI.HandleFunc("/addDevice", deviceSecretMiddleware(newDevice)).Methods("POST")
 	deviceAPI.HandleFunc("/getDeviceConf", deviceSecretMiddleware(getDeviceConfiguration)).Methods("GET")
+	deviceAPI.HandleFunc("/heartbeat", deviceSecretMiddleware(handleHeartbeat)).Methods("POST")
 	//deviceAPI.HandleFunc("/removeDevice", tokenAuthMiddleware(removeDevice)).Methods("POST")
 }
 
@@ -53,16 +54,16 @@ func getDevices(w http.ResponseWriter, r *http.Request) {
 	var devices []model.Device
 	devices, err := database.GetAllDevices()
 	if err != nil {
-		w.Write([]byte("Error retrieving devices"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error retrieving devices"})
 		return
 	}
 	if len(devices) == 0 {
-		w.Write([]byte("No devices in DB"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "No devices in DB"})
 		return
 	}
 	devicesJson, err := json.Marshal(devices)
 	if err != nil {
-		w.Write([]byte("Error Marshalling devices"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error Marshalling devices"})
 		return
 	}
 
@@ -92,21 +93,39 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := model.PiConfResponse{
-		Status: "Success",
+		Status:   "Success",
 		DeviceId: device.DeviceId,
 		Services: model.Service{
-			SSH: configuration.Services.SSH,
-			FTP: configuration.Services.FTP,
-			SMB: configuration.Services.SMB,
-			RDP: configuration.Services.RDP,
+			SSH:    configuration.Services.SSH,
+			FTP:    configuration.Services.FTP,
+			SMB:    configuration.Services.SMB,
+			RDP:    configuration.Services.RDP,
 			TELNET: configuration.Services.TELNET,
 		},
 	}
+
 	json.NewEncoder(w).Encode(response)
 }
 
+// configureDevice updates the configured services for a specified
+// device ID.
 func configureDevice(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Du er færdig mester, ingen konfiguration til dig!"))
+	var config model.Configuration
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&config); err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		return
+	}
+
+	err := database.ConfigureDevice(config.Services, config.DeviceID)
+	if err != nil {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error updating device configuration: %s", err)})
+		return
+	}
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
 // newDevice
@@ -117,7 +136,7 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	var ipStruct = model.Device{}
 	if err := decoder.Decode(&ipStruct); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
 
@@ -125,12 +144,12 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	found, err := checkForValidIp(ipStruct.IpStr)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error in regex: %s", err)
-		w.Write([]byte("Internal server error"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Internal server error"})
 		return
 	}
 	if !found {
 		log.Logger.Debug().Msg("Ip is invalid")
-		w.Write([]byte("Ip is invalid"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Ip is invalid"})
 		return
 	}
 
@@ -138,11 +157,11 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 	deviceID, err := database.AddDevice(strings.TrimSpace(ipStruct.IpStr))
 	if err != nil {
 		log.Logger.Warn().Msgf("Error adding device: %s", err)
-		w.Write([]byte("Error adding device"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error adding device"})
 		return
 	}
 	response := model.PiConfResponse{
-		Status: "Success",
+		Status:   "Success",
 		DeviceId: deviceID,
 	}
 	json.NewEncoder(w).Encode(response)
@@ -152,25 +171,24 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 // TODO: in progress
 func removeDevice(w http.ResponseWriter, r *http.Request) {
 	var deviceID uint32
-	decoder := json.NewDecoder(r.Body)
 	var device = model.Device{}
+
+	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&device); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
+
 	deviceID = device.DeviceID
 	err := database.RemoveDevice(deviceID)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error removing device: %s", err)
-		w.Write([]byte("Internal server error"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Internal server error"})
 		return
 	}
-	response := model.PiConfResponse{
-		Status: "Succesfully removed device",
-		DeviceId: deviceID,
-	}
-	json.NewEncoder(w).Encode(response)
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
 // deviceSecretMiddleware
@@ -183,9 +201,31 @@ func deviceSecretMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		if deviceKey != DEVICE_KEY {
 			log.Logger.Debug().Msg("Wrong Devicekey for authentication")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Please provide the right credential"))
+			w.Write([]byte("Please provide the right credentials"))
 			return
 		}
 		next(w, r)
 	}
+}
+
+// handleHeartbeat handles device heartbeats for a given device and calls
+// the database handler to update the "last_seen" timestamp for the device.
+func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
+	var heartbeat model.Heartbeat
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&heartbeat); err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		return
+	}
+
+	err := database.HandleHeartbeat(heartbeat.DeviceID, heartbeat.TimeStamp)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error handling heartbeat: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error handling heartbeat: %s", err)})
+		return
+	}
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
