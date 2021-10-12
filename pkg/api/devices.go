@@ -32,7 +32,7 @@ func devicesSubrouter(r *mux.Router) {
 
 func deviceHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
-	// CORS preflight handling
+	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
 		return
 	}
@@ -106,10 +106,6 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 }
 
 func configureDevice(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	if r.Method == "OPTIONS" {
-		return
-	}
 	w.Write([]byte("Du er færdig mester, ingen konfiguration til dig!"))
 }
 
@@ -157,13 +153,13 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 func removeDevice(w http.ResponseWriter, r *http.Request) {
 	var deviceID uint32
 	decoder := json.NewDecoder(r.Body)
-	var ipStruct = model.Device{}
-	if err := decoder.Decode(&ipStruct); err != nil {
+	var device = model.Device{}
+	if err := decoder.Decode(&device); err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		w.Write([]byte(fmt.Sprintf("Error decoding JSON: %s", err)))
 		return
 	}
-	deviceID = ipStruct.DeviceID
+	deviceID = device.DeviceID
 	err := database.RemoveDevice(deviceID)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error removing device: %s", err)

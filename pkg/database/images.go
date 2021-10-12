@@ -62,8 +62,8 @@ func RemoveImage(imageID uint32) error {
 	defer cancel()
 
 	if isIdInCollection(imageID, "image_id", DB_IMAGE_COLL) {
-		image := model.Image{
-			Id: imageID,
+		image := bson.M{
+			"image_id": imageID,
 		}
 
 		_, err := db.Database(DB_NAME).Collection(DB_IMAGE_COLL).DeleteOne(ctx, image)

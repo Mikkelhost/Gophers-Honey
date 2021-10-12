@@ -89,7 +89,7 @@ type SetupParams struct {
 
 type ImageInfo struct {
 	ImageName string `json:"name"`
-	Hostname  string `json:"hostname"`
+	C2        string `json:"c2"`
 	Port      string `json:"port"`
 }
 
@@ -103,7 +103,7 @@ type PiConfResponse struct {
  */
 
 type PiConf struct {
-	HostName   string  `yaml:"hostname"`
+	C2         string  `yaml:"c2"`
 	IpStr      string  `yaml:"ip_str"`
 	Configured bool    `yaml:"configured"`
 	Port       int     `yaml:"port"`
