@@ -89,6 +89,9 @@ export default {
       if (data.type == 2) {
         window.console.log("Recieved heartbeat event")
         this.updateDevice(data.device_id)
+      } else if (data.type == 3) {
+        window.console.log("New device registered, updating device list")
+        this.getDevices()
       }
     }.bind(this)
 
@@ -125,7 +128,7 @@ export default {
     },
     getDevices: function(){
       window.console.log("Getting devices")
-      this.devices = []
+      //this.devices = []
       axios({
         url: process.env.VUE_APP_API_ROOT+"/devices",
         method: "GET",

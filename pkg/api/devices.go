@@ -164,6 +164,8 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 		Status:   "Success",
 		DeviceId: deviceID,
 	}
+	// Sending new device to websocket
+	ClientPool.NewDevice <- "New device"
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -230,6 +232,7 @@ func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Logger.Debug().Msg("Heartbeat successfully handled")
+	// Sending heartbeat to listeners on websocket
 	ClientPool.Heartbeat <- heartbeat.DeviceID
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
