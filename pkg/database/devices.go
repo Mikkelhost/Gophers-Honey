@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// setDefaultConfiguration sets a default configuration when a new PI is connected
+// setDefaultConfiguration sets a default configuration when a new RPi is connected.
 func setDefaultConfiguration(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
@@ -200,7 +200,7 @@ func RemoveDevice(deviceID uint32) error {
 		}
 
 		_, err = db.Database(DB_NAME).Collection(DB_CONF_COLL).DeleteOne(ctx, device)
-		if err != nil{
+		if err != nil {
 			log.Logger.Warn().Msgf("Error removing device: %s", err)
 			return err
 		}

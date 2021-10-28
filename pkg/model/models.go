@@ -42,6 +42,7 @@ type Log struct {
 	LogID     uint32             `bson:"log_id,omitempty" json:"log_id"`
 	TimeStamp time.Time          `bson:"time_stamp,omitempty" json:"time_stamp"`
 	Message   string             `bson:"message,omitempty" json:"message"`
+	Level     string             `bson:"level" json:"level"`
 }
 
 type Image struct {
@@ -67,6 +68,7 @@ type DBUser struct {
 
 /* API Call related structs.
  */
+
 type APIResponse struct {
 	Error string `json:"error"`
 }
@@ -118,4 +120,14 @@ type PiConf struct {
 	DeviceID   uint32  `yaml:"device_id"`
 	DeviceKey  string  `yaml:"device_key"`
 	Services   Service `yaml:"services"`
+}
+
+/* Notification related structs.
+ */
+
+type SmtpServer struct {
+	Username string `bson:"username"`
+	Password string `bson:"password"`
+	SmtpHost string `bson:"smtp_host"`
+	SmtpPort uint16 `bson:"smtp_port"`
 }
