@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// setDefaultConfiguration sets a default configuration when a new PI is connected
+// setDefaultConfiguration sets a default configuration when a new RPi is connected.
 func setDefaultConfiguration(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
