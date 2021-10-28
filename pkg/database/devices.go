@@ -85,13 +85,12 @@ func ConfigureDevice(config model.Configuration) error {
 	filter := bson.M{
 		"device_id": config.DeviceID,
 	}
-	conf := model.Device{
-		Configured: true,
-		Hostname:   config.Hostname,
-		Services:   config.Services,
-	}
 	update := bson.M{
-		"$set": conf,
+		"$set": bson.M{
+			"configured": true,
+			"hostname":   config.Hostname,
+			"services":   config.Services,
+		},
 	}
 	if isIdInCollection(config.DeviceID, "device_id", DB_DEV_COLL) {
 		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)

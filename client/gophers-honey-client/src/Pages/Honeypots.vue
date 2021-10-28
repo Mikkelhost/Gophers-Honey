@@ -59,24 +59,20 @@
               </b-col>
             </b-form-row>
           </template>
-          <b-form-row>
-            <b-col class="input">
-              <b-alert
-                  :show="dismissCountDown"
-                  dismissible
-                  :variant="variant"
-                  fade
-                  @dismissed="dismissCountDown=0"
-                  @dismiss-count-down="countDownChanged"
-              >
-                {{ alert }}
-              </b-alert>
-            </b-col>
-          </b-form-row>
         </b-form>
     </b-modal>
     <div class="custom-container">
       <b-col md="12" class="content">
+        <b-alert
+            :show="dismissCountDown"
+            dismissible
+            :variant="variant"
+            fade
+            @dismissed="dismissCountDown=0"
+            @dismiss-count-down="countDownChanged"
+        >
+          {{ alert }}
+        </b-alert>
         <table style="margin: auto;">
           <tr>
             <th>Id</th>
@@ -210,6 +206,34 @@ export default {
     submitConfiguration: function(){
       window.console.log("Submitting config")
       window.console.log("Form ", this.form)
+      axios({
+        url: process.env.VUE_APP_API_ROOT+"/devices",
+        method: "PUT",
+        data: this.form
+      }).then(function (response){
+        if (response.data.error == "") {
+          window.console.log("Succesfully updated device")
+          this.getDevices()
+          this.$bvModal.hide("configure-honeypot")
+          this.form = {
+            device_id: null,
+            hostname: null,
+            nic_vendor: null,
+            services: {
+              ftp: false,
+              http: false,
+              https: false,
+              smb: false,
+              ssh: false,
+              telnet: false,
+            }
+          }
+        } else {
+          this.alert = response.data.error
+          this.variant = "danger"
+          this.showAlert()
+        }
+      }.bind(this))
     },
     removeItem: function(array, key, value) {
       const index = array.findIndex(obj => obj[key] === value)

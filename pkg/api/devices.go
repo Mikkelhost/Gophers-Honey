@@ -112,7 +112,7 @@ func configureDevice(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
-
+	log.Logger.Debug().Msgf("Configuring device with config: %v", config)
 	err := database.ConfigureDevice(config)
 	if err != nil {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error updating device configuration: %s", err)})
