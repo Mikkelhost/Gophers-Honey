@@ -14,15 +14,18 @@ type Service struct {
 	SSH    bool `bson:"ssh" yaml:"ssh" json:"ssh"`
 	FTP    bool `bson:"ftp" yaml:"ftp" json:"ftp"`
 	TELNET bool `bson:"telnet" yaml:"telnet" json:"telnet"`
-	RDP    bool `bson:"rdp" yaml:"rdp" json:"rdp"`
+	HTTP   bool `bson:"http" yaml:"http" json:"http"`
+	HTTPS  bool `bson:"https" yaml:"https" json:"https"`
 	SMB    bool `bson:"smb" yaml:"smb" json:"smb"`
 }
 
 // Configuration struct matches a device ID with enabled services. Is only
 // used when retrieving configuration data from the database.
 type Configuration struct {
-	DeviceID uint32  `bson:"device_id,omitempty" json:"device_id"`
-	Services Service `bson:"services" json:"services"`
+	DeviceID  uint32  `bson:"device_id,omitempty" json:"device_id"`
+	NICVendor string  `bson:"nic_vendor" json:"nic_vendor"`
+	Hostname  string  `bson:"hostname" json:"hostname"`
+	Services  Service `bson:"services" json:"services"`
 }
 
 // Device struct is used to specify device information.
@@ -31,6 +34,7 @@ type Device struct {
 	DeviceID   uint32             `bson:"device_id,omitempty" json:"device_id"`
 	IP         uint32             `bson:"ip,omitempty"`
 	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
+	Hostname   string             `bson:"hostname" json:"hostname"`
 	Configured bool               `bson:"configured" json:"configured"`
 	Services   Service            `bson:"services" json:"services"`
 	LastSeen   time.Time          `bson:"last_seen" json:"last_seen"`
@@ -113,6 +117,8 @@ type Heartbeat struct {
 type PiConf struct {
 	C2         string  `yaml:"c2"`
 	IpStr      string  `yaml:"ip_str"`
+	Hostname   string  `yaml:"hostname"`
+	Mac        string  `yaml:"mac"`
 	Configured bool    `yaml:"configured"`
 	Port       int     `yaml:"port"`
 	DeviceID   uint32  `yaml:"device_id"`

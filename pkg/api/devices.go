@@ -95,13 +95,7 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 	response := model.PiConfResponse{
 		Status:   "Success",
 		DeviceId: device.DeviceId,
-		Services: model.Service{
-			SSH:    configuration.Services.SSH,
-			FTP:    configuration.Services.FTP,
-			SMB:    configuration.Services.SMB,
-			RDP:    configuration.Services.RDP,
-			TELNET: configuration.Services.TELNET,
-		},
+		Services: configuration.Services,
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -119,7 +113,7 @@ func configureDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := database.ConfigureDevice(config.Services, config.DeviceID)
+	err := database.ConfigureDevice(config)
 	if err != nil {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error updating device configuration: %s", err)})
 		return

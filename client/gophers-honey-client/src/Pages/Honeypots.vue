@@ -4,36 +4,76 @@
     <Navbar></Navbar>
     <b-modal id="configure-honeypot" size="lg" hide-footer>
       <template #modal-title>
-        Configure {{ deviceToConfigure }}
+        Configure device with id:  {{ form.device_id }}
       </template>
-      <b-form @submit.prevent="submitConfiguration" class="container" style="height: fit-content">
-        <b-form-row>
-          <div style="margin: auto;">
-            <b-button type="submit" class="carousel-button">Submit</b-button>
+        <b-form @submit.prevent="submitConfiguration" class="container" style="height: fit-content">
+          <div class="configure-container">
+            <b-form-group
+                id="hostname"
+                label="Hostname*"
+                label-for="hostname"
+                description="Choose the hostname for this Raspberry Pi"
+            >
+              <b-form-input
+                  v-model="form.hostname"
+                  placeholder="Hostname"
+                  required
+              ></b-form-input>
+            </b-form-group>
+            <b-form-group
+                id="services"
+                label="Services"
+                label-for="services"
+                description="Choose the services/protocols that you would like to expose on this honeypot"
+            >
+              <b-form-row>
+                <b-col v-for="(service, index) in form.services" :key="index">
+                  <b-form-checkbox v-model="form.services[index]">{{index.toUpperCase()}}</b-form-checkbox>
+                </b-col>
+              </b-form-row>
+            </b-form-group>
+            <b-form-group
+              id="nic-vendor"
+              label="NIC Vendor"
+              label-for="nic-vendor"
+              description="The NIC vendor can be specified in order for the Raspberry Pi to generate a MAC address which is vendor specific"
+            >
+              <b-form-radio-group
+                id="nic-group"
+                v-model="form.nic_vendor"
+                :options="nic_vendors"
+              >
+
+              </b-form-radio-group>
+            </b-form-group>
           </div>
-        </b-form-row>
-        <template v-if="loading">
           <b-form-row>
-            <b-col class="text-center">
-              <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            <div style="margin: auto;">
+              <b-button type="submit" class="carousel-button">Submit</b-button>
+            </div>
+          </b-form-row>
+          <template v-if="loading">
+            <b-form-row>
+              <b-col class="text-center">
+                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+              </b-col>
+            </b-form-row>
+          </template>
+          <b-form-row>
+            <b-col class="input">
+              <b-alert
+                  :show="dismissCountDown"
+                  dismissible
+                  :variant="variant"
+                  fade
+                  @dismissed="dismissCountDown=0"
+                  @dismiss-count-down="countDownChanged"
+              >
+                {{ alert }}
+              </b-alert>
             </b-col>
           </b-form-row>
-        </template>
-        <b-form-row>
-          <b-col class="input">
-            <b-alert
-                :show="dismissCountDown"
-                dismissible
-                :variant="variant"
-                fade
-                @dismissed="dismissCountDown=0"
-                @dismiss-count-down="countDownChanged"
-            >
-              {{ alert }}
-            </b-alert>
-          </b-col>
-        </b-form-row>
-      </b-form>
+        </b-form>
     </b-modal>
     <div class="custom-container">
       <b-col md="12" class="content">
@@ -96,7 +136,26 @@ export default {
   data: function() {
     return {
       devices: [],
-      deviceToConfigure: null,
+      selected: [],
+      nic_vendors: [
+        { text: "Cisco", value: "cisco" },
+        { text: "Intel", value: "intel" },
+        { text: "Dell", value: "dell" },
+        { text: "HPE(Aruba)", value: "hpe" }
+      ],
+      form: {
+        device_id: null,
+        hostname: null,
+        nic_vendor: null,
+        services: {
+          ftp: false,
+          http: false,
+          https: false,
+          smb: false,
+          ssh: false,
+          telnet: false,
+        },
+      },
       loading: false,
       dismissCountDown: 0,
       dismissSecs: 3,
@@ -145,11 +204,12 @@ export default {
       this.dismissCountDown = dismissCountDown
     },
     setDeviceToConfigure: function(device_id){
-      this.deviceToConfigure = device_id
+      this.form.device_id = device_id
       this.$bvModal.show('configure-honeypot')
     },
     submitConfiguration: function(){
       window.console.log("Submitting config")
+      window.console.log("Form ", this.form)
     },
     removeItem: function(array, key, value) {
       const index = array.findIndex(obj => obj[key] === value)
@@ -227,6 +287,14 @@ export default {
   .custom-container {
     height: calc(100vh - 116px);
     padding: 10px;
+  }
+  .configure-container{
+    max-height: 500px;
+    margin: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: fit-content;
+    padding: 5px;
   }
   table, th, td {
     padding: 5px 15px 5px 15px;

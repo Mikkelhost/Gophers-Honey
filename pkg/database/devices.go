@@ -13,13 +13,7 @@ func setDefaultConfiguration(deviceID uint32) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	services := model.Service{
-		SSH:    false,
-		FTP:    false,
-		TELNET: false,
-		RDP:    false,
-		SMB:    false,
-	}
+	services := model.Service{}
 	configuration := model.Configuration{
 		DeviceID: deviceID,
 		Services: services,
@@ -35,41 +29,43 @@ func setDefaultConfiguration(deviceID uint32) error {
 
 // updateConfiguration updates the device configuration data contained in
 // the "configuration_collection" collection.
-func updateConfiguration(service model.Service, deviceID uint32) error {
+func updateConfiguration(config model.Configuration) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
-	if isIdInCollection(deviceID, "device_id", DB_CONF_COLL) {
+	if isIdInCollection(config.DeviceID, "device_id", DB_CONF_COLL) {
 
 		filter := bson.M{
-			"device_id": deviceID,
+			"device_id": config.DeviceID,
 		}
-		config := bson.M{
-			"services": service,
+		conf := bson.M{
+			"nic_vendor": config.NICVendor,
+			"hostname":   config.Hostname,
+			"services":   config.Services,
 		}
 		update := bson.M{
-			"$set": config,
+			"$set": conf,
 		}
 
 		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).UpdateOne(ctx, filter, update)
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("device_id", deviceID).
+				Uint32("device_id", config.DeviceID).
 				Msgf("Error updating device config collection: %s", err)
 			return err
 		}
 	} else {
 
-		config := bson.M{
-			"device_id": deviceID,
-			"services":  service,
+		conf := bson.M{
+			"device_id": config.DeviceID,
+			"services":  config.Services,
 		}
-		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, config)
+		_, err := db.Database(DB_NAME).Collection(DB_CONF_COLL).InsertOne(ctx, conf)
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("device_id", deviceID).
+				Uint32("device_id", config.DeviceID).
 				Msgf("Error adding device config to config collection %s", err)
 			return err
 		}
@@ -82,37 +78,38 @@ func updateConfiguration(service model.Service, deviceID uint32) error {
 // services. Specifically it updates the value of "services" for the
 // specific device ID in both the "device_collection" and
 // "configuration_collection" collections.
-func ConfigureDevice(service model.Service, deviceId uint32) error {
+func ConfigureDevice(config model.Configuration) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
 	filter := bson.M{
-		"device_id": deviceId,
+		"device_id": config.DeviceID,
 	}
-	config := model.Device{
+	conf := model.Device{
 		Configured: true,
-		Services:   service,
+		Hostname:   config.Hostname,
+		Services:   config.Services,
 	}
 	update := bson.M{
-		"$set": config,
+		"$set": conf,
 	}
-	if isIdInCollection(deviceId, "device_id", DB_DEV_COLL) {
+	if isIdInCollection(config.DeviceID, "device_id", DB_DEV_COLL) {
 		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("device_id", deviceId).
+				Uint32("device_id", config.DeviceID).
 				Msgf("Error updating device: %s", err)
 			return err
 		}
 
-		err = updateConfiguration(service, deviceId)
+		err = updateConfiguration(config)
 
 		if err != nil {
 			return err
 		}
 	} else {
-		log.Logger.Warn().Msgf("Device ID: %d not found", deviceId)
+		log.Logger.Warn().Msgf("Device ID: %d not found", config.DeviceID)
 		return errors.New("device ID not found")
 	}
 
@@ -200,7 +197,7 @@ func RemoveDevice(deviceID uint32) error {
 		}
 
 		_, err = db.Database(DB_NAME).Collection(DB_CONF_COLL).DeleteOne(ctx, device)
-		if err != nil{
+		if err != nil {
 			log.Logger.Warn().Msgf("Error removing device: %s", err)
 			return err
 		}
@@ -235,10 +232,11 @@ func GetDeviceConfiguration(deviceID uint32) (model.Configuration, error) {
 		"SSH enabled: %t\n"+
 		"FTP enabled: %t\n"+
 		"Telnet enabled: %t\n"+
-		"RDP enabled: %t\n"+
+		"HTTP enabled: %t\n"+
+		"HTTPS enabled: %t\n"+
 		"SMB enabled: %t",
 		configuration.DeviceID, configuration.Services.SSH, configuration.Services.FTP,
-		configuration.Services.TELNET, configuration.Services.RDP, configuration.Services.SMB)
+		configuration.Services.TELNET, configuration.Services.HTTP, configuration.Services.HTTPS, configuration.Services.SMB)
 
 	return configuration, nil
 }
