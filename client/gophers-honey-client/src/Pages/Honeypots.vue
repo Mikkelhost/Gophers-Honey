@@ -2,6 +2,39 @@
 <template>
   <div>
     <Navbar></Navbar>
+    <b-modal id="configure-honeypot" size="lg" hide-footer>
+      <template #modal-title>
+        Configure {{ deviceToConfigure }}
+      </template>
+      <b-form @submit.prevent="submitConfiguration" class="container" style="height: fit-content">
+        <b-form-row>
+          <div style="margin: auto;">
+            <b-button type="submit" class="carousel-button">Submit</b-button>
+          </div>
+        </b-form-row>
+        <template v-if="loading">
+          <b-form-row>
+            <b-col class="text-center">
+              <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            </b-col>
+          </b-form-row>
+        </template>
+        <b-form-row>
+          <b-col class="input">
+            <b-alert
+                :show="dismissCountDown"
+                dismissible
+                :variant="variant"
+                fade
+                @dismissed="dismissCountDown=0"
+                @dismiss-count-down="countDownChanged"
+            >
+              {{ alert }}
+            </b-alert>
+          </b-col>
+        </b-form-row>
+      </b-form>
+    </b-modal>
     <div class="custom-container">
       <b-col md="12" class="content">
         <table style="margin: auto;">
@@ -34,7 +67,7 @@
               </template>
               <td>
                 <div style="margin: auto; width: fit-content">
-                  <b-button>Configure</b-button>
+                  <b-button v-on:click="setDeviceToConfigure(device.device_id)">Configure</b-button>
                 </div>
               </td>
               <td class="text-center">
@@ -46,10 +79,8 @@
         <b-col md="12" v-if="devices.length === 0">
           <p class="text-center">No Devices has contacted the C2</p>
         </b-col>
-
       </b-col>
     </div>
-
     <Footer></Footer>
   </div>
 </template>
@@ -65,6 +96,12 @@ export default {
   data: function() {
     return {
       devices: [],
+      deviceToConfigure: null,
+      loading: false,
+      dismissCountDown: 0,
+      dismissSecs: 3,
+      alert: "",
+      variant: "",
     }
   },
   created() {
@@ -100,6 +137,20 @@ export default {
     }
   },
   methods: {
+    showAlert: function (variant) {
+      this.variant = variant
+      this.dismissCountDown = this.dismissSecs
+    },
+    countDownChanged: function (dismissCountDown) {
+      this.dismissCountDown = dismissCountDown
+    },
+    setDeviceToConfigure: function(device_id){
+      this.deviceToConfigure = device_id
+      this.$bvModal.show('configure-honeypot')
+    },
+    submitConfiguration: function(){
+      window.console.log("Submitting config")
+    },
     removeItem: function(array, key, value) {
       const index = array.findIndex(obj => obj[key] === value)
       return index >= 0 ? [
