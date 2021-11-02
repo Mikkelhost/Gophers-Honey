@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	Configured bool `yaml:"configured,omitempty"`
+	Configured bool `yaml:"configured"`
 }
 
 var Conf *Config

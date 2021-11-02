@@ -31,5 +31,5 @@ func main() {
 			"the setup")
 	}
 
-	httpserver.RunServer(c)
+	httpserver.RunServer()
 }

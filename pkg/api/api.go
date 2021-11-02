@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/gorilla/mux"
 	logs "log"
 	"os"
@@ -25,8 +24,7 @@ func getenv(key, fallback string) string {
 	return value
 }
 
-func SetupRouters(r *mux.Router, c *config.Config) {
-	config.Conf = c
+func SetupRouters(r *mux.Router) {
 	devicesSubrouter(r)
 	usersSubrouter(r)
 	configSubrouter(r)

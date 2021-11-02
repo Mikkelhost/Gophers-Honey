@@ -21,7 +21,7 @@ var ClientPool *Pool
 func serveWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Logger.Warn().Msgf("%s",err)
+		log.Logger.Warn().Msgf("%s", err)
 	}
 
 	client := &Client{
@@ -34,13 +34,13 @@ func serveWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
-func SetupRouter(r *mux.Router) {
+func SetupWs(r *mux.Router) {
 	ClientPool = NewPool()
 	go ClientPool.Start()
 
 	ws := r.PathPrefix("/ws").Subrouter()
 
-	ws.HandleFunc("", func (w http.ResponseWriter, r *http.Request) {
+	ws.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(ClientPool, w, r)
 	})
 }
