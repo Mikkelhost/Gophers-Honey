@@ -8,11 +8,7 @@ import (
 	"os"
 )
 
-type Config struct {
-	Configured bool `yaml:"configured"`
-}
-
-var Conf *Config
+var Conf *model.Config
 
 func CreateConfFile() {
 	// Checking if file already exists
@@ -21,7 +17,7 @@ func CreateConfFile() {
 		if err != nil {
 			log.Logger.Fatal().Msgf("Error creating config.yml: %s", err)
 		}
-		var config = Config{
+		var config = model.Config{
 			Configured: false,
 		}
 		yaml, err := yaml.Marshal(&config)
@@ -33,14 +29,14 @@ func CreateConfFile() {
 	}
 }
 
-func GetServiceConfig() (*Config, error) {
+func GetServiceConfig() (*model.Config, error) {
 	file, err := ioutil.ReadFile("config.yml")
 	if err != nil {
 		log.Logger.Warn().Msgf("Error reading file: %s", err)
 		return nil, err
 	}
 
-	var config Config
+	var config model.Config
 	if err := yaml.Unmarshal(file, &config); err != nil {
 		log.Logger.Warn().Msgf("Error unmarshalling yaml: %s", err)
 		return nil, err
@@ -49,10 +45,9 @@ func GetServiceConfig() (*Config, error) {
 	return &config, nil
 }
 
-func SetConfig(config Config) error {
-	log.Logger.Debug().Msgf("Config to be set: %v", config)
-	Conf = &config
-	log.Logger.Debug().Msgf("conf: %v", *Conf)
+func WriteConf() error {
+	log.Logger.Debug().Msgf("Config to be set: %v", *Conf)
+	log.Logger.Debug().Msgf("conf: %falsev", *Conf)
 	f, err := os.OpenFile("config.yml", os.O_RDWR, 0644)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error opening config.yml: %s", err)

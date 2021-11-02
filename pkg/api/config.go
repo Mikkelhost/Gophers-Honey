@@ -20,7 +20,7 @@ func configSubrouter(r *mux.Router) {
 	//configAPI.HandleFunc("/setupService", setupService).Methods("POST", "OPTIONS")
 }
 
-func configHandler(w http.ResponseWriter, r *http.Request){
+func configHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
@@ -78,9 +78,9 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = piimage.InsertConfig(model.PiConf{
-			C2: setup.Image.C2,
-			Port: port,
-			DeviceID: 0,
+			C2:        setup.Image.C2,
+			Port:      port,
+			DeviceID:  0,
 			DeviceKey: DEVICE_KEY,
 		}, id)
 		if err != nil {
@@ -94,9 +94,9 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", setup.User.Password)
 		err = database.AddNewUser(model.DBUser{
 			FirstName: setup.User.FirstName,
-			LastName: setup.User.LastName,
-			Email: setup.User.Email,
-			Username: setup.User.Username,
+			LastName:  setup.User.LastName,
+			Email:     setup.User.Email,
+			Username:  setup.User.Username,
 		}, hash)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating user: %s", err)
@@ -111,12 +111,10 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//Setting config
-		conff := config.Config{
-			Configured: true,
-		}
-		if err := config.SetConfig(conff); err != nil {
+		config.Conf.Configured = true
+		if err := config.WriteConf(); err != nil {
 			log.Logger.Warn().Msgf("Error setting config: %s", err)
-			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s",err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		json.NewEncoder(w).Encode(model.APIUser{Token: token})

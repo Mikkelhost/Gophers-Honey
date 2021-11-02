@@ -137,3 +137,9 @@ type SmtpServer struct {
 	SmtpHost string `bson:"smtp_host"`
 	SmtpPort uint16 `bson:"smtp_port"`
 }
+
+/* Service configuration struct */
+type Config struct {
+	Configured bool       `yaml:"configured"`
+	SmtpServer SmtpServer `yaml:"smtp-server"`
+}
