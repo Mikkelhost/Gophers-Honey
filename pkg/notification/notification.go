@@ -9,28 +9,28 @@ import (
 	"strconv"
 )
 
-var smtpServer model.SmtpServer
+var smtpServer = config.Conf.SmtpServer
 
-func isSmtpServerConfigured() bool {
-	return false
-}
-
-func ConfigureSmtpServer(port uint16, username, password, mailserver string) {
+// ConfigureSmtpServer sets SMTP server and user configuration and writes
+// changes to the configuration file.
+func ConfigureSmtpServer(port uint16, username, password, mailserver string) error {
 	var configSmtpServer model.SmtpServer
 	configSmtpServer.Username = username
 	configSmtpServer.Password = password
 	configSmtpServer.SmtpHost = mailserver
 	configSmtpServer.SmtpPort = port
 
-	config.SetSmtpServer(configSmtpServer)
+	config.Conf.SmtpServer = configSmtpServer // set configuration in memory.
+	err := config.WriteConf()                 // write configuration to config file.
+
+	if err != nil {
+		log.Logger.Warn().Msgf("Error writing email-configuration to configuration file")
+		return err
+	}
+	return nil
 }
 
-func getSmtpServer() {
-	var temp model.SmtpServer
-
-	smtpServer = temp
-}
-
+// constructMessage uses the alert to construct a message.
 func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
 	prefix := ""
@@ -41,6 +41,8 @@ func constructMessage(alert model.Log) []byte {
 	return byteMessage
 }
 
+// SendEmailNotification handles the construction of email messages as
+// well as sending the constructed messages.
 func SendEmailNotification(alert model.Log, to []string) error {
 	message := constructMessage(alert)
 	from := smtpServer.Username
@@ -53,6 +55,7 @@ func SendEmailNotification(alert model.Log, to []string) error {
 		log.Logger.Warn().Msgf("Error sending email: %s", err)
 		return err
 	}
+	log.Logger.Info().Msgf("Email sent")
 
 	return nil
 }

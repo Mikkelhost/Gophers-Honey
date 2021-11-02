@@ -22,7 +22,7 @@ func CreateConfFile() {
 		}
 		yaml, err := yaml.Marshal(&config)
 		if err != nil {
-			log.Logger.Fatal().Msgf("Error creating Yaml string: %s", err)
+			log.Logger.Fatal().Msgf("Error marshalling yaml string: %s", err)
 		}
 		f.Write(yaml)
 		f.Close()
@@ -55,7 +55,7 @@ func WriteConf() error {
 	}
 	yaml, err := yaml.Marshal(Conf)
 	if err != nil {
-		log.Logger.Warn().Msgf("Error creating yaml string: %s", err)
+		log.Logger.Warn().Msgf("Error marshalling yaml string: %s", err)
 		return err
 	}
 	f.Truncate(0)
@@ -65,10 +65,10 @@ func WriteConf() error {
 		return err
 	}
 
-	f.Close()
+	err = f.Close()
+	if err != nil {
+		log.Logger.Warn().Msgf("Error closing file")
+		return err
+	}
 	return nil
-}
-
-func SetSmtpServer(server model.SmtpServer) {
-
 }

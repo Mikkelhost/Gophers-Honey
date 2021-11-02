@@ -132,13 +132,15 @@ type PiConf struct {
  */
 
 type SmtpServer struct {
-	Username string `bson:"username"`
-	Password string `bson:"password"`
-	SmtpHost string `bson:"smtp_host"`
-	SmtpPort uint16 `bson:"smtp_port"`
+	Username string `bson:"username" yaml:"username"`
+	Password string `bson:"password" yaml:"password"`
+	SmtpHost string `bson:"smtp_host" yaml:"smtp_host"`
+	SmtpPort uint16 `bson:"smtp_port" yaml:"smtp_port"`
 }
 
-/* Service configuration struct */
+/* Service configuration related struct
+ */
+
 type Config struct {
 	Configured bool       `yaml:"configured"`
 	SmtpServer SmtpServer `yaml:"smtp-server"`
