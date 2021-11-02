@@ -46,7 +46,7 @@ type Log struct {
 	LogID     uint32             `bson:"log_id,omitempty" json:"log_id"`
 	TimeStamp time.Time          `bson:"time_stamp,omitempty" json:"time_stamp"`
 	Message   string             `bson:"message,omitempty" json:"message"`
-	Level     string             `bson:"level" json:"level"`
+	Level     int                `bson:"level" json:"level"`
 }
 
 type Image struct {

@@ -35,8 +35,8 @@ func ConfigureSmtpServer(port uint16, username, password, mailserver string) err
 func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
 	prefix := ""
-	message := fmt.Sprintf("%s! Device with Device ID: %d, has on %s raised alert based on the message %s",
-		alert.Level, alert.DeviceID, alert.TimeStamp.String(), alert.Message)
+	message := fmt.Sprintf("Device with Device ID: %d, has on %s raised alert based on the message %s",
+		alert.DeviceID, alert.TimeStamp.String(), alert.Message)
 
 	byteMessage := []byte(prefix + message)
 	return byteMessage
