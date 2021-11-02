@@ -10,8 +10,13 @@ import (
 var DEBUG = true
 
 func main() {
+	// Create config file.
+	err := config.CreateConfFile()
+	if err != nil {
+		return
+	}
+
 	// Initialize logger and set logging level.
-	config.CreateConfFile()
 	log.InitLog(DEBUG)
 
 	// Set up database connection.

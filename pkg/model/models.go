@@ -62,12 +62,13 @@ type DeviceAuth struct {
 }
 
 type DBUser struct {
-	FirstName     string `bson:"first_name" json:"first_name"`
-	LastName      string `bson:"last_name" json:"last_name"`
-	Email         string `bson:"email" json:"email"`
-	Username      string `bson:"username" json:"username"`
-	UsernameLower string `bson:"username_lower" json:"username_lower"`
-	PasswordHash  string `bson:"password_hash,omitempty" json:"password_hash,omitempty"`
+	FirstName            string `bson:"first_name" json:"first_name"`
+	LastName             string `bson:"last_name" json:"last_name"`
+	Email                string `bson:"email" json:"email"`
+	NotificationsEnabled bool   `bson:"notifications_enabled" json:"notifications_enabled"`
+	Username             string `bson:"username" json:"username"`
+	UsernameLower        string `bson:"username_lower" json:"username_lower"`
+	PasswordHash         string `bson:"password_hash,omitempty" json:"password_hash,omitempty"`
 }
 
 /* API Call related structs.

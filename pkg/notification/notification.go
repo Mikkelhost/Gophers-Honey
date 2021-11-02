@@ -3,6 +3,7 @@ package notification
 import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/rs/zerolog/log"
 	"net/smtp"
@@ -56,6 +57,30 @@ func SendEmailNotification(alert model.Log, to []string) error {
 		return err
 	}
 	log.Logger.Info().Msgf("Email sent")
+
+	return nil
+}
+
+// NotifyAll fetches the email addresses of users with notifications
+// enabled and sends a mail with the alert.
+func NotifyAll(alert model.Log) error {
+	var emails []string
+
+	users, err := database.GetAllUsers()
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		if user.NotificationsEnabled {
+			emails = append(emails, user.Email)
+		}
+	}
+
+	err = SendEmailNotification(alert, emails)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 
 var Conf *model.Config
 
-func CreateConfFile() {
+func CreateConfFile() error {
 	// Checking if file already exists
 	if _, err := os.Stat("config.yml"); os.IsNotExist(err) {
 		f, err := os.Create("config.yml")
@@ -20,13 +20,24 @@ func CreateConfFile() {
 		var config = model.Config{
 			Configured: false,
 		}
-		yaml, err := yaml.Marshal(&config)
+		yml, err := yaml.Marshal(&config)
 		if err != nil {
 			log.Logger.Fatal().Msgf("Error marshalling yaml string: %s", err)
 		}
-		f.Write(yaml)
-		f.Close()
+		_, err = f.Write(yml)
+		if err != nil {
+			log.Logger.Fatal().Msgf("Error writing to file: %s", err)
+			return err
+		}
+
+		err = f.Close()
+		if err != nil {
+			log.Logger.Fatal().Msgf("Error closing file: %s", err)
+			return err
+		}
+		return nil
 	}
+	return nil
 }
 
 func GetServiceConfig() (*model.Config, error) {
@@ -53,14 +64,25 @@ func WriteConf() error {
 		log.Logger.Warn().Msgf("Error opening config.yml: %s", err)
 		return err
 	}
-	yaml, err := yaml.Marshal(Conf)
+	yml, err := yaml.Marshal(Conf)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error marshalling yaml string: %s", err)
 		return err
 	}
-	f.Truncate(0)
-	f.Seek(0, 0)
-	if _, err := f.Write(yaml); err != nil {
+
+	err = f.Truncate(0)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error truncating file: %s", err)
+		return err
+	}
+
+	_, err = f.Seek(0, 0)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error seeking in file: %s", err)
+		return err
+	}
+
+	if _, err := f.Write(yml); err != nil {
 		log.Logger.Warn().Msgf("Error writing conf", err)
 		return err
 	}
