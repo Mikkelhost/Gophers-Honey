@@ -143,5 +143,5 @@ type SmtpServer struct {
 
 type Config struct {
 	Configured bool       `yaml:"configured"`
-	SmtpServer SmtpServer `yaml:"smtp-server"`
+	SmtpServer SmtpServer `yaml:"smtp_server"`
 }
