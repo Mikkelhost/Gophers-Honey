@@ -6,6 +6,7 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/notification"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
@@ -59,6 +60,15 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if logStruct.Level < model.INFORMATIONAL {
+		log.Logger.Info().Msgf("Critical or high risk alert received. Notifying users.")
+		err = notification.NotifyAll(logStruct)
+		if err != nil {
+			log.Logger.Warn().Msgf("Error notifying users: %s", err)
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		}
+	}
+
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 
 }
@@ -85,7 +95,7 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 }
 
 // updateTTLIndex updates the "setExpireAfterSeconds" index of the
-//// "log_collection" collection
+// "log_collection" collection
 func updateTTLIndex(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
