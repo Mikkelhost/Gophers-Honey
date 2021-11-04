@@ -65,11 +65,17 @@ type DBUser struct {
 	FirstName            string `bson:"first_name" json:"first_name"`
 	LastName             string `bson:"last_name" json:"last_name"`
 	Email                string `bson:"email" json:"email"`
+	Role                 string `bson:"role" json:"role"`
 	NotificationsEnabled bool   `bson:"notifications_enabled" json:"notifications_enabled"`
 	Username             string `bson:"username" json:"username"`
 	UsernameLower        string `bson:"username_lower" json:"username_lower"`
 	PasswordHash         string `bson:"password_hash,omitempty" json:"password_hash,omitempty"`
 }
+
+var (
+	UserRole  = "User"
+	AdminRole = "Admin"
+)
 
 /* API Call related structs.
  */
@@ -82,6 +88,7 @@ type APIUser struct {
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Email     string `json:"email,omitempty"`
+	Role      string `json:"role,omitempty"`
 	Username  string `json:"username,omitempty"`
 	Password  string `json:"password,omitempty"`
 	ConfirmPw string `json:"confirmPw,omitempty"`
@@ -139,10 +146,15 @@ type SmtpServer struct {
 	SmtpPort uint16 `bson:"smtp_port" yaml:"smtp_port"`
 }
 
-/* Service configuration related struct
+/* Service configuration related structs.
  */
 
 type Config struct {
 	Configured bool       `yaml:"configured"`
 	SmtpServer SmtpServer `yaml:"smtp_server"`
 }
+
+var (
+	CRITICAL      = 0
+	INFORMATIONAL = 1
+)

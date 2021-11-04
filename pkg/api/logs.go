@@ -18,11 +18,11 @@ All functions should write json data to the responseWriter
 */
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
-	logAPI.HandleFunc("",tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
+	logAPI.HandleFunc("", tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
 	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
 }
 
-func logHandler (w http.ResponseWriter, r *http.Request){
+func logHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
 	if r.Method == "OPTIONS" {

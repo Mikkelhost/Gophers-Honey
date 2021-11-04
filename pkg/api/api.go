@@ -11,6 +11,7 @@ import (
 Here the main router will be passed to each of the different type of API
 subrouters.
 */
+
 var (
 	SECRET_KEY = getenv("SECRET_KEY", "UWKvPGDYd2zmAmbYQB2K")
 )

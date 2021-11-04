@@ -18,7 +18,7 @@
           <b-col md="8" class="settings-content">
             <div class="tab-content" id="v-pills-tabContent">
               <div id="profile" aria-labelledby="profile-tab" class="tab-pane fade active show" role="tabpanel">
-                <p>Profile</p>
+                <profile></profile>
               </div>
               <div id="images" aria-labelledby="images-tab" class="tab-pane fade" role="tabpanel">
                 <images></images>
@@ -36,11 +36,12 @@
   import Navbar from "../components/Navbar";
   import Footer from "../components/Footer";
   import Images from "../components/Images";
+  import Profile from "../components/Profile";
   import axios from "axios";
 
   export default{
     name: "Settings",
-    components: {Footer, Navbar, Images},
+    components: {Footer, Navbar, Images, Profile},
     created() {
       axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
     },

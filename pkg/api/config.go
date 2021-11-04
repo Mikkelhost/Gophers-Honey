@@ -92,18 +92,20 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		//Making first user
 		hash := HashAndSaltPassword([]byte(setup.User.Password))
 		log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", setup.User.Password)
-		err = database.AddNewUser(model.DBUser{
+		user := model.DBUser{
 			FirstName: setup.User.FirstName,
 			LastName:  setup.User.LastName,
 			Email:     setup.User.Email,
 			Username:  setup.User.Username,
-		}, hash)
+			Role:      "Admin",
+		}
+		err = database.AddNewUser(user, hash)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating user: %s", err)
 			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
-		token, err := createToken(setup.User.Username)
+		token, err := createToken(user)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating token: ", err)
 			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})

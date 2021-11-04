@@ -10,16 +10,10 @@ import (
 	"strconv"
 )
 
-var smtpServer = config.Conf.SmtpServer
-
 // ConfigureSmtpServer sets SMTP server and user configuration and writes
 // changes to the configuration file.
 func ConfigureSmtpServer(port uint16, username, password, mailserver string) error {
 	var configSmtpServer model.SmtpServer
-	configSmtpServer.Username = username
-	configSmtpServer.Password = password
-	configSmtpServer.SmtpHost = mailserver
-	configSmtpServer.SmtpPort = port
 
 	config.Conf.SmtpServer = configSmtpServer // set configuration in memory.
 	err := config.WriteConf()                 // write configuration to config file.
@@ -46,6 +40,7 @@ func constructMessage(alert model.Log) []byte {
 // well as sending the constructed messages.
 func SendEmailNotification(alert model.Log, to []string) error {
 	message := constructMessage(alert)
+	smtpServer := config.Conf.SmtpServer
 	from := smtpServer.Username
 
 	stringPort := strconv.Itoa(int(smtpServer.SmtpPort))
