@@ -49,6 +49,13 @@ type Log struct {
 	Level     int                `bson:"level" json:"level"`
 }
 
+// Log severity levels.
+var (
+	CRITICAL      = 0
+	HIGH          = 1
+	INFORMATIONAL = 2
+)
+
 type Image struct {
 	GUID        primitive.ObjectID `bson:"_id,omitempty"`
 	Name        string             `bson:"name" json:"name"`

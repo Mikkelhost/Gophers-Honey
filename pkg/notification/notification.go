@@ -14,20 +14,15 @@ var smtpServer = config.Conf.SmtpServer
 
 // ConfigureSmtpServer sets SMTP server and user configuration and writes
 // changes to the configuration file.
-func ConfigureSmtpServer(port uint16, username, password, mailserver string) error {
-	var configSmtpServer model.SmtpServer
-	configSmtpServer.Username = username
-	configSmtpServer.Password = password
-	configSmtpServer.SmtpHost = mailserver
-	configSmtpServer.SmtpPort = port
+func ConfigureSmtpServer(configSmtpServer model.SmtpServer) error {
 
-	config.Conf.SmtpServer = configSmtpServer // set configuration in memory.
-	err := config.WriteConf()                 // write configuration to config file.
-
+	err := config.WriteConf() // Write configuration to config file.
 	if err != nil {
-		log.Logger.Warn().Msgf("Error writing email-configuration to configuration file")
+		log.Logger.Warn().Msgf("Error writing SMTP server configuration to config file")
 		return err
 	}
+	config.Conf.SmtpServer = configSmtpServer // Set configuration in memory.
+
 	return nil
 }
 

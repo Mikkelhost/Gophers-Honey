@@ -3,7 +3,6 @@ package database
 import (
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
-	"github.com/Mikkelhost/Gophers-Honey/pkg/notification"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,10 +10,8 @@ import (
 )
 
 var (
-	ttlIndexName  = "time_stamp_1"
-	ttlIndexSet   = false
-	CRITICAL      = 0
-	INFORMATIONAL = 1
+	ttlIndexName = "time_stamp_1"
+	ttlIndexSet  = false
 )
 
 // AddLog assigns a log with timestamp and message tied to a device ID and adds it to the
@@ -52,15 +49,6 @@ func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 
 	if err != nil {
 		return err
-	}
-
-	if deviceLog.Level == CRITICAL {
-		log.Logger.Info().Msgf("Critical alert received. Notifying users.")
-		err = notification.NotifyAll(deviceLog)
-		if err != nil {
-			log.Logger.Warn().Msgf("Error notifying users: %s", err)
-			return err
-		}
 	}
 
 	return nil

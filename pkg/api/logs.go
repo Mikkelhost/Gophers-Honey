@@ -6,6 +6,7 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/notification"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
@@ -18,11 +19,11 @@ All functions should write json data to the responseWriter
 */
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
-	logAPI.HandleFunc("",tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
+	logAPI.HandleFunc("", tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
 	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
 }
 
-func logHandler (w http.ResponseWriter, r *http.Request){
+func logHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
@@ -59,6 +60,15 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if logStruct.Level < model.INFORMATIONAL {
+		log.Logger.Info().Msgf("Critical or high risk alert received. Notifying users.")
+		err = notification.NotifyAll(logStruct)
+		if err != nil {
+			log.Logger.Warn().Msgf("Error notifying users: %s", err)
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		}
+	}
+
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 
 }
@@ -85,7 +95,7 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 }
 
 // updateTTLIndex updates the "setExpireAfterSeconds" index of the
-//// "log_collection" collection
+// "log_collection" collection
 func updateTTLIndex(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
