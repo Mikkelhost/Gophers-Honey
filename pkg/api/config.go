@@ -56,7 +56,11 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Logger.Debug().Msgf("setup params: %v", setup)
-
+		if setup.User.Password != setup.User.ConfirmPw {
+			log.Logger.Warn().Msg("Passwords does not match")
+			json.NewEncoder(w).Encode(model.APIResponse{Error: "Passwords need to match"})
+			return
+		}
 		//Make first image
 		port, err := strconv.Atoi(setup.Image.Port)
 		if err != nil {

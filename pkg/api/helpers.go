@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
@@ -57,6 +59,24 @@ func extractToken(request *http.Request) string {
 		return strArr[1]
 	}
 	return ""
+}
+
+func decodeToken(r *http.Request) (model.Claims, error) {
+	token := extractToken(r)
+	log.Logger.Debug().Str("Token", token).Msg("Decoding token")
+	tokenSlice := strings.Split(token, ".")
+	claims := model.Claims{}
+	claimsJson, err := base64.StdEncoding.DecodeString(tokenSlice[1])
+	if err != nil {
+		log.Logger.Warn().Msgf("Error base64 decoding: %s", err)
+		return model.Claims{}, err
+	}
+	err = json.Unmarshal(claimsJson, &claims)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error parsing json: %s", err)
+		return model.Claims{}, err
+	}
+	return claims, nil
 }
 
 func verifyToken(request *http.Request) (*jwt.Token, error) {

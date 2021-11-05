@@ -22,7 +22,7 @@ All functions should write json data to the responsewriter
 func usersSubrouter(r *mux.Router) {
 	usersAPI := r.PathPrefix("/api/users").Subrouter()
 	usersAPI.Queries("user", "{user:.+}").HandlerFunc(tokenAuthMiddleware(getUser)).Methods("GET", "OPTIONS").Name("user")
-	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "OPTIONS")
+	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "PUT", "OPTIONS")
 	usersAPI.HandleFunc("/login", loginUser).Methods("POST", "OPTIONS")
 }
 
@@ -38,6 +38,9 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case "POST":
 		registerUser(w, r)
+		return
+	case "PUT":
+		updateUser(w, r)
 		return
 	}
 }
@@ -140,4 +143,24 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("Error registering user: %s", err)))
 	}
 	w.Write([]byte("Registering user"))
+}
+
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	updatedUser := model.APIUser{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&updatedUser); err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		return
+	}
+	log.Logger.Debug().Msgf("Updated user is: %v", updatedUser)
+	//Getting claims form jwt
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt token: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error parsing jwt token"})
+		return
+	}
+	log.Logger.Debug().Msgf("Claims from jwt: %v", claims)
+
 }
