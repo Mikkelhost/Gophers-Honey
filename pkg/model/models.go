@@ -160,8 +160,3 @@ type Config struct {
 	Configured bool       `yaml:"configured"`
 	SmtpServer SmtpServer `yaml:"smtp_server"`
 }
-
-var (
-	CRITICAL      = 0
-	INFORMATIONAL = 1
-)

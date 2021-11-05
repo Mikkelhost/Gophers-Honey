@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-var smtpServer = config.Conf.SmtpServer
-
 // ConfigureSmtpServer sets SMTP server and user configuration and writes
 // changes to the configuration file.
 func ConfigureSmtpServer(configSmtpServer model.SmtpServer) error {
