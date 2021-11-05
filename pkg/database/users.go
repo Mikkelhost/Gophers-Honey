@@ -28,6 +28,7 @@ func AddNewUser(user model.DBUser, hashedAndSaltedPwd string) error {
 		Username:      user.Username,
 		UsernameLower: strings.ToLower(user.Username),
 		PasswordHash:  hashedAndSaltedPwd,
+		Role:          user.Role,
 	}
 
 	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).InsertOne(ctx, dbUser)
@@ -134,6 +135,26 @@ func LoginUser(username, stringPwd string) (bool, error) {
 		_ = verifyPassword(dummyHash, pwd)
 		return false, nil
 	}
+}
+
+func GetUser(username string) (model.DBUser, error) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		"username_lower": strings.ToLower(username),
+	}
+	result := db.Database(DB_NAME).Collection(DB_USER_COLL).FindOne(ctx, filter)
+
+	var user model.DBUser
+
+	err := result.Decode(&user)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding result: %s", err)
+		return model.DBUser{}, err
+	}
+	user.PasswordHash = ""
+	return user, nil
 }
 
 // GetAllUsers retrieves all users currently in the database,

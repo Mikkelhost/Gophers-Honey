@@ -95,13 +95,7 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 	response := model.PiConfResponse{
 		Status:   "Success",
 		DeviceId: device.DeviceId,
-		Services: model.Service{
-			SSH:    configuration.Services.SSH,
-			FTP:    configuration.Services.FTP,
-			SMB:    configuration.Services.SMB,
-			RDP:    configuration.Services.RDP,
-			TELNET: configuration.Services.TELNET,
-		},
+		Services: configuration.Services,
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -118,8 +112,8 @@ func configureDevice(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
-
-	err := database.ConfigureDevice(config.Services, config.DeviceID)
+	log.Logger.Debug().Msgf("Configuring device with config: %v", config)
+	err := database.ConfigureDevice(config)
 	if err != nil {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error updating device configuration: %s", err)})
 		return
@@ -164,6 +158,8 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 		Status:   "Success",
 		DeviceId: deviceID,
 	}
+	// Sending new device to websocket
+	ClientPool.NewDevice <- "New device"
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -179,7 +175,7 @@ func removeDevice(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
-
+	log.Logger.Debug().Uint32("device_id", device.DeviceID).Msg("Deleting device")
 	deviceID = device.DeviceID
 	err := database.RemoveDevice(deviceID)
 	if err != nil {
@@ -220,12 +216,17 @@ func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := database.HandleHeartbeat(heartbeat.DeviceID, heartbeat.TimeStamp)
+	log.Logger.Debug().Uint32("device_id", heartbeat.DeviceID).Msg("Received heartbeat from device")
+
+	err := database.HandleHeartbeat(heartbeat.DeviceID)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error handling heartbeat: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error handling heartbeat: %s", err)})
 		return
 	}
 
+	log.Logger.Debug().Msg("Heartbeat successfully handled")
+	// Sending heartbeat to listeners on websocket
+	ClientPool.Heartbeat <- heartbeat.DeviceID
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }

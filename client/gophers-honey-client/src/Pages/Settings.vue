@@ -12,14 +12,13 @@
               <a class="nav-link active show" id="profile-tab" data-toggle="pill" href="#profile" aria-controls="profile" aria-selected="true">Profile</a>
               <a class="nav-link" id="users-tab" hred="#users" data-toggle="pill" href="#users" aria-controls="users" aria-selected="false">Users</a>
               <a class="nav-link" id="images-tab" hred="#images" data-toggle="pill" href="#images" aria-controls="images" aria-selected="false">Images</a>
-              <a class="nav-link" id="honeypots-tab" hred="#honeypots" data-toggle="pill" href="#honeypots" aria-controls="honeypots" aria-selected="false">Honeypots</a>
               <a class="nav-link" id="service-tab" hred="#service" data-toggle="pill" href="#service" aria-controls="service" aria-selected="false">Service</a>
             </div>
           </b-col>
           <b-col md="8" class="settings-content">
             <div class="tab-content" id="v-pills-tabContent">
               <div id="profile" aria-labelledby="profile-tab" class="tab-pane fade active show" role="tabpanel">
-                <p>Profile</p>
+                <profile></profile>
               </div>
               <div id="images" aria-labelledby="images-tab" class="tab-pane fade" role="tabpanel">
                 <images></images>
@@ -37,14 +36,14 @@
   import Navbar from "../components/Navbar";
   import Footer from "../components/Footer";
   import Images from "../components/Images";
+  import Profile from "../components/Profile";
   import axios from "axios";
 
   export default{
     name: "Settings",
-    components: {Footer, Navbar, Images},
+    components: {Footer, Navbar, Images, Profile},
     created() {
       axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
-      this.getImages()
     },
   }
 </script>

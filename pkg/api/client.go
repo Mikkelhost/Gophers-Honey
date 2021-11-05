@@ -1,10 +1,9 @@
-package websocket
-
+package api
 
 import (
-  "fmt"
-  "log"
-  "github.com/gorilla/websocket"
+    "fmt"
+    "github.com/gorilla/websocket"
+    "log"
 )
 
 type Client struct {
@@ -15,7 +14,8 @@ type Client struct {
 
 type Message struct {
     Type int    `json:"type"`
-    Body string `json:"body"`
+    Body string `json:"body,omitempty"`
+    DeviceID uint32 `json:"device_id,omitempty"`
 }
 
 func (c *Client) Read() {

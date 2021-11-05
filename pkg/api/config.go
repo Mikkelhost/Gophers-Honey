@@ -7,6 +7,7 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/notification"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/piimage"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -15,12 +16,10 @@ import (
 
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
-	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "OPTIONS")
-	//configAPI.HandleFunc("/getConfig", getConfig).Methods("GET", "OPTIONS")
-	//configAPI.HandleFunc("/setupService", setupService).Methods("POST", "OPTIONS")
+	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "PUT", "OPTIONS")
 }
 
-func configHandler(w http.ResponseWriter, r *http.Request){
+func configHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
 	if r.Method == "OPTIONS" {
@@ -33,6 +32,8 @@ func configHandler(w http.ResponseWriter, r *http.Request){
 	case "POST":
 		setupService(w, r)
 		return
+	case "PUT":
+		configureSmtpServer(w, r)
 	}
 }
 
@@ -64,7 +65,7 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if port < 0 {
-			log.Logger.Warn().Msg("Port smaller than 0, aboritng")
+			log.Logger.Warn().Msg("Port smaller than 0, aborting")
 			json.NewEncoder(w).Encode(model.APIResponse{Error: "Port cannot be smaller than 0"})
 			return
 		}
@@ -78,9 +79,9 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = piimage.InsertConfig(model.PiConf{
-			C2: setup.Image.C2,
-			Port: port,
-			DeviceID: 0,
+			C2:        setup.Image.C2,
+			Port:      port,
+			DeviceID:  0,
 			DeviceKey: DEVICE_KEY,
 		}, id)
 		if err != nil {
@@ -92,35 +93,59 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 		//Making first user
 		hash := HashAndSaltPassword([]byte(setup.User.Password))
 		log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", setup.User.Password)
-		err = database.AddNewUser(model.DBUser{
+		user := model.DBUser{
 			FirstName: setup.User.FirstName,
-			LastName: setup.User.LastName,
-			Email: setup.User.Email,
-			Username: setup.User.Username,
-		}, hash)
+			LastName:  setup.User.LastName,
+			Email:     setup.User.Email,
+			Username:  setup.User.Username,
+			Role:      "Admin",
+		}
+		err = database.AddNewUser(user, hash)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating user: %s", err)
 			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
-		token, err := createToken(setup.User.Username)
+		token, err := createToken(user)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error creating token: ", err)
 			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 
-		//Setting config
-		conff := config.Config{
-			Configured: true,
-		}
-		if err := config.SetConfig(conff); err != nil {
+		// Setting config
+		config.Conf.Configured = true
+		if err := config.WriteConf(); err != nil {
 			log.Logger.Warn().Msgf("Error setting config: %s", err)
-			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s",err)})
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
 			return
 		}
 		json.NewEncoder(w).Encode(model.APIUser{Token: token})
 	} else {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: "Service has already been configured"})
 	}
+}
+
+// configureSmtpServer sets and writes SMTP server configurations such as
+// username/email, password, SMTP server and SMTP port.
+func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+
+	var smtpServer model.SmtpServer
+
+	err := decoder.Decode(&smtpServer)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		return
+	}
+
+	err = notification.ConfigureSmtpServer(smtpServer)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error configuring SMTP server: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error configuring SMTP server: %s", err)})
+		return
+	}
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }

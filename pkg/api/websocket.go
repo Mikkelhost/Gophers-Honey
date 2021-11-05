@@ -1,9 +1,8 @@
-package websocket
+package api
 
 import (
-
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	//"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -17,10 +16,12 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
+var ClientPool *Pool
+
 func serveWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		log.Logger.Warn().Msgf("%s", err)
 	}
 
 	client := &Client{
@@ -28,18 +29,18 @@ func serveWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		Pool: pool,
 	}
 
-	log.Println("Client successfully connected...")
+	log.Logger.Debug().Msg("Client successfully connected...")
 	pool.Register <- client
 	client.Read()
 }
 
-func SetupRouter(r *mux.Router) {
-	pool := NewPool()
-	go pool.Start()
+func SetupWs(r *mux.Router) {
+	ClientPool = NewPool()
+	go ClientPool.Start()
 
 	ws := r.PathPrefix("/ws").Subrouter()
 
 	ws.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(pool, w, r)
+		serveWs(ClientPool, w, r)
 	})
 }

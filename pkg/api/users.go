@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
@@ -19,7 +21,8 @@ All functions should write json data to the responsewriter
 
 func usersSubrouter(r *mux.Router) {
 	usersAPI := r.PathPrefix("/api/users").Subrouter()
-	usersAPI.HandleFunc("",tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "OPTIONS")
+	usersAPI.Queries("user", "{user:.+}").HandlerFunc(tokenAuthMiddleware(getUser)).Methods("GET", "OPTIONS").Name("user")
+	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "OPTIONS")
 	usersAPI.HandleFunc("/login", loginUser).Methods("POST", "OPTIONS")
 }
 
@@ -38,24 +41,41 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func getUser(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["user"]
+	regex := "^[a-zA-Z0-9]*$"
+	log.Logger.Debug().Msgf("Checking if username matches regex: %s", strings.TrimSpace(username))
+	found, err := regexp.Match(regex, []byte(strings.TrimSpace(username)))
+	log.Logger.Debug().Bool("found", found).Msg("Found is")
+	if !found {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Illegal characters in username"})
+		return
+	}
+
+	log.Logger.Info().Str("username", username).Msg("Getting user")
+	user, err := database.GetUser(username)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error getting user from database: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error getting user from db"})
+		return
+	}
+	json.NewEncoder(w).Encode(user)
+}
+
 // getUsers gets all information of all users, but the hashed passwords
 func getUsers(w http.ResponseWriter, r *http.Request) {
 	var users []model.DBUser
 	users, err := database.GetAllUsers()
 	if err != nil {
-		w.Write([]byte("Error retrieving users"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error retrieving users"})
 		return
 	}
 	if len(users) == 0 {
-		w.Write([]byte("No users in DB"))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "No users in DB"})
 		return
 	}
-	usersJson, err := json.Marshal(users)
-	if err != nil {
-		w.Write([]byte("Error Marshalling users"))
-		return
-	}
-	w.Write(usersJson)
+	json.NewEncoder(w).Encode(users)
 }
 
 // loginUser Authenticates a user by their username and password.
@@ -86,8 +106,13 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: "Incorrect username or password"})
 		return
 	}
-
-	token, err := createToken(userInfo.Username)
+	user, err := database.GetUser(userInfo.Username)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error getting user: %s from DB: %s", userInfo.Username, err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Internal server error"})
+		return
+	}
+	token, err := createToken(user)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error creating token: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
