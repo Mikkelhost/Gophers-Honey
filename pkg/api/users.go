@@ -93,7 +93,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&userInfo); err != nil {
 		log.Logger.Warn().Msgf("Failed decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 	log.Logger.Debug().Msgf("Username: %s, Password: %s", userInfo.Username, userInfo.Password)
@@ -131,7 +131,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&newUser); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 
@@ -145,15 +145,26 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Registering user"))
 }
 
+//TODO Check up against current password, to prevent JWT hijacking
 func updateUser(w http.ResponseWriter, r *http.Request) {
 	updatedUser := model.APIUser{}
+	hashedAndSaltedPwd := ""
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&updatedUser); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
-	log.Logger.Debug().Msgf("Updated user is: %v", updatedUser)
+	if len(updatedUser.Password) > 0 {
+		log.Logger.Debug().Msg("Updating password")
+		if updatedUser.Password != updatedUser.ConfirmPw {
+			log.Logger.Warn().Msg("Updated passwords do not match")
+			json.NewEncoder(w).Encode(model.APIResponse{Error: "Password does not match confirm password"})
+			return
+		}
+		hashedAndSaltedPwd = HashAndSaltPassword([]byte(updatedUser.Password))
+	}
+
 	//Getting claims form jwt
 	claims, err := decodeToken(r)
 	if err != nil {
@@ -161,6 +172,11 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error parsing jwt token"})
 		return
 	}
+	updatedUser.Username = claims.Username
 	log.Logger.Debug().Msgf("Claims from jwt: %v", claims)
+	log.Logger.Debug().Msgf("Updated user is: %v", updatedUser)
+	database.UpdateUser(updatedUser, hashedAndSaltedPwd)
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 
 }

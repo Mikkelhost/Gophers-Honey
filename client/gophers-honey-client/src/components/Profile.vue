@@ -33,11 +33,11 @@
         <b-row>
           <b-col md="6">
             <label type="input" for="password">Password</label>
-            <b-form-input id="password" @input.native="checkUserForm()" placeholder="Password" v-model="form.password"></b-form-input>
+            <b-form-input id="password" type="password" @input.native="checkUserForm()" placeholder="Password" v-model="form.password"></b-form-input>
           </b-col>
           <b-col md="6">
             <label type="input" for="confirmpw">Confirm Password</label>
-            <b-form-input id="confirmpw" @input.native="checkUserForm()" placeholder="Confirm Password" v-model="form.confirmPw"></b-form-input>
+            <b-form-input id="confirmpw" type="password" @input.native="checkUserForm()" placeholder="Confirm Password" v-model="form.confirmPw"></b-form-input>
           </b-col>
         </b-row>
       </div>
@@ -69,7 +69,7 @@ export default {
     return{
       loading: false,
       dismissCountDown: 0,
-      dismissSecs: 3,
+      dismissSecs: 5,
       alert: "",
       variant: "",
       formValid: false,
@@ -137,6 +137,21 @@ export default {
         data: this.form
       }).then(function(response){
         window.console.log(response.data)
+        if (response.data.error == "") {
+          this.user.notifications_enabled = this.form.notifications_enabled
+          if (this.form.email.length > 0) {
+            this.user.email = this.form.email
+          }
+          this.form.password = ""
+          this.form.confirmPw = ""
+          this.form.email = ""
+          this.checkUserForm()
+          this.alert = "Succesfully updated user profile"
+          this.showAlert("success")
+        } else {
+          this.alert = response.data.error
+          this.showAlert("danger")
+        }
       }.bind(this))
     }
   }
