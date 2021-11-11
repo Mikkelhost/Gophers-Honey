@@ -87,6 +87,42 @@ func RemoveUser(username string) {
 	}
 }
 
+// UpdateUser updates user-specific fields in the user collection.
+func UpdateUser(user model.APIUser, hashedAndSaltedPwd string) error {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		"username_lower": strings.ToLower(user.Username),
+	}
+
+	conf := bson.M{
+		"notifications_enabled": user.NotificationsEnabled,
+	}
+
+	// If user set a new email, update field.
+	if user.Email != "" {
+		conf["email"] = user.Email
+	}
+
+	// If user set a new password, update field.
+	if hashedAndSaltedPwd != "" {
+		conf["password_hash"] = hashedAndSaltedPwd
+	}
+
+	update := bson.M{
+		"$set": conf,
+	}
+
+	_, err := db.Database(DB_NAME).Collection(DB_USER_COLL).UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error updating user: %s", err)
+		return err
+	}
+
+	return nil
+}
+
 // GetPasswordHash retrieves the stored password hash for the specified
 // username.
 func GetPasswordHash(username string) (string, error) {

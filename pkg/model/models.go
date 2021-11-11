@@ -92,14 +92,23 @@ type APIResponse struct {
 }
 
 type APIUser struct {
-	FirstName string `json:"firstName,omitempty"`
-	LastName  string `json:"lastName,omitempty"`
-	Email     string `json:"email,omitempty"`
-	Role      string `json:"role,omitempty"`
-	Username  string `json:"username,omitempty"`
-	Password  string `json:"password,omitempty"`
-	ConfirmPw string `json:"confirmPw,omitempty"`
-	Token     string `json:"token,omitempty"`
+	FirstName            string `json:"firstName,omitempty"`
+	LastName             string `json:"lastName,omitempty"`
+	Email                string `json:"email,omitempty"`
+	Role                 string `json:"role,omitempty"`
+	NotificationsEnabled bool   `json:"notifications_enabled"`
+	CurrPassword         string `json:"curr_password,omitempty"`
+	Username             string `json:"username,omitempty"`
+	Password             string `json:"password,omitempty"`
+	ConfirmPw            string `json:"confirmPw,omitempty"`
+	Token                string `json:"token,omitempty"`
+}
+
+type Claims struct {
+	Authorized bool   `json:"authorized"`
+	Exp        int64  `json:"exp"`
+	Role       string `json:"role"`
+	Username   string `json:"username"`
 }
 
 type ConfigResponse struct {
@@ -118,9 +127,11 @@ type ImageInfo struct {
 }
 
 type PiConfResponse struct {
-	Status   string  `json:"status"`
-	DeviceId uint32  `json:"device_id"`
-	Services Service `json:"services"`
+	Status    string  `json:"status"`
+	DeviceId  uint32  `json:"device_id"`
+	NICVendor string  `json:"nic_vendor"`
+	Hostname  string  `json:"hostname"`
+	Services  Service `json:"services"`
 }
 
 /* RaspberryPi image related structs.

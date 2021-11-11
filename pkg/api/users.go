@@ -22,7 +22,7 @@ All functions should write json data to the responsewriter
 func usersSubrouter(r *mux.Router) {
 	usersAPI := r.PathPrefix("/api/users").Subrouter()
 	usersAPI.Queries("user", "{user:.+}").HandlerFunc(tokenAuthMiddleware(getUser)).Methods("GET", "OPTIONS").Name("user")
-	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "OPTIONS")
+	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "PUT", "OPTIONS")
 	usersAPI.HandleFunc("/login", loginUser).Methods("POST", "OPTIONS")
 }
 
@@ -38,6 +38,9 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case "POST":
 		registerUser(w, r)
+		return
+	case "PUT":
+		updateUser(w, r)
 		return
 	}
 }
@@ -90,7 +93,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&userInfo); err != nil {
 		log.Logger.Warn().Msgf("Failed decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Failed decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 	log.Logger.Debug().Msgf("Username: %s, Password: %s", userInfo.Username, userInfo.Password)
@@ -128,7 +131,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&newUser); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error decoding json: %s", err)))
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 
@@ -140,4 +143,57 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("Error registering user: %s", err)))
 	}
 	w.Write([]byte("Registering user"))
+}
+
+//TODO Check up against current password, to prevent JWT hijacking
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	updatedUser := model.APIUser{}
+	hashedAndSaltedPwd := ""
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&updatedUser); err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
+		return
+	}
+
+	//Getting claims form jwt
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt token: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error parsing jwt token"})
+		return
+	}
+	updatedUser.Username = claims.Username
+	log.Logger.Debug().Msgf("Claims from jwt: %v", claims)
+
+	log.Logger.Debug().Msgf("Username: %s, Password: %s", updatedUser.Username, updatedUser.CurrPassword)
+	loginStatus, err := database.LoginUser(updatedUser.Username, updatedUser.CurrPassword)
+	log.Logger.Debug().Bool("loginStatus", loginStatus).Msg("GetPasswordHash result")
+	if err != nil {
+		log.Logger.Warn().Msgf("Error Loggin in user: /%s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
+		return
+	}
+	if !loginStatus {
+		log.Logger.Debug().Msg("Incorrect username or password")
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Incorrect username or password"})
+		return
+	}
+
+	if len(updatedUser.Password) > 0 {
+		log.Logger.Debug().Msg("Updating password")
+		if updatedUser.Password != updatedUser.ConfirmPw {
+			log.Logger.Warn().Msg("Updated passwords do not match")
+			json.NewEncoder(w).Encode(model.APIResponse{Error: "Password does not match confirm password"})
+			return
+		}
+		hashedAndSaltedPwd = HashAndSaltPassword([]byte(updatedUser.Password))
+	}
+
+
+	log.Logger.Debug().Msgf("Updated user is: %v", updatedUser)
+	database.UpdateUser(updatedUser, hashedAndSaltedPwd)
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+
 }
