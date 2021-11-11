@@ -31,12 +31,16 @@
       </b-row>
       <div style="margin: auto; width: fit-content; margin-top: 10px">
         <b-row>
-          <b-col md="6">
-            <label type="input" for="password">Password</label>
+          <b-col>
+            <label type="password" for="currpassword">Current password*</label>
+            <b-form-input id="currpassword" type="password" @input.native="checkUserForm()" placeholder="Current password" v-model="form.curr_password" required></b-form-input>
+          </b-col>
+          <b-col>
+            <label type="password" for="password">Password</label>
             <b-form-input id="password" type="password" @input.native="checkUserForm()" placeholder="Password" v-model="form.password"></b-form-input>
           </b-col>
-          <b-col md="6">
-            <label type="input" for="confirmpw">Confirm Password</label>
+          <b-col>
+            <label type="password" for="confirmpw">Confirm Password</label>
             <b-form-input id="confirmpw" type="password" @input.native="checkUserForm()" placeholder="Confirm Password" v-model="form.confirmPw"></b-form-input>
           </b-col>
         </b-row>
@@ -78,6 +82,7 @@ export default {
         notifications_enabled: false,
         username: "",
         password: "",
+        curr_password: "",
         confirmPw: "",
       },
       user: {
@@ -106,7 +111,7 @@ export default {
       this.dismissCountDown = dismissCountDown
     },
     checkUserForm: function(){
-      if (this.form.email.length === 0 && this.form.password.length === 0 && this.form.confirmPw.length === 0 && this.form.notifications_enabled === this.user.notifications_enabled){
+      if ( (this.form.email.length === 0 && this.form.password.length === 0 && this.form.confirmPw.length === 0 && this.form.notifications_enabled === this.user.notifications_enabled) || this.form.curr_password.length === 0){
         this.formValid = false
       } else {
         this.formValid = true

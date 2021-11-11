@@ -97,6 +97,7 @@ type APIUser struct {
 	Email                string `json:"email,omitempty"`
 	Role                 string `json:"role,omitempty"`
 	NotificationsEnabled bool   `json:"notifications_enabled"`
+	CurrPassword         string `json:"curr_password,omitempty"`
 	Username             string `json:"username,omitempty"`
 	Password             string `json:"password,omitempty"`
 	ConfirmPw            string `json:"confirmPw,omitempty"`
@@ -126,9 +127,11 @@ type ImageInfo struct {
 }
 
 type PiConfResponse struct {
-	Status   string  `json:"status"`
-	DeviceId uint32  `json:"device_id"`
-	Services Service `json:"services"`
+	Status    string  `json:"status"`
+	DeviceId  uint32  `json:"device_id"`
+	NICVendor string  `json:"nic_vendor"`
+	Hostname  string  `json:"hostname"`
+	Services  Service `json:"services"`
 }
 
 /* RaspberryPi image related structs.

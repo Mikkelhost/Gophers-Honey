@@ -155,15 +155,6 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
-	if len(updatedUser.Password) > 0 {
-		log.Logger.Debug().Msg("Updating password")
-		if updatedUser.Password != updatedUser.ConfirmPw {
-			log.Logger.Warn().Msg("Updated passwords do not match")
-			json.NewEncoder(w).Encode(model.APIResponse{Error: "Password does not match confirm password"})
-			return
-		}
-		hashedAndSaltedPwd = HashAndSaltPassword([]byte(updatedUser.Password))
-	}
 
 	//Getting claims form jwt
 	claims, err := decodeToken(r)
@@ -174,6 +165,32 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	updatedUser.Username = claims.Username
 	log.Logger.Debug().Msgf("Claims from jwt: %v", claims)
+
+	log.Logger.Debug().Msgf("Username: %s, Password: %s", updatedUser.Username, updatedUser.CurrPassword)
+	loginStatus, err := database.LoginUser(updatedUser.Username, updatedUser.CurrPassword)
+	log.Logger.Debug().Bool("loginStatus", loginStatus).Msg("GetPasswordHash result")
+	if err != nil {
+		log.Logger.Warn().Msgf("Error Loggin in user: /%s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("%s", err)})
+		return
+	}
+	if !loginStatus {
+		log.Logger.Debug().Msg("Incorrect username or password")
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Incorrect username or password"})
+		return
+	}
+
+	if len(updatedUser.Password) > 0 {
+		log.Logger.Debug().Msg("Updating password")
+		if updatedUser.Password != updatedUser.ConfirmPw {
+			log.Logger.Warn().Msg("Updated passwords do not match")
+			json.NewEncoder(w).Encode(model.APIResponse{Error: "Password does not match confirm password"})
+			return
+		}
+		hashedAndSaltedPwd = HashAndSaltPassword([]byte(updatedUser.Password))
+	}
+
+
 	log.Logger.Debug().Msgf("Updated user is: %v", updatedUser)
 	database.UpdateUser(updatedUser, hashedAndSaltedPwd)
 
