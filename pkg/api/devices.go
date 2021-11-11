@@ -95,6 +95,8 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 	response := model.PiConfResponse{
 		Status:   "Success",
 		DeviceId: device.DeviceId,
+		NICVendor: configuration.NICVendor,
+		Hostname: configuration.Hostname,
 		Services: configuration.Services,
 	}
 

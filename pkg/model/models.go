@@ -146,6 +146,7 @@ type PiConf struct {
 	C2         string  `yaml:"c2"`
 	IpStr      string  `yaml:"ip_str"`
 	Hostname   string  `yaml:"hostname"`
+	NICVendor  string  `yaml:"nic_vendor"`
 	Mac        string  `yaml:"mac"`
 	Configured bool    `yaml:"configured"`
 	Port       int     `yaml:"port"`
