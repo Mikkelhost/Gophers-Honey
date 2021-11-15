@@ -3,6 +3,7 @@ module github.com/Mikkelhost/Gophers-Honey
 go 1.16
 
 require (
+	github.com/d1str0/hpfeeds v0.1.6
 	github.com/diskfs/go-diskfs v1.2.0
 	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.1.0
