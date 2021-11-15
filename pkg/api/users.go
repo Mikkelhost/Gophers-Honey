@@ -190,7 +190,6 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		hashedAndSaltedPwd = HashAndSaltPassword([]byte(updatedUser.Password))
 	}
 
-
 	log.Logger.Debug().Msgf("Updated user is: %v", updatedUser)
 	database.UpdateUser(updatedUser, hashedAndSaltedPwd)
 

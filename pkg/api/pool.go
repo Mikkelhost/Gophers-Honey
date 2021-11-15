@@ -9,7 +9,7 @@ type types struct {
 	HeartBeatType int
 }
 
-var  Types = types {
+var Types = types{
 	HeartBeatType: 2,
 	NewDeviceType: 3,
 }
