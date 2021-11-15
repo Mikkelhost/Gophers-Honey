@@ -234,10 +234,9 @@ func GetDeviceConfiguration(deviceID uint32) (model.Configuration, error) {
 		"FTP enabled: %t\n"+
 		"Telnet enabled: %t\n"+
 		"HTTP enabled: %t\n"+
-		"HTTPS enabled: %t\n"+
 		"SMB enabled: %t",
 		configuration.DeviceID, configuration.Hostname, configuration.NICVendor, configuration.Services.SSH, configuration.Services.FTP,
-		configuration.Services.TELNET, configuration.Services.HTTP, configuration.Services.HTTPS, configuration.Services.SMB)
+		configuration.Services.TELNET, configuration.Services.HTTP, configuration.Services.SMB)
 
 	return configuration, nil
 }
