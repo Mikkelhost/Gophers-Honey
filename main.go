@@ -4,6 +4,7 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/hpfeedsHandler"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/httpserver"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"time"
 )
@@ -25,6 +26,25 @@ func main() {
 	database.Connect()
 	defer database.Disconnect()
 
+	// Start hpfeeds broker routine.
+	go func() {
+		err := hpfeedsHandler.Broker()
+		if err != nil {
+			log.Logger.Fatal().Msgf("Broker error: %s", err)
+		}
+	}()
+
+	// Give broker time to start before starting subscriber.
+	time.Sleep(2 * time.Second)
+
+	// Start hpfeeds subscriber routine.
+	go func() {
+		err = hpfeedsHandler.Subscribe("test_ident", "opencanary_events", "12345")
+		if err != nil {
+			log.Logger.Fatal().Msgf("Subscriber error: %s", err)
+		}
+	}()
+
 	// Set up server.
 	log.Logger.Info().Msg("Running server")
 	c, err := config.GetServiceConfig()
@@ -37,18 +57,5 @@ func main() {
 			"the setup")
 	}
 
-	go func() {
-		err := hpfeedsHandler.Broker()
-		if err != nil {
-			log.Logger.Fatal().Msgf("Broker error: %s", err)
-		}
-	}()
-	time.Sleep(5 * time.Second)
-
-	err = hpfeedsHandler.TestSubscriber()
-	if err != nil {
-		log.Logger.Fatal().Msgf("Subscriber error: %s", err)
-	}
-
-	// httpserver.RunServer()
+	httpserver.RunServer()
 }
