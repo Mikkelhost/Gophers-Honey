@@ -15,7 +15,6 @@ type Service struct {
 	FTP    bool `bson:"ftp" yaml:"ftp" json:"ftp"`
 	TELNET bool `bson:"telnet" yaml:"telnet" json:"telnet"`
 	HTTP   bool `bson:"http" yaml:"http" json:"http"`
-	HTTPS  bool `bson:"https" yaml:"https" json:"https"`
 	SMB    bool `bson:"smb" yaml:"smb" json:"smb"`
 }
 
@@ -52,7 +51,7 @@ type Log struct {
 // Log severity levels.
 var (
 	CRITICAL      = 0
-	HIGH          = 1
+	SCAN          = 1
 	INFORMATIONAL = 2
 )
 
