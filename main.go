@@ -28,7 +28,7 @@ func main() {
 
 	// Start hpfeeds broker routine.
 	go func() {
-		err := hpfeedsHandler.Broker()
+		err = hpfeedsHandler.Broker()
 		if err != nil {
 			log.Logger.Fatal().Msgf("Broker error: %s", err)
 		}
@@ -39,7 +39,7 @@ func main() {
 
 	// Start hpfeeds subscriber routine.
 	go func() {
-		err = hpfeedsHandler.Subscribe("test_ident", "opencanary_events", "12345")
+		err = hpfeedsHandler.Subscribe("backendParser", "opencanary_events", "112233")
 		if err != nil {
 			log.Logger.Fatal().Msgf("Subscriber error: %s", err)
 		}

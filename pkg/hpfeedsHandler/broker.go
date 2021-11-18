@@ -10,22 +10,42 @@ type Identities struct {
 	IDs []hpfeeds.Identity
 }
 
+func (t *Identities) Identify(ident string) (*hpfeeds.Identity, error) {
+	for i, identity := range t.IDs {
+		if ident == identity.Ident {
+			return &t.IDs[i], nil
+		}
+	}
+	return nil, errors.New("identifier: Unknown identity")
+}
+
 func NewDB() *Identities {
 	i := hpfeeds.Identity{
-		Ident:       "test_ident",
+		Ident:       "test_ident_1",
 		Secret:      "12345",
 		SubChannels: []string{"opencanary_events"},
 		PubChannels: []string{"opencanary_events"},
 	}
-	t := &Identities{IDs: []hpfeeds.Identity{i}}
-	return t
-}
 
-func (t *Identities) Identify(ident string) (*hpfeeds.Identity, error) {
-	if ident == "test_ident" {
-		return &t.IDs[0], nil
+	j := hpfeeds.Identity{
+		Ident:       "test_ident_2",
+		Secret:      "54321",
+		SubChannels: []string{"opencanary_events"},
+		PubChannels: []string{"opencanary_events"},
 	}
-	return nil, errors.New("identifier: Unknown identity")
+
+	backendParser := hpfeeds.Identity{
+		Ident:       "backend_parser",
+		Secret:      "112233",
+		SubChannels: []string{"opencanary_events"},
+		PubChannels: []string{"opencanary_events"},
+	}
+
+	ids := Identities{
+		IDs: []hpfeeds.Identity{i, j, backendParser},
+	}
+
+	return &ids
 }
 
 func Broker() error {

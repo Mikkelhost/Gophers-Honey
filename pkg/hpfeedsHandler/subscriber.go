@@ -47,10 +47,10 @@ func Subscribe(id, ch, secret string) error {
 
 		log.Logger.Debug().Msgf("Successfully connected.")
 
-		log.Logger.Debug().Msgf("Subscribing to channel: %s", channel)
-
 		// Subscribe to channel. NB! Channel name needs to exist on broker! Else a SIGSEGV will occur!
 		hp.Subscribe(channel, msgs)
+
+		log.Logger.Debug().Msgf("Subscribing to channel: %s", channel)
 
 		// Wait for disconnect
 		<-hp.Disconnected
