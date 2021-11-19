@@ -123,6 +123,8 @@
   </div>
 </template>
 
+<!-- TODO: Add IP ignorelist to device config parameters -->
+<!-- TODO: Add IP ignorelist functionality to UI -->
 <script>
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -180,10 +182,10 @@ export default {
     this.connection.onmessage = function(event) {
       let data = JSON.parse(event.data)
       window.console.log(data)
-      if (data.type == 2) {
+      if (data.type === 2) {
         window.console.log("Recieved heartbeat event")
         this.updateDevice(data.device_id)
-      } else if (data.type == 3) {
+      } else if (data.type === 3) {
         window.console.log("New device registered, updating device list")
         this.getDevices()
       }
@@ -213,7 +215,7 @@ export default {
         method: "PUT",
         data: this.form
       }).then(function (response){
-        if (response.data.error == "") {
+        if (response.data.error === "") {
           window.console.log("Succesfully updated device")
           this.getDevices()
           this.$bvModal.hide("configure-honeypot")

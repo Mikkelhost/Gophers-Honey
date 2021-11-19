@@ -21,10 +21,11 @@ type Service struct {
 // Configuration struct matches a device ID with enabled services. Is only
 // used when retrieving configuration data from the database.
 type Configuration struct {
-	DeviceID  uint32  `bson:"device_id,omitempty" json:"device_id"`
-	NICVendor string  `bson:"nic_vendor" json:"nic_vendor"`
-	Hostname  string  `bson:"hostname" json:"hostname"`
-	Services  Service `bson:"services" json:"services"`
+	DeviceID   uint32   `bson:"device_id,omitempty" json:"device_id"`
+	NICVendor  string   `bson:"nic_vendor" json:"nic_vendor"`
+	Hostname   string   `bson:"hostname" json:"hostname"`
+	Services   Service  `bson:"services" json:"services"`
+	IgnoreList []string `bson:"ip.ignore_list" json:"ignore_list"`
 }
 
 // Device struct is used to specify device information.
@@ -132,11 +133,12 @@ type ImageInfo struct {
 }
 
 type PiConfResponse struct {
-	Status    string  `json:"status"`
-	DeviceId  uint32  `json:"device_id"`
-	NICVendor string  `json:"nic_vendor"`
-	Hostname  string  `json:"hostname"`
-	Services  Service `json:"services"`
+	Status     string   `json:"status"`
+	DeviceId   uint32   `json:"device_id"`
+	NICVendor  string   `json:"nic_vendor"`
+	Hostname   string   `json:"hostname"`
+	Services   Service  `json:"services"`
+	IgnoreList []string `json:"ip.ignore_list"`
 }
 
 /* RaspberryPi image related structs.

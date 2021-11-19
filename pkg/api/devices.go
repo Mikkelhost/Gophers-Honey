@@ -93,11 +93,12 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := model.PiConfResponse{
-		Status:    "Success",
-		DeviceId:  device.DeviceId,
-		NICVendor: configuration.NICVendor,
-		Hostname:  configuration.Hostname,
-		Services:  configuration.Services,
+		Status:     "Success",
+		DeviceId:   device.DeviceId,
+		NICVendor:  configuration.NICVendor,
+		Hostname:   configuration.Hostname,
+		Services:   configuration.Services,
+		IgnoreList: configuration.IgnoreList,
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -105,6 +106,7 @@ func getDeviceConfiguration(w http.ResponseWriter, r *http.Request) {
 
 // configureDevice updates the configured services for a specified
 // device ID.
+// TODO: Make sure to send IP ignorelist with API call.
 func configureDevice(w http.ResponseWriter, r *http.Request) {
 	var config model.Configuration
 
