@@ -40,12 +40,18 @@ type Device struct {
 }
 
 type Log struct {
-	GUID      primitive.ObjectID `bson:"_id,omitempty"`
-	DeviceID  uint32             `bson:"device_id,omitempty" json:"device_id"`
-	LogID     uint32             `bson:"log_id,omitempty" json:"log_id"`
-	TimeStamp time.Time          `bson:"time_stamp,omitempty" json:"time_stamp"`
-	Message   string             `bson:"message,omitempty" json:"message"`
-	Level     int                `bson:"level" json:"level"`
+	GUID         primitive.ObjectID `bson:"_id,omitempty"`
+	DeviceID     uint32             `bson:"device_id,omitempty" json:"device_id"`
+	LogID        uint32             `bson:"log_id,omitempty" json:"log_id"`
+	DstHost      string             `bson:"dst_host" json:"dst_host"`
+	DstPort      uint16             `bson:"dst_port" json:"dst_port"`
+	SrcHost      string             `bson:"src_host" json:"src_host"`
+	SrcPort      uint16             `bson:"src_port" json:"src_port"`
+	LogTimeStamp time.Time          `bson:"log_time_stamp" json:"log_time_stamp"`
+	Message      string             `bson:"message,omitempty" json:"message"`
+	Level        int                `bson:"level" json:"level"`
+	LogType      string             `bson:"log_type" json:"log_type"` // TODO: Possibly no use or opencanary specific.
+	RawLog       string             `bson:"raw_log" json:"raw_log"`
 }
 
 // Log severity levels.

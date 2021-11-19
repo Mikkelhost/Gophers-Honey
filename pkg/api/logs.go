@@ -9,7 +9,6 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/notification"
 	"github.com/gorilla/mux"
 	"net/http"
-	"strings"
 )
 
 /*
@@ -44,25 +43,25 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 func newLog(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
-	var logStruct model.Log
+	var newLog model.Log
 
-	if err := decoder.Decode(&logStruct); err != nil {
+	if err := decoder.Decode(&newLog); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
 
-	log.Logger.Debug().Msgf("Received new log for device ID: %s Adding to DB", logStruct.DeviceID)
-	err := database.AddLog(logStruct.DeviceID, logStruct.TimeStamp, strings.TrimSpace(logStruct.Message))
+	log.Logger.Debug().Msgf("Received new log from device ID: %s Adding to DB", newLog.DeviceID)
+	err := database.AddLog(newLog)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error adding log: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error adding log"})
 		return
 	}
 
-	if logStruct.Level < model.INFORMATIONAL {
-		log.Logger.Info().Msgf("Critical or high risk alert received. Notifying users.")
-		err = notification.NotifyAll(logStruct)
+	if newLog.Level < model.INFORMATIONAL {
+		log.Logger.Info().Msgf("Critical or Scan alert received. Notifying users.")
+		err = notification.NotifyAll(newLog)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error notifying users: %s", err)
 			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
