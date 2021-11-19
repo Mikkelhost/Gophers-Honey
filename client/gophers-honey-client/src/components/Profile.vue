@@ -29,22 +29,20 @@
           <b-form-checkbox id="notifications" @change="checkUserForm()" v-model="form.notifications_enabled" switch></b-form-checkbox>
         </b-col>
       </b-row>
-      <div style="margin: auto; width: fit-content; margin-top: 10px">
-        <b-row>
-          <b-col>
-            <label type="password" for="currpassword">Current password*</label>
-            <b-form-input id="currpassword" type="password" @input.native="checkUserForm()" placeholder="Current password" v-model="form.curr_password" required></b-form-input>
-          </b-col>
-          <b-col>
-            <label type="password" for="password">Password</label>
-            <b-form-input id="password" type="password" @input.native="checkUserForm()" placeholder="Password" v-model="form.password"></b-form-input>
-          </b-col>
-          <b-col>
-            <label type="password" for="confirmpw">Confirm Password</label>
-            <b-form-input id="confirmpw" type="password" @input.native="checkUserForm()" placeholder="Confirm Password" v-model="form.confirmPw"></b-form-input>
-          </b-col>
-        </b-row>
-      </div>
+      <b-row>
+        <b-col>
+          <label type="password" for="currpassword">Current password*</label>
+          <b-form-input id="currpassword" type="password" @input.native="checkUserForm()" placeholder="Current password" v-model="form.curr_password" required></b-form-input>
+        </b-col>
+        <b-col>
+          <label type="password" for="password">Password</label>
+          <b-form-input id="password" type="password" @input.native="checkUserForm()" placeholder="Password" v-model="form.password"></b-form-input>
+        </b-col>
+        <b-col>
+          <label type="password" for="confirmpw">Confirm Password</label>
+          <b-form-input id="confirmpw" type="password" @input.native="checkUserForm()" placeholder="Confirm Password" v-model="form.confirmPw"></b-form-input>
+        </b-col>
+      </b-row>
       <div style="margin: auto; width: fit-content">
         <b-button type="submit" :disabled="!formValid">Save profile settings</b-button>
       </div>
