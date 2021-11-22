@@ -139,6 +139,10 @@ type PiConfResponse struct {
 	Services  Service `json:"services"`
 }
 
+type IPAddress struct {
+	IPAddressString string `json:"ip_address"`
+}
+
 /* RaspberryPi image related structs.
  */
 

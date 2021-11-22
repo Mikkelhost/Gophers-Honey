@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/golang-jwt/jwt/v4"
@@ -132,36 +131,6 @@ func HashAndSaltPassword(pwd []byte) string {
 	}
 
 	return string(hash)
-}
-
-// addIPToWhitelist takes an IP address string as input and appends it to the
-// IP whitelist in the config file. No checks on whether the IP address is
-// valid so IP's should only be passed if validated first.
-func addIPToWhitelist(ip string) error {
-	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
-	err := config.WriteConf()
-	if err != nil {
-		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-		return err
-	}
-	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
-	return nil
-}
-
-// removeIPFromWhitelist takes an IP address string and removes it from
-// the config file.
-func removeIPFromWhitelist(ip string) error {
-	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
-		log.Logger.Debug().Msgf("Removing IP: %s from whitelist", ip)
-		remove(index, config.Conf.IpWhitelist)
-		err := config.WriteConf()
-		if err != nil {
-			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-			return err
-		}
-		return nil
-	}
-	return errors.New("ip not in whitelist")
 }
 
 // isStringInStringArray returns true if the given string appears in the

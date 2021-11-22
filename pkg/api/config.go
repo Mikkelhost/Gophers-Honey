@@ -153,3 +153,63 @@ func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
+
+func w() {
+
+}
+
+// addIPToWhitelist takes an IP address string as input and appends it to the
+// IP whitelist in the config file. No checks on whether the IP address is
+// valid so IP's should only be passed if validated first.
+func addIPToWhitelist(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+
+	var ip model.IPAddress
+
+	err := decoder.Decode(&ip)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		return
+	}
+
+	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip.IPAddressString)
+	err = config.WriteConf()
+	if err != nil {
+		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error writing to config file: %s", err)})
+		return
+	}
+	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
+
+	err = json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+}
+
+// removeIPFromWhitelist takes an IP address string and removes it from
+// the config file.
+func removeIPFromWhitelist(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+
+	var ip model.IPAddress
+
+	err := decoder.Decode(&ip)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		return
+	}
+	if result, index := isStringInStringArray(ip.IPAddressString, config.Conf.IpWhitelist); result {
+		log.Logger.Debug().Msgf("Removing IP: %s from whitelist", ip)
+		remove(index, config.Conf.IpWhitelist)
+		err = config.WriteConf()
+		if err != nil {
+			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error writing to config file: %s", err)})
+			return
+		}
+		json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+		return
+	}
+	log.Logger.Warn().Msgf("IP address not in whitelist")
+	json.NewEncoder(w).Encode(model.APIResponse{Error: "IP address not in whitelist"})
+}
