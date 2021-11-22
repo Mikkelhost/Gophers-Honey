@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"github.com/golang-jwt/jwt/v4"
@@ -131,4 +132,30 @@ func HashAndSaltPassword(pwd []byte) string {
 	}
 
 	return string(hash)
+}
+
+// whitelistIP takes an IP address string as input and appends it to the
+// IP whitelist in the config file. No checks on whether the IP address is
+// valid so IP's should only be passed if validated first.
+func whitelistIP(ip string) error {
+	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
+	err := config.WriteConf()
+	if err != nil {
+		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+		return err
+	}
+	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
+	return nil
+}
+
+// isStringInStringArray returns true if the given string appears in the
+// given array.
+func isStringInStringArray(element string, array []string) bool {
+	for _, temp := range array {
+		if element == temp {
+			return true
+		}
+	}
+	return false
+
 }

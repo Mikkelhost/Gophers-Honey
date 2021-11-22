@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
@@ -59,17 +60,34 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if newLog.Level < model.INFORMATIONAL {
-		log.Logger.Info().Msgf("Critical or Scan alert received. Notifying users.")
+	if newLog.Level == model.CRITICAL {
+		log.Logger.Info().Msgf("Critical level log received. Notifying users.")
 		err = notification.NotifyAll(newLog)
 		if err != nil {
 			log.Logger.Warn().Msgf("Error notifying users: %s", err)
 			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+			return
+		}
+	} else if newLog.Level == model.SCAN {
+		// Return if the source ip in the log appears in the whitelist.
+		if isStringInStringArray(newLog.SrcHost, config.Conf.IpWhitelist) {
+			err = json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+			if err != nil {
+				log.Logger.Warn().Msgf("Error encoding json: %s", err)
+				return
+			}
+		} else {
+			log.Logger.Info().Msgf("Scan level log received. Notifying users")
+			err := notification.NotifyAll(newLog)
+			if err != nil {
+				log.Logger.Warn().Msgf("Error notifying users: %s", err)
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+				return
+			}
 		}
 	}
 
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
-
 }
 
 // getLogs retrieves all logs currently present in the database.
