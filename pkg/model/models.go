@@ -140,6 +140,7 @@ type PiConfResponse struct {
 }
 
 type IPAddress struct {
+	Delete bool `json:"delete"`
 	IPAddressString string `json:"ip_address"`
 }
 

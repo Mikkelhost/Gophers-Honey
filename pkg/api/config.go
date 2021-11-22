@@ -16,7 +16,8 @@ import (
 
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
-	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "PUT", "OPTIONS")
+	configAPI.HandleFunc("/whitelist", whitelistHandler).Methods("PATCH", "OPTIONS")
+	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "PATCH", "OPTIONS")
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,8 +33,9 @@ func configHandler(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		setupService(w, r)
 		return
-	case "PUT":
+	case "PATCH":
 		configureSmtpServer(w, r)
+		return
 	}
 }
 
@@ -154,10 +156,23 @@ func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
-func w() {
 
+
+func whitelistHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+	switch r.Method {
+
+	case "PATCH":
+		updateWhitelist(w, r)
+	}
 }
 
+func updateWhitelist(w http.ResponseWriter, r *http.Request) {
+
+}
 // addIPToWhitelist takes an IP address string as input and appends it to the
 // IP whitelist in the config file. No checks on whether the IP address is
 // valid so IP's should only be passed if validated first.
