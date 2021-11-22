@@ -69,8 +69,8 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if newLog.Level == model.SCAN {
-		// Return if the source ip in the log appears in the whitelist.
-		if isStringInStringArray(newLog.SrcHost, config.Conf.IpWhitelist) {
+		// Send no alert if source ip appears in the whitelist.
+		if result, _ := isStringInStringArray(newLog.SrcHost, config.Conf.IpWhitelist); result {
 			err = json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 			if err != nil {
 				log.Logger.Warn().Msgf("Error encoding json: %s", err)

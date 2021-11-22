@@ -134,10 +134,10 @@ func HashAndSaltPassword(pwd []byte) string {
 	return string(hash)
 }
 
-// whitelistIP takes an IP address string as input and appends it to the
+// addIPToWhitelist takes an IP address string as input and appends it to the
 // IP whitelist in the config file. No checks on whether the IP address is
 // valid so IP's should only be passed if validated first.
-func whitelistIP(ip string) error {
+func addIPToWhitelist(ip string) error {
 	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
 	err := config.WriteConf()
 	if err != nil {
@@ -148,14 +148,37 @@ func whitelistIP(ip string) error {
 	return nil
 }
 
+// removeIPFromWhitelist takes an IP address string and removes it from
+// the config file.
+func removeIPFromWhitelist(ip string) error {
+	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
+		log.Logger.Debug().Msgf("Removing IP: %s from whitelist", ip)
+		remove(index, config.Conf.IpWhitelist)
+		err := config.WriteConf()
+		if err != nil {
+			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+			return err
+		}
+		return nil
+	}
+	return errors.New("ip not in whitelist")
+}
+
 // isStringInStringArray returns true if the given string appears in the
-// given array.
-func isStringInStringArray(element string, array []string) bool {
-	for _, temp := range array {
+// given array. Also returns the index of the element.
+func isStringInStringArray(element string, array []string) (bool, int) {
+	for index, temp := range array {
 		if element == temp {
-			return true
+			return true, index
 		}
 	}
-	return false
+	return false, 0
 
+}
+
+// remove takes an index and string array and removes the element at the
+// index position. NB! Does not preserve order.
+func remove(i int, s []string) []string {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
 }
