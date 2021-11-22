@@ -76,6 +76,7 @@
         <table style="margin: auto;">
           <tr>
             <th>Id</th>
+            <th>Hostname</th>
             <th>Ip address</th>
             <th>Last seen</th>
             <th>Configured</th>
@@ -86,6 +87,7 @@
           <template v-if="devices.length !== 0">
             <tr v-for="device in devices" :key="device.device_id">
               <td>{{device.device_id}}</td>
+              <td>{{device.hostname}}</td>
               <td>{{device.ip_str}}</td>
               <td>{{device.last_seen}}</td>
               <td>{{device.configured}}</td>

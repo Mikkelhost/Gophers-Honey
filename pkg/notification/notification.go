@@ -14,12 +14,12 @@ import (
 // changes to the configuration file.
 func ConfigureSmtpServer(configSmtpServer model.SmtpServer) error {
 
-	err := config.WriteConf() // Write configuration to config file.
+	config.Conf.SmtpServer = configSmtpServer // Set configuration in memory.
+	err := config.WriteConf()                 // Write configuration to config file.
 	if err != nil {
 		log.Logger.Warn().Msgf("Error writing SMTP server configuration to config file")
 		return err
 	}
-	config.Conf.SmtpServer = configSmtpServer // Set configuration in memory.
 
 	return nil
 }

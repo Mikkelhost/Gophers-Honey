@@ -15,11 +15,10 @@ import (
 func imageSubRouter(r *mux.Router) {
 	imageAPI := r.PathPrefix("/api/images").Subrouter()
 	//imageRouter.Handle("/", http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
-	imageAPI.Queries("download","{download:[0-9]+}").HandlerFunc(tokenAuthMiddleware(downloadImage)).Methods("GET", "OPTIONS").Name("download")
+	imageAPI.Queries("download", "{download:[0-9]+}").HandlerFunc(tokenAuthMiddleware(downloadImage)).Methods("GET", "OPTIONS").Name("download")
 	imageAPI.HandleFunc("", tokenAuthMiddleware(imageHandler)).Methods("GET", "POST", "DELETE", "OPTIONS")
 
 }
-//TODO: Add/remove image functionality
 
 func imageHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
@@ -93,9 +92,9 @@ func newImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = piimage.InsertConfig(model.PiConf{
-		C2: imgInfo.C2,
-		Port: port,
-		DeviceID: 0,
+		C2:        imgInfo.C2,
+		Port:      port,
+		DeviceID:  0,
 		DeviceKey: DEVICE_KEY,
 	}, id)
 	if err != nil {
