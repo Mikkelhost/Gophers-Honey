@@ -20,6 +20,9 @@
               <div id="profile" aria-labelledby="profile-tab" class="tab-pane fade active show" role="tabpanel">
                 <profile></profile>
               </div>
+              <div id="users" aria-labelledby="users-tab" class="tab-pane fade" role="tabpanel">
+                <users></users>
+              </div>
               <div id="images" aria-labelledby="images-tab" class="tab-pane fade" role="tabpanel">
                 <images></images>
               </div>
@@ -37,11 +40,12 @@
   import Footer from "../components/Footer";
   import Images from "../components/Images";
   import Profile from "../components/Profile";
+  import Users from "../components/Users";
   import axios from "axios";
 
   export default{
     name: "Settings",
-    components: {Footer, Navbar, Images, Profile},
+    components: {Footer, Navbar, Images, Profile, Users},
     created() {
       axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
     },
@@ -91,5 +95,12 @@ table, th, td {
   color: white;
   background-color: olivedrab;
 }
+
+ #add-user {
+   margin: auto;
+   border-radius: 2px;
+   color: white;
+   background-color: olivedrab;
+ }
 
 </style>
