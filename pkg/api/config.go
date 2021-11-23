@@ -156,8 +156,6 @@ func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
-
-
 func whitelistHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	if r.Method == "OPTIONS" {
@@ -170,13 +168,10 @@ func whitelistHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// updateWhitelist adds or removes IP addresses from the whitelist based
+// on the whether "delete" field is set. Returns an error if IP is not
+// valid.
 func updateWhitelist(w http.ResponseWriter, r *http.Request) {
-
-}
-// addIPToWhitelist takes an IP address string as input and appends it to the
-// IP whitelist in the config file. No checks on whether the IP address is
-// valid so IP's should only be passed if validated first.
-func addIPToWhitelist(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
 	var ip model.IPAddress
@@ -187,44 +182,31 @@ func addIPToWhitelist(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
-
-	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip.IPAddressString)
-	err = config.WriteConf()
+	validIP, err := checkForValidIp(ip.IPAddressString)
 	if err != nil {
-		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error writing to config file: %s", err)})
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("IP address not valid: %s", err)})
 		return
 	}
-	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
 
-	err = json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
-}
-
-// removeIPFromWhitelist takes an IP address string and removes it from
-// the config file.
-func removeIPFromWhitelist(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-
-	var ip model.IPAddress
-
-	err := decoder.Decode(&ip)
-	if err != nil {
-		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
-		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
-		return
-	}
-	if result, index := isStringInStringArray(ip.IPAddressString, config.Conf.IpWhitelist); result {
-		log.Logger.Debug().Msgf("Removing IP: %s from whitelist", ip)
-		remove(index, config.Conf.IpWhitelist)
-		err = config.WriteConf()
-		if err != nil {
-			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error writing to config file: %s", err)})
-			return
+	if validIP {
+		switch ip.Delete {
+		case false:
+			err = addIPToWhitelist(ip.IPAddressString)
+			if err != nil {
+				log.Logger.Warn().Msgf("Error adding IP to whitelist: %s", err)
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error adding IP to whitelist: %s", err)})
+				return
+			}
+			json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+		case true:
+			err = removeIPFromWhitelist(ip.IPAddressString)
+			if err != nil {
+				log.Logger.Warn().Msgf("Error removing IP from whitelist: %s", err)
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error removing IP from whitelist: %s", err)})
+				return
+			}
+			json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 		}
-		json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
-		return
 	}
-	log.Logger.Warn().Msgf("IP address not in whitelist")
-	json.NewEncoder(w).Encode(model.APIResponse{Error: "IP address not in whitelist"})
+
 }
