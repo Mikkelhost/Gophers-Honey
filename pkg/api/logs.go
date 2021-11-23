@@ -39,8 +39,8 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// addLog handles addition of logs to database and notification of users
-// based on severity level of the incoming log.
+// addLog handles addition of logs to database and notifies users based on
+// the severity level of the incoming log.
 func addLog(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
@@ -55,8 +55,8 @@ func addLog(w http.ResponseWriter, r *http.Request) {
 	log.Logger.Debug().Msgf("Received new log from device ID: %s Adding to DB", newLog.DeviceID)
 	err := database.AddLog(newLog)
 	if err != nil {
-		log.Logger.Warn().Msgf("Error adding log: %s", err)
-		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error adding log"})
+		log.Logger.Warn().Msgf("Error adding log to database: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error adding log to database %s", err)})
 		return
 	}
 
@@ -68,11 +68,11 @@ func addLog(w http.ResponseWriter, r *http.Request) {
 			err = notification.NotifyAll(newLog)
 			if err != nil {
 				log.Logger.Warn().Msgf("Error notifying users: %s", err)
-				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error notifying users: %s", err)})
 				return
 			}
 		} else {
-			log.Logger.Info().Msgf("Source IP found in whitelist. Not notifying")
+			log.Logger.Debug().Msgf("Source IP found in whitelist. Not notifying")
 		}
 	}
 
