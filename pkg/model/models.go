@@ -61,6 +61,12 @@ var (
 	INFORMATIONAL = 2
 )
 
+var LogLevelMap = map[int]string{
+	0: "Critical",
+	1: "Scan",
+	2: "Informational",
+}
+
 type Image struct {
 	GUID        primitive.ObjectID `bson:"_id,omitempty"`
 	Name        string             `bson:"name" json:"name"`

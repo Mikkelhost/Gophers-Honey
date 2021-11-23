@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
@@ -19,7 +20,7 @@ All functions should write json data to the responseWriter
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
 	logAPI.HandleFunc("", tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
-	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
+	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(addLog)).Methods("POST")
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,9 +39,9 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// newLog is called by devices when they create a new log
-// The log message needs to be a valid JSON string
-func newLog(w http.ResponseWriter, r *http.Request) {
+// addLog handles addition of logs to database and notification of users
+// based on severity level of the incoming log.
+func addLog(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
 	var newLog model.Log
@@ -59,17 +60,23 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Only raise notify if log level is more severe than informational.
 	if newLog.Level < model.INFORMATIONAL {
-		log.Logger.Info().Msgf("Critical or Scan alert received. Notifying users.")
-		err = notification.NotifyAll(newLog)
-		if err != nil {
-			log.Logger.Warn().Msgf("Error notifying users: %s", err)
-			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		// Send no alert if source ip appears in the whitelist.
+		if inWhitelist, _ := isStringInStringArray(newLog.SrcHost, config.Conf.IpWhitelist); !inWhitelist {
+			log.Logger.Info().Msgf("%s level log received. Notifying users", model.LogLevelMap[newLog.Level])
+			err = notification.NotifyAll(newLog)
+			if err != nil {
+				log.Logger.Warn().Msgf("Error notifying users: %s", err)
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+				return
+			}
+		} else {
+			log.Logger.Info().Msgf("Source IP found in whitelist. Not notifying")
 		}
 	}
 
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
-
 }
 
 // getLogs retrieves all logs currently present in the database.
