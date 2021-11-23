@@ -16,7 +16,8 @@ import (
 
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
-	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "PUT", "OPTIONS")
+	configAPI.HandleFunc("/whitelist", whitelistHandler).Methods("PATCH", "OPTIONS")
+	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "PATCH", "OPTIONS")
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,8 +33,9 @@ func configHandler(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		setupService(w, r)
 		return
-	case "PUT":
+	case "PATCH":
 		configureSmtpServer(w, r)
+		return
 	}
 }
 
@@ -152,4 +154,59 @@ func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+}
+
+func whitelistHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+	switch r.Method {
+
+	case "PATCH":
+		updateWhitelist(w, r)
+	}
+}
+
+// updateWhitelist adds or removes IP addresses from the whitelist based
+// on the whether "delete" field is set. Returns an error if IP is not
+// valid.
+func updateWhitelist(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+
+	var ip model.IPAddress
+
+	err := decoder.Decode(&ip)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+		return
+	}
+	validIP, err := checkForValidIp(ip.IPAddressString)
+	if err != nil {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("IP address not valid: %s", err)})
+		return
+	}
+
+	if validIP {
+		switch ip.Delete {
+		case false:
+			err = addIPToWhitelist(ip.IPAddressString)
+			if err != nil {
+				log.Logger.Warn().Msgf("Error adding IP to whitelist: %s", err)
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error adding IP to whitelist: %s", err)})
+				return
+			}
+			json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+		case true:
+			err = removeIPFromWhitelist(ip.IPAddressString)
+			if err != nil {
+				log.Logger.Warn().Msgf("Error removing IP from whitelist: %s", err)
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error removing IP from whitelist: %s", err)})
+				return
+			}
+			json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+		}
+	}
+
 }
