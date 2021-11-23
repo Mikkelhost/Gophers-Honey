@@ -16,7 +16,7 @@
             </div>
           </b-col>
           <b-col md="8" class="settings-content">
-            <div class="tab-content" id="v-pills-tabContent">
+            <div class="tab-content" id="v-pills-tabContent" style="height: 100%">
               <div id="profile" aria-labelledby="profile-tab" class="tab-pane fade active show" role="tabpanel">
                 <profile></profile>
               </div>
@@ -25,6 +25,9 @@
               </div>
               <div id="images" aria-labelledby="images-tab" class="tab-pane fade" role="tabpanel">
                 <images></images>
+              </div>
+              <div id="service" aria-labelledby="service-tab" class="tab-pane fade" role="tabpanel" style="height: 100%">
+                <service></service>
               </div>
             </div>
           </b-col>
@@ -41,11 +44,12 @@
   import Images from "../components/Images";
   import Profile from "../components/Profile";
   import Users from "../components/Users";
+  import Service from "../components/Service";
   import axios from "axios";
 
   export default{
     name: "Settings",
-    components: {Footer, Navbar, Images, Profile, Users},
+    components: {Footer, Navbar, Images, Profile, Users, Service},
     created() {
       axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
     },

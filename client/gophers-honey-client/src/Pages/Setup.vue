@@ -277,7 +277,7 @@ export default {
     }
   },
   async beforeCreate() {
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config")
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config/configured")
     if (resp.status === 200) {
       window.console.log(resp.data.configured)
       if (resp.data.configured) {
