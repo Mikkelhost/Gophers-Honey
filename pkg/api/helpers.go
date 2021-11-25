@@ -157,11 +157,13 @@ func remove(i int, s []string) []string {
 // IP whitelist in the config file. No checks on whether the IP address is
 // valid so IP's should only be passed if validated first.
 func addIPToWhitelist(ip string) error {
-	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
-	err := config.WriteConf()
-	if err != nil {
-		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-		return err
+	if result, _ := isStringInStringArray(ip, config.Conf.IpWhitelist); !result {
+		config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
+		err := config.WriteConf()
+		if err != nil {
+			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+			return err
+		}
 	}
 	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
 
