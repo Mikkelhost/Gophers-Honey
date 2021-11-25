@@ -9,30 +9,15 @@
             <a class="nav-link" aria-controls="Dashboard" aria-selected="true">
               <b-icon icon="layout-text-window-reverse"></b-icon>
               Dashboard</a>
-            <a class="nav-link" aria-controls="Devices" aria-selected="false">
-              <b-icon icon="cpu"></b-icon>
-              Devices</a>
             <a class="nav-link" aria-controls="Logs" aria-selected="false">
               <b-icon icon="journals"></b-icon>
               Logs</a>
-            <a class="nav-link" aria-controls="Users" aria-selected="false">
-              <b-icon icon="people"></b-icon>
-              Users</a>
           </div>
         </b-col>
-          <b-col md="10" class="dashboard-container">
-            <b-row class="custom-row">
-              <b-col class="dashboard-card">
-                <b-col>
-                  <p class="header">Dashboard</p>
-                  <p class="large">Alerts over time</p>
-                </b-col>
-                <b-col class="dashboard-card-body">
-                  <apexchart type="bar" height="250px" :options="options" :series="series"></apexchart>
-                </b-col>
-              </b-col>
-            </b-row>
-          </b-col>
+        <b-col md="10" class="dashboard-container">
+          <line-chart v-if="loaded" :chartdata="chartdata" :options="options"></line-chart>
+          <button @click="filldata()">Randomize</button>
+        </b-col>
       </b-row>
     </div>
     <Footer/>
@@ -42,24 +27,44 @@
 <script>
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Line } from "vue-chartjs";
 
 export default {
   name: "Dashboard",
   components: {Navbar, Footer},
-  data: function () {
-    return {
-      options: {
-        chart: {
-          id: "vuechart-example"
-        },
-        xaxis: {
-          categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998]
-        }
-      },
-      series: [{
-        name: 'series-1',
-        data: [30, 40, 45, 50, 49, 60, 70, 91]
-      }]
+  extends: Line,
+  props: {
+    chartdata: {
+      type: Object,
+      default: null,
+    },
+    options: {
+      type: Object,
+      default: null
+    }
+  },
+  mounted() {
+    this.renderChart(this.chartdata, this.options)
+  },
+  methods: {
+    fillData() {
+      this.datacollection = {
+        labels: [this.getRandomInt(), this.getRandomInt()],
+        datasets: [
+          {
+            label: 'Data One',
+            backgroundColor: '#f87979',
+            data: [this.getRandomInt(), this.getRandomInt()]
+          }, {
+            label: 'Data One',
+            backgroundColor: '#f87979',
+            data: [this.getRandomInt(), this.getRandomInt()]
+          }
+        ]
+      }
+    },
+    getRandomInt() {
+      return Math.floor(Math.random() * (50 - 5 + 1)) + 5
     }
   }
 }

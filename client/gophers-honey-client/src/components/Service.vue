@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%">
+  <div style="height: 100%; overflow-y: hidden">
     <b-alert
         :show="dismissCountDown"
         dismissible
@@ -10,7 +10,7 @@
     >
       {{ alert }}
     </b-alert>
-    <div style="overflow-y: auto; height: 100%">
+    <div style="overflow-y: auto; height: 100%; overflow-x: hidden;">
       <h5 class="text-center">SMTP setup</h5>
       <b-form @submit.prevent="updateSmtp" class="container" style="height: fit-content">
         <b-form-row>
@@ -87,6 +87,54 @@
           </b-button>
         </div>
       </b-form>
+      <b-form @submit.prevent="addIp">
+        <h5 class="text-center">Whitelist</h5>
+        <p class="text-center description">Append or delete ips to be whitelisted. Whitelisted ips will not raise any
+          alerts if they are making connections to the honeypots</p>
+        <b-form-row>
+          <b-col md="6" class="input" style="margin: auto;">
+            <b-form-group
+                id="input-group-5"
+                label="Add IP"
+                label-for="input-5"
+            >
+              <b-input-group>
+                <b-form-input
+                    id="input-5"
+                    v-model="whitelistNewIp.ip_address"
+                    type="text"
+                    placeholder="Add new ip to whitelist"
+                >
+                </b-form-input>
+                <b-input-group-append>
+                  <b-button type="submit" style="background-color: olivedrab"
+                            :disabled="!(whitelistNewIp.ip_address.length > 0)">
+                    <b-icon-plus></b-icon-plus>
+                  </b-button>
+                </b-input-group-append>
+              </b-input-group>
+            </b-form-group>
+          </b-col>
+        </b-form-row>
+      </b-form>
+      <b-form>
+        <b-form-row v-for="(ip, index) in conf.ip_whitelist" v-bind:key="index" style="margin: 10px 0 10px 0;">
+          <b-col md="6" class="input" style="margin: auto;">
+            <b-input-group>
+              <b-form-input
+                  type="text"
+                  :placeholder="ip"
+              >
+              </b-form-input>
+              <b-input-group-append>
+                <b-button style="background-color: #b73333" v-on:click="deleteIp(ip, index)">
+                  <b-icon-dash></b-icon-dash>
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-col>
+        </b-form-row>
+      </b-form>
     </div>
   </div>
 </template>
@@ -110,7 +158,7 @@ export default {
           username: "",
           password: "",
         },
-        whitelist: []
+        ip_whitelist: []
       },
       smtpUpdate: {
         smtp_host: "",
@@ -118,7 +166,10 @@ export default {
         username: "",
         password: "",
       },
-      whitelistUpdate: [],
+      whitelistNewIp: {
+        delete: false,
+        ip_address: "",
+      },
     }
   },
   created() {
@@ -132,8 +183,7 @@ export default {
     countDownChanged: function (dismissCountDown) {
       this.dismissCountDown = dismissCountDown
     },
-    removeItem: function (array, key, value) {
-      const index = array.findIndex(obj => obj[key] === value)
+    removeIndex: function (array, index) {
       return index >= 0 ? [
         ...array.slice(0, index),
         ...array.slice(index + 1)
@@ -214,9 +264,59 @@ export default {
         if (response.status === 200) {
           window.console.log("Config from server: ", response.data)
           this.conf = response.data
+          if (response.data.ip_whitelist === null) {
+            this.conf.ip_whitelist = []
+          }
           this.smtpUpdate.smtp_port = this.conf.smtp_server.smtp_port
         } else {
           window.console.log("Response code ", response.status)
+        }
+      }.bind(this))
+    },
+    addIp: function () {
+      window.console.log("Adding ip: ", this.whitelistNewIp.ip_address)
+      this.whitelistNewIp.delete = false
+      axios({
+        url: process.env.VUE_APP_API_ROOT + "/config/whitelist",
+        method: "PATCH",
+        data: this.whitelistNewIp
+      }).then(function (response) {
+        window.console.log(response.data)
+        if (response.status === 200) {
+          if (response.data.error === "") {
+            this.conf.ip_whitelist.push(this.whitelistNewIp.ip_address)
+            this.whitelistNewIp.ip_address = ""
+          } else {
+            this.alert = "Error adding ip: " + response.data.error
+            this.showAlert("danger")
+          }
+        } else {
+          this.alert = "Response code: " + response.status
+          this.showAlert("danger")
+        }
+      }.bind(this))
+    },
+    deleteIp: function (ip, index) {
+      window.console.log("Deleting ip: ", ip)
+      if (!confirm("Do you really want to remove " + ip + " from the whitelist?")) {
+        return
+      }
+      axios({
+        url: process.env.VUE_APP_API_ROOT + "/config/whitelist",
+        method: "PATCH",
+        data: {delete: true, ip_address: ip}
+      }).then(function (response) {
+        if (response.status === 200) {
+          if (response.data.error === "") {
+            this.conf.ip_whitelist = this.removeIndex(this.conf.ip_whitelist, index)
+            this.whitelistNewIp.ip_address = ""
+          } else {
+            this.alert = "Error adding ip: " + response.data.error
+            this.showAlert("danger")
+          }
+        } else {
+          this.alert = "Response code: " + response.status
+          this.showAlert("danger")
         }
       }.bind(this))
     }
@@ -225,5 +325,12 @@ export default {
 </script>
 
 <style scoped>
+form {
+  margin: 15px 0 15px 0;
+}
 
+.description {
+  color: #7e7e7e;
+  font-size: 14px;
+}
 </style>

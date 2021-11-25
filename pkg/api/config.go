@@ -238,11 +238,22 @@ func whitelistHandler(w http.ResponseWriter, r *http.Request) {
 // on the whether "delete" field is set. Returns an error if IP is not
 // valid.
 func updateWhitelist(w http.ResponseWriter, r *http.Request) {
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt token: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error decoding jwt token"})
+		return
+	}
+	if claims.Role != model.AdminRole {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "You do not have the sufficient privileges to make this request"})
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var ip model.IPAddress
 
-	err := decoder.Decode(&ip)
+	err = decoder.Decode(&ip)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
@@ -250,7 +261,7 @@ func updateWhitelist(w http.ResponseWriter, r *http.Request) {
 	}
 	validIP, err := checkForValidIp(ip.IPAddressString)
 	if err != nil {
-		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("IP address not valid: %s", err)})
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error when checking ip against regex: %s", err)})
 		return
 	}
 
@@ -273,6 +284,9 @@ func updateWhitelist(w http.ResponseWriter, r *http.Request) {
 			}
 			json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 		}
+	} else {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("IP address not valid")})
+		return
 	}
 
 }
