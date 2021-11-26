@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
 var (
@@ -14,11 +13,10 @@ var (
 	ttlIndexSet  = false
 )
 
-// AddLog assigns a log with timestamp and message tied to a device ID and adds it to the
-// database. Also sets a time to live index (if not set) of 3 months. This ensures that
-// logs are deleted from the database after 3 months.
-// TODO: timestamp needs proper implementation + message
-func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
+// AddLog assigns a log ID to the provided log and adds it to the
+// database. Also sets a time to live index (if not set) of 3 months.
+// This ensures log rotation on the database.
+func AddLog(newLog model.Log) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
@@ -39,14 +37,9 @@ func AddLog(deviceID uint32, timeStamp time.Time, message string) error {
 	}
 
 	logID := createRandID("log_id", DB_LOG_COLL)
-	deviceLog := model.Log{
-		DeviceID:  deviceID,
-		LogID:     logID,
-		TimeStamp: timeStamp,
-		Message:   message,
-	}
-	_, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).InsertOne(ctx, deviceLog)
+	newLog.LogID = logID
 
+	_, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).InsertOne(ctx, newLog)
 	if err != nil {
 		return err
 	}

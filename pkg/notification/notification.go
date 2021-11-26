@@ -27,9 +27,10 @@ func ConfigureSmtpServer(configSmtpServer model.SmtpServer) error {
 // constructMessage uses the alert to construct a message.
 func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
+	// TODO: Add additional info to message.
 	prefix := ""
 	message := fmt.Sprintf("Device with Device ID: %d, has on %s raised alert based on the message %s",
-		alert.DeviceID, alert.TimeStamp.String(), alert.Message)
+		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message)
 
 	byteMessage := []byte(prefix + message)
 	return byteMessage
@@ -37,6 +38,7 @@ func constructMessage(alert model.Log) []byte {
 
 // SendEmailNotification handles the construction of email messages as
 // well as sending the constructed messages.
+// TODO: need to present alert message in a nice way.
 func SendEmailNotification(alert model.Log, to []string) error {
 	message := constructMessage(alert)
 	smtpServer := config.Conf.SmtpServer

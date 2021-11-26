@@ -4,62 +4,67 @@
     <Navbar></Navbar>
     <b-modal id="configure-honeypot" size="lg" hide-footer>
       <template #modal-title>
-        Configure device with id:  {{ form.device_id }}
+        Configure device with id: {{ form.device_id }}
       </template>
-        <b-form @submit.prevent="submitConfiguration" class="container" style="height: fit-content">
-          <div class="configure-container">
-            <b-form-group
-                id="hostname"
-                label="Hostname*"
-                label-for="hostname"
-                description="Choose the hostname for this Raspberry Pi"
-            >
-              <b-form-input
-                  v-model="form.hostname"
-                  placeholder="Hostname"
-                  required
-              ></b-form-input>
-            </b-form-group>
-            <b-form-group
-                id="services"
-                label="Services"
-                label-for="services"
-                description="Choose the services/protocols that you would like to expose on this honeypot"
-            >
-              <b-form-row>
-                <b-col v-for="(service, index) in form.services" :key="index">
-                  <b-form-checkbox v-model="form.services[index]">{{index.toUpperCase()}}</b-form-checkbox>
-                </b-col>
-              </b-form-row>
-            </b-form-group>
-            <b-form-group
+      <b-form @submit.prevent="submitConfiguration" class="container" style="height: fit-content">
+        <div class="configure-container">
+          <b-form-group
+              id="hostname"
+              label="Hostname*"
+              label-for="hostname"
+              description="Choose the hostname for this Raspberry Pi"
+          >
+            <b-form-input
+                v-model="form.hostname"
+                placeholder="Hostname"
+                required
+            ></b-form-input>
+          </b-form-group>
+          <b-form-group
+              id="services"
+              label="Services"
+              label-for="services"
+              description="Choose the services/protocols that you would like to expose on this honeypot"
+          >
+            <b-form-row>
+              <b-col v-for="(service, index) in form.services" :key="index">
+                <b-form-checkbox v-model="form.services[index]">{{ index.toUpperCase() }}</b-form-checkbox>
+              </b-col>
+            </b-form-row>
+          </b-form-group>
+          <b-form-group
               id="nic-vendor"
               label="NIC Vendor"
               label-for="nic-vendor"
               description="The NIC vendor can be specified in order for the Raspberry Pi to generate a MAC address which is vendor specific"
-            >
-              <b-form-radio-group
+          >
+            <b-form-radio-group
                 id="nic-group"
                 v-model="form.nic_vendor"
                 :options="nic_vendors"
-              >
+            >
 
-              </b-form-radio-group>
-            </b-form-group>
+            </b-form-radio-group>
+          </b-form-group>
+        </div>
+        <b-form-row>
+          <div style="margin: auto;">
+            <b-button type="submit" class="carousel-button">Submit</b-button>
           </div>
+        </b-form-row>
+        <template v-if="loading">
           <b-form-row>
-            <div style="margin: auto;">
-              <b-button type="submit" class="carousel-button">Submit</b-button>
-            </div>
+            <b-col class="text-center">
+              <div class="lds-ellipsis">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+            </b-col>
           </b-form-row>
-          <template v-if="loading">
-            <b-form-row>
-              <b-col class="text-center">
-                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
-              </b-col>
-            </b-form-row>
-          </template>
-        </b-form>
+        </template>
+      </b-form>
     </b-modal>
     <div class="custom-container">
       <b-col md="12" class="content">
@@ -86,16 +91,16 @@
           </tr>
           <template v-if="devices.length !== 0">
             <tr v-for="device in devices" :key="device.device_id">
-              <td>{{device.device_id}}</td>
-              <td>{{device.hostname}}</td>
-              <td>{{device.ip_str}}</td>
-              <td>{{device.last_seen}}</td>
-              <td>{{device.configured}}</td>
+              <td>{{ device.device_id }}</td>
+              <td>{{ device.hostname }}</td>
+              <td>{{ device.ip_str }}</td>
+              <td>{{ device.last_seen }}</td>
+              <td>{{ device.configured }}</td>
               <template v-if="device.configured">
                 <td>
                   <div v-for="(service, index) in device.services" :key="index">
                     <div v-if="service" class="text-center" style="margin: auto">
-                      {{index}}
+                      {{ index }}
                     </div>
                   </div>
                 </td>
@@ -109,7 +114,8 @@
                 </div>
               </td>
               <td class="text-center">
-                <b-icon-trash class="click-icon" v-on:click="removeDevice(device.device_id)" variant="danger"></b-icon-trash>
+                <b-icon-trash class="click-icon" v-on:click="removeDevice(device.device_id)"
+                              variant="danger"></b-icon-trash>
               </td>
             </tr>
           </template>
@@ -128,18 +134,19 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
 import moment from "moment"
+
 export default {
   name: "Honeypots",
   components: {Navbar, Footer},
-  data: function() {
+  data: function () {
     return {
       devices: [],
       selected: [],
       nic_vendors: [
-        { text: "Cisco", value: "cisco" },
-        { text: "Intel", value: "intel" },
-        { text: "Dell", value: "dell" },
-        { text: "HPE(Aruba)", value: "hpe" }
+        {text: "Cisco", value: "cisco"},
+        {text: "Intel", value: "intel"},
+        {text: "Dell", value: "dell"},
+        {text: "HPE(Aruba)", value: "hpe"}
       ],
       form: {
         device_id: null,
@@ -162,13 +169,13 @@ export default {
     }
   },
   created() {
-    axios.defaults.headers.common['Authorization'] = 'Bearer '+ this.$cookies.get("token")
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + this.$cookies.get("token")
     this.getDevices()
   },
   mounted() {
     console.log("Starting connection to WebSocket Server")
     let loc = window.location, new_uri;
-    if(loc.protocol === "https:"){
+    if (loc.protocol === "https:") {
       new_uri = "wss:"
     } else {
       new_uri = "ws:"
@@ -177,19 +184,19 @@ export default {
     window.console.log("Trying to connect to ws on: " + new_uri)
     this.connection = new WebSocket(new_uri)
 
-    this.connection.onmessage = function(event) {
+    this.connection.onmessage = function (event) {
       let data = JSON.parse(event.data)
       window.console.log(data)
-      if (data.type == 2) {
+      if (data.type === 2) {
         window.console.log("Recieved heartbeat event")
         this.updateDevice(data.device_id)
-      } else if (data.type == 3) {
+      } else if (data.type === 3) {
         window.console.log("New device registered, updating device list")
         this.getDevices()
       }
     }.bind(this)
 
-    this.connection.onopen = function() {
+    this.connection.onopen = function () {
       console.log("Successfully connected to the echo websocket server...")
     }
   },
@@ -201,19 +208,19 @@ export default {
     countDownChanged: function (dismissCountDown) {
       this.dismissCountDown = dismissCountDown
     },
-    setDeviceToConfigure: function(device_id){
+    setDeviceToConfigure: function (device_id) {
       this.form.device_id = device_id
       this.$bvModal.show('configure-honeypot')
     },
-    submitConfiguration: function(){
+    submitConfiguration: function () {
       window.console.log("Submitting config")
       window.console.log("Form ", this.form)
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/devices",
+        url: process.env.VUE_APP_API_ROOT + "/devices",
         method: "PUT",
         data: this.form
-      }).then(function (response){
-        if (response.data.error == "") {
+      }).then(function (response) {
+        if (response.data.error === "") {
           window.console.log("Succesfully updated device")
           this.getDevices()
           this.$bvModal.hide("configure-honeypot")
@@ -237,42 +244,42 @@ export default {
         }
       }.bind(this))
     },
-    removeItem: function(array, key, value) {
+    removeItem: function (array, key, value) {
       const index = array.findIndex(obj => obj[key] === value)
       return index >= 0 ? [
         ...array.slice(0, index),
-        ...array.slice(index+1)
+        ...array.slice(index + 1)
       ] : array;
     },
     updateDevice: function (device_id) {
       let devices = []
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/devices",
+        url: process.env.VUE_APP_API_ROOT + "/devices",
         method: "GET",
-      }).then(function (response){
+      }).then(function (response) {
         if (response.data.error == null) {
           devices = response.data
-          devices.forEach(function (device){
+          devices.forEach(function (device) {
             let date = new moment.utc(device.last_seen).format('dddd YYYY-MM-DD, HH:mm:ss[Z]')
             device.last_seen = date
           })
           const index = devices.findIndex(obj => obj["device_id"] === device_id)
-          window.console.log("Index of updated device: "+index)
+          window.console.log("Index of updated device: " + index)
           this.$set(this.devices, index, devices[index])
           window.console.log(this.devices)
         }
       }.bind(this))
     },
-    getDevices: function(){
+    getDevices: function () {
       window.console.log("Getting devices")
       //this.devices = []
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/devices",
+        url: process.env.VUE_APP_API_ROOT + "/devices",
         method: "GET",
-      }).then(function (response){
+      }).then(function (response) {
         if (response.data.error == null) {
           this.devices = response.data
-          this.devices.forEach(function (device){
+          this.devices.forEach(function (device) {
             let date = new moment.utc(device.last_seen).format('dddd YYYY-MM-DD, HH:mm:ss[Z]')
             device.last_seen = date
           })
@@ -281,18 +288,18 @@ export default {
         }
       }.bind(this))
     },
-    removeDevice: function(deviceID) {
+    removeDevice: function (deviceID) {
       if (confirm("Are you sure you want to delete device with id?: " + deviceID)) {
         let device_id = {device_id: deviceID}
         axios({
-          url: process.env.VUE_APP_API_ROOT+"/devices",
+          url: process.env.VUE_APP_API_ROOT + "/devices",
           method: "DELETE",
           data: device_id
-        }).then(function (response){
+        }).then(function (response) {
           if (response.data.error == "") {
             this.devices = this.removeItem(this.devices, "device_id", deviceID)
           } else {
-            window.console.log("Error deleting device: "+response.data.error)
+            window.console.log("Error deleting device: " + response.data.error)
           }
         }.bind(this))
       } else {
@@ -304,31 +311,36 @@ export default {
 </script>
 
 <style scoped>
-  .content {
-    box-shadow: 1px 6px 16px -5px #888888;
-    border-radius: 10px;
-    height: calc(100vh - 150px);
-    overflow-y: auto;
-  }
-  .custom-container {
-    height: calc(100vh - 116px);
-    padding: 10px;
-  }
-  .configure-container{
-    max-height: 500px;
-    margin: auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    width: fit-content;
-    padding: 5px;
-  }
-  table, th, td {
-    padding: 5px 15px 5px 15px;
-  }
-  .enabled {
-    color: green;
-  }
-  .disabled{
-    color: red;
-  }
+.content {
+  box-shadow: 1px 6px 16px -5px #888888;
+  border-radius: 10px;
+  height: calc(100vh - 150px);
+  overflow-y: auto;
+}
+
+.custom-container {
+  height: calc(100vh - 116px);
+  padding: 10px;
+}
+
+.configure-container {
+  max-height: 500px;
+  margin: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: fit-content;
+  padding: 5px;
+}
+
+table, th, td {
+  padding: 5px 15px 5px 15px;
+}
+
+.enabled {
+  color: green;
+}
+
+.disabled {
+  color: red;
+}
 </style>
