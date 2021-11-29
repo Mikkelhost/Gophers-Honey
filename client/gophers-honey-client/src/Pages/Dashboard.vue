@@ -2,69 +2,129 @@
   <div>
     <Navbar/>
     <div class="custom-container">
-      <b-row class="custom-row">
-        <b-col class="sidebar">
-          <h1 id="sidebar-header">Header</h1>
-          <div class="text-center">
-            <a class="nav-link" aria-controls="Dashboard" aria-selected="true">
-              <b-icon icon="layout-text-window-reverse"></b-icon>
-              Dashboard</a>
-            <a class="nav-link" aria-controls="Logs" aria-selected="false">
-              <b-icon icon="journals"></b-icon>
-              Logs</a>
+      <b-row>
+        <div class="nav-list">
+          <div class="nav flex-nowrap nav-pills sticky-top" id="settings-list" role="tablist">
+            <a class="nav-link active show" id="dashboard-tab" data-toggle="pill" href="#dashboard"
+               aria-controls="dashboard" aria-selected="true">Dashboard</a>
+            <a class="nav-link" id="logs-tab" data-toggle="pill" href="#logs" aria-controls="logs"
+               aria-selected="false">Logs</a>
           </div>
-        </b-col>
-        <b-col md="10" class="dashboard-container">
-          <line-chart v-if="loaded" :chartdata="chartdata" :options="options"></line-chart>
-          <button @click="filldata()">Randomize</button>
-        </b-col>
+        </div>
       </b-row>
+      <div class="tab-content settings-content" id="v-pills-tabContent">
+        <div id="dashboard" aria-labelledby="dashboard-tab" class="tab-pane fade active show" role="tabpanel">
+          <b-row>
+            <div class="chart col-md-4">
+              <div class="chart-header">
+                <h5 class="text-center">Service Distribution</h5>
+                <h6 class="text-center">Total Decoys Deployed: </h6>
+              </div>
+              <pie-chart :chart-data="chartData" :options="options"></pie-chart>
+            </div>
+            <div class="chart col-md-4">
+              <div class="chart-header">
+                <h5 class="text-center">Most Touched Protocols</h5>
+              </div>
+              <doughnut-chart :chart-data="chartData" :options="options"></doughnut-chart>
+            </div>
+            <div class="chart col-md-4">
+              <div class="chart-header">
+                <h5 class="text-center">Logtype Distribution</h5>
+                <h6 class="text-center">Total Log Entries: </h6>
+              </div>
+              <pie-chart :chart-data="chartData" :options="options"></pie-chart>
+            </div>
+          </b-row>
+          <b-row>
+            <b-col md="12">
+              <line-chart :chart-data="lineData" :options="lineOptions"></line-chart>
+            </b-col>
+          </b-row>
+
+        </div>
+        <div id="logs" aria-labelledby="logs-tab" class="tab-pane fade" role="tabpanel">
+        </div>
+      </div>
     </div>
     <Footer/>
   </div>
+
 </template>
 
 <script>
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Line } from "vue-chartjs";
+import PieChart from "../components/pieChart";
+import DoughnutChart from "../components/doughnutChart";
+import LineChart from "../components/lineChart";
 
 export default {
   name: "Dashboard",
-  components: {Navbar, Footer},
-  extends: Line,
-  props: {
-    chartdata: {
-      type: Object,
-      default: null,
-    },
-    options: {
-      type: Object,
-      default: null
+  components: {Navbar, Footer, PieChart, DoughnutChart, LineChart},
+  data() {
+    return {
+      randomData: 0,
+      lineData: {
+        labels: ["Babol",	"Cabanatuan",	"Daegu",	"Jerusalem",	"Fairfield",	"New York",	"Gangtok", "Buenos Aires", "Hafar Al-Batin", "Idlib"],
+        datasets: [{
+          label: 'Line Chart',
+          data: [600, 1150, 342, 6050, 2522, 3241, 1259, 157, 1545, 9841],
+          fill: false,
+          borderColor: '#2554FF',
+          backgroundColor: '#2554FF',
+          borderWidth: 1
+        }]
+
+      },
+      chartData: {
+        labels: ["Italy", "India", "Japan", "USA",],
+        datasets: [{
+          data: [1000, 500, 1500, 1000],
+          fill: false,
+          borderColor: '#ffffff',
+          backgroundColor: '#2554FF',
+          borderWidth: 5
+        }]
+      },
+      options: {
+        legend: {
+          display: true
+        },
+        responsive: true,
+        maintainAspectRatio: false
+      },
+      lineOptions: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true
+            },
+            gridLines: {
+              display: true
+            }
+          }],
+          xAxes: [{
+            gridLines: {
+              display: false
+            }
+          }]
+        },
+        legend: {
+          display: true
+        },
+        responsive: true,
+        maintainAspectRatio: false
+      }
     }
   },
   mounted() {
-    this.renderChart(this.chartdata, this.options)
   },
   methods: {
-    fillData() {
-      this.datacollection = {
-        labels: [this.getRandomInt(), this.getRandomInt()],
-        datasets: [
-          {
-            label: 'Data One',
-            backgroundColor: '#f87979',
-            data: [this.getRandomInt(), this.getRandomInt()]
-          }, {
-            label: 'Data One',
-            backgroundColor: '#f87979',
-            data: [this.getRandomInt(), this.getRandomInt()]
-          }
-        ]
-      }
-    },
-    getRandomInt() {
-      return Math.floor(Math.random() * (50 - 5 + 1)) + 5
+    generateNumber: function () {
+      window.console.log("Generating number")
+      this.randomData = Math.floor(Math.random() * 100)
+      window.console.log("Number is: ", this.randomData)
     }
   }
 }
@@ -84,61 +144,30 @@ export default {
   background-color: rgba(204, 200, 200, 0.46) !important;
 }
 
-#sidebar-header {
-  text-align: center;
-  color: black;
-  padding: 5px;
-  font-family: Poppins, sans-serif;
-  font-weight: normal;
-  font-size: 25px;
+.nav-list {
+  padding: 10px 0 10px 0;
+  margin: auto;
 }
 
-.sidebar {
-  border: 2px solid #eeefff;
-  border-radius: 5px;
-  width: 250px !important;
-  max-width: 250px !important;
-  height: 100%;
-  background-color: #eeeeee;
+.tab-content {
+  height: calc(100vh - 176px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.dashboard-container {
-  border-radius: 5px;
-  background-color: #eeeeee;
-  margin-left: 1%;
+body {
+  overflow-y: hidden;
 }
 
-.dashboard-card {
-
+.chart {
 }
 
-.dashboard-card-body {
-
-}
-
-p.large {
-  font-family: Poppins, sans-serif;
-  font-weight: lighter;
-  font-size: x-large;
-  padding: 5px;
-  margin-bottom: 5px;
-}
-
-p.header {
-  font-size: large;
-  font-weight: normal;
-  padding: 5px;
-  margin-bottom: 5px;
-}
-
-
-.custom-row {
-  height: 100% !important;
+.chart-header {
+  height: 52px;
 }
 
 .custom-container {
-  height: calc(100vh - 116px);
-  padding: 10px;
+  width: 95vw;
+  margin: auto;
 }
-
 </style>

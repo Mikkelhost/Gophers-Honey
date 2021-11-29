@@ -10,9 +10,9 @@
           <div class="settings-list">
             <div class="nav flex-nowrap nav-pills sticky-top" id="settings-list" role="tablist">
               <a class="nav-link active show" id="profile-tab" data-toggle="pill" href="#profile" aria-controls="profile" aria-selected="true">Profile</a>
-              <a class="nav-link" id="users-tab" hred="#users" data-toggle="pill" href="#users" aria-controls="users" aria-selected="false">Users</a>
-              <a class="nav-link" id="images-tab" hred="#images" data-toggle="pill" href="#images" aria-controls="images" aria-selected="false">Images</a>
-              <a class="nav-link" id="service-tab" hred="#service" data-toggle="pill" href="#service" aria-controls="service" aria-selected="false">Service</a>
+              <a class="nav-link" id="users-tab" data-toggle="pill" href="#users" aria-controls="users" aria-selected="false">Users</a>
+              <a class="nav-link" id="images-tab" data-toggle="pill" href="#images" aria-controls="images" aria-selected="false">Images</a>
+              <a class="nav-link" id="service-tab" data-toggle="pill" href="#service" aria-controls="service" aria-selected="false">Service</a>
             </div>
           </div>
           <b-col md="10" class="settings-content">
