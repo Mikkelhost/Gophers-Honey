@@ -169,3 +169,61 @@ func UpdateTTLIndex(seconds int32) error {
 
 	return nil
 }
+
+// GetLogLevelCount TODO: Fix up tommorow.
+func GetLogLevelCount(level int) (int, error) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	filter := bson.M{
+		"level": level,
+	}
+
+	count, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).CountDocuments(ctx, filter)
+	if err != nil {
+		log.Logger.Error().Msgf("Error getting log level count: %s", err)
+		return 0, err
+	}
+
+	return int(count), nil
+}
+
+// LogLevelsAggregation TODO: implement aggregation pipeline correctly
+func LogLevelsAggregation() (int, error) {
+	ctx, cancel := getContextWithTimeout()
+	defer cancel()
+
+	group := bson.D{
+		{
+			"$group", bson.D{
+				{
+					"_id", "$level",
+				},
+				{"levelCount", bson.D{
+					{"$sum", 1},
+				},
+				},
+			},
+		},
+	}
+
+	type levelCounts struct {
+		Severity string `bson:"_id"`
+		Count    int    `bson:"levelCount"`
+	}
+
+	aggregate, err := db.Database(DB_NAME).Collection(DB_LOG_COLL).Aggregate(ctx, mongo.Pipeline{group})
+	if err != nil {
+		log.Logger.Error().Msgf("Error aggregating log level counts: %s", err)
+		return 0, err
+	}
+
+	for aggregate.Next(ctx) {
+		var levelCount levelCounts
+		err = aggregate.Decode(&levelCount)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return 0, nil
+}
