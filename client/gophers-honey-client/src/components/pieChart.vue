@@ -15,6 +15,11 @@ export default {
   },
   mounted() {
     this.renderChart(this.chartData, this.options)
+  },
+  watch: {
+    chartData: function() {
+      this.renderChart(this.chartData, this.options);
+    }
   }
 }
 </script>
