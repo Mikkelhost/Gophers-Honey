@@ -278,8 +278,10 @@ export default {
         borderWidth: 5
       }]
       protocolData.forEach(function (protocol) {
-        labels.push(protocol.label)
-        datasets[0].data.push(protocol.count)
+        if (protocol.count > 0) {
+          labels.push(protocol.label)
+          datasets[0].data.push(protocol.count)
+        }
       }.bind(this))
       datasets[0].backgroundColor = this.generateColor(protocolData.length)
       this.$set(this.protocolsData, 'labels', labels)
@@ -355,8 +357,10 @@ export default {
         borderWidth: 5
       }]
       serviceData.forEach(function (service) {
-        labels.push(service.label)
-        datasets[0].data.push(service.count)
+        if (service.count > 0 ) {
+          labels.push(service.label)
+          datasets[0].data.push(service.count)
+        }
       }.bind(this))
       datasets[0].backgroundColor = this.generateColor(serviceData.length)
       this.$set(this.servicesData, 'labels', labels)
@@ -475,7 +479,7 @@ body {
 
 #bar-chart {
   height: 300px!important;
-  width: 1100px!important;
+  width: 95%!important;
   margin: auto;
 }
 </style>
