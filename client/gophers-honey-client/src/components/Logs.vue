@@ -50,7 +50,7 @@
       </b-col>
     </b-row>
     <b-table bordered sticky-header striped hover :items="logs" :fields="fields"
-             style="height: 735px; max-height: 735px!important;"
+             style="height: 82%; max-height: 82%!important;"
              :filter="filter"
              :filter-included-fields="filterOn"
     >
@@ -79,11 +79,6 @@ export default {
     logs: {
       type: Array,
     }
-  },
-  mounted() {
-    console.log(this.logs)
-  },
-  methods: {
   },
   data: function () {
     return {
