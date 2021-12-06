@@ -63,7 +63,8 @@
           </b-row>
 
         </div>
-        <div id="logs" aria-labelledby="logs-tab" class="tab-pane fade" role="tabpanel">
+        <div id="logs" aria-labelledby="logs-tab" class="tab-pane fade" role="tabpanel" style="height: 100%">
+          <logs :logs="logs"></logs>
         </div>
       </div>
     </div>
@@ -79,10 +80,11 @@ import PieChart from "../components/pieChart";
 import DoughnutChart from "../components/doughnutChart";
 import BarChart from "../components/barChart";
 import axios from "axios";
+import Logs from "../components/Logs";
 
 export default {
   name: "Dashboard",
-  components: {Navbar, Footer, PieChart, DoughnutChart, BarChart},
+  components: {Navbar, Footer, PieChart, DoughnutChart, BarChart, Logs},
   data() {
     return {
       loaded: false,
