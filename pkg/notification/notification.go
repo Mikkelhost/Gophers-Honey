@@ -31,8 +31,9 @@ func constructMessage(alert model.Log) []byte {
 	prefix := ""
 	message := fmt.Sprintf( "Subject: Honeypot Alert\r\n" +
 		"\r\n" +
-		"Device with Device ID: %d, has on %s raised alert based on the message %s and logtype %s",
-		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message, alert.LogType)
+		"Device with Device ID: %d, has on %s raised alert based on the following \r\n" +
+		"Host: %s tried to access Device on IP: %s and Port: %d",
+		alert.DeviceID, alert.LogTimeStamp.String(), alert.SrcHost, alert.DstHost, alert.DstPort)
 
 	byteMessage := []byte(prefix + message)
 	return byteMessage
