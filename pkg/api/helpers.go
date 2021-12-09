@@ -180,7 +180,7 @@ func addIPToWhitelist(ip string) error {
 func removeIPFromWhitelist(ip string) error {
 	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
 		log.Logger.Debug().Int("Index", index).Msgf("Conf before remove ip: %v", config.Conf.IpWhitelist)
-    	remove(index, config.Conf.IpWhitelist)
+    	config.Conf.IpWhitelist = remove(index, config.Conf.IpWhitelist)
 		log.Logger.Debug().Msgf("Conf after remove ip: %v", config.Conf.IpWhitelist)
 		err := config.WriteConf()
 		if err != nil {
