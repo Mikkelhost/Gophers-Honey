@@ -60,30 +60,19 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if newLog.Level == model.CRITICAL {
-		log.Logger.Info().Msgf("Critical level log received. Notifying users.")
-		err = notification.NotifyAll(newLog)
-		if err != nil {
-			log.Logger.Warn().Msgf("Error notifying users: %s", err)
-			json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
-			return
-		}
-	} else if newLog.Level == model.SCAN {
+	// Only raise notify if log level is more severe than informational.
+	if newLog.Level < model.INFORMATIONAL {
 		// Send no alert if source ip appears in the whitelist.
-		if result, _ := isStringInStringArray(newLog.SrcHost, config.Conf.IpWhitelist); result {
-			err = json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
-			if err != nil {
-				log.Logger.Warn().Msgf("Error encoding json: %s", err)
-				return
-			}
-		} else {
-			log.Logger.Info().Msgf("Scan level log received. Notifying users")
-			err := notification.NotifyAll(newLog)
+		if inWhitelist, _ := isStringInStringArray(newLog.SrcHost, config.Conf.IpWhitelist); !inWhitelist {
+			log.Logger.Info().Msgf("%s level log received. Notifying users", model.LogLevelMap[newLog.Level])
+			err = notification.NotifyAll(newLog)
 			if err != nil {
 				log.Logger.Warn().Msgf("Error notifying users: %s", err)
 				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 				return
 			}
+		} else {
+			log.Logger.Info().Msgf("Source IP found in whitelist. Not notifying")
 		}
 	}
 
