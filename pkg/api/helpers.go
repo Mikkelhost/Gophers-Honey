@@ -153,7 +153,6 @@ func isStringInStringArray(element string, array []string) (bool, int) {
 // index position. NB! Does not preserve order.
 func remove(i int, s []string) []string {
 	s[i] = s[len(s)-1]
-	log.Logger.Debug().Msgf("Ip array: %v", s[:len(s)-1])
 	return s[:len(s)-1]
 }
 
@@ -180,9 +179,7 @@ func addIPToWhitelist(ip string) error {
 // should only be passed if validated first.
 func removeIPFromWhitelist(ip string) error {
 	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
-		log.Logger.Debug().Int("Index", index).Msgf("Conf before remove ip: %v", config.Conf.IpWhitelist)
     	config.Conf.IpWhitelist = remove(index, config.Conf.IpWhitelist)
-		log.Logger.Debug().Msgf("Conf after remove ip: %v", config.Conf.IpWhitelist)
 		err := config.WriteConf()
 		if err != nil {
 			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
