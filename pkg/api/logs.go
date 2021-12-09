@@ -68,7 +68,7 @@ func newLog(w http.ResponseWriter, r *http.Request) {
 			err = notification.NotifyAll(newLog)
 			if err != nil {
 				log.Logger.Warn().Msgf("Error notifying users: %s", err)
-				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
+				json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error Notifying users: %s", err)})
 				return
 			}
 		} else {
