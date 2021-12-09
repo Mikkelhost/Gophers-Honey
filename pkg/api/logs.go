@@ -102,13 +102,8 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: "No logs in DB"})
 		return
 	}
-	logsJson, err := json.Marshal(logs)
-	if err != nil {
-		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error Marshalling logs"})
-		return
-	}
 
-	w.Write(logsJson)
+	json.NewEncoder(w).Encode(logs)
 }
 
 // updateTTLIndex updates the "setExpireAfterSeconds" index of the

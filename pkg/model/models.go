@@ -111,6 +111,7 @@ type APIUser struct {
 
 type Claims struct {
 	Authorized bool   `json:"authorized"`
+	Email      string `json:"email"`
 	Exp        int64  `json:"exp"`
 	Role       string `json:"role"`
 	Username   string `json:"username"`
@@ -140,7 +141,7 @@ type PiConfResponse struct {
 }
 
 type IPAddress struct {
-	Delete bool `json:"delete"`
+	Delete          bool   `json:"delete"`
 	IPAddressString string `json:"ip_address"`
 }
 
@@ -169,17 +170,17 @@ type PiConf struct {
  */
 
 type SmtpServer struct {
-	Username string `bson:"username" yaml:"username"`
-	Password string `bson:"password" yaml:"password"`
-	SmtpHost string `bson:"smtp_host" yaml:"smtp_host"`
-	SmtpPort uint16 `bson:"smtp_port" yaml:"smtp_port"`
+	Username string `bson:"username" yaml:"username" json:"username"`
+	Password string `bson:"password" yaml:"password" json:"password"`
+	SmtpHost string `bson:"smtp_host" yaml:"smtp_host" json:"smtp_host"`
+	SmtpPort uint16 `bson:"smtp_port" yaml:"smtp_port" json:"smtp_port"`
 }
 
 /* Service configuration related structs.
  */
 
 type Config struct {
-	Configured  bool       `yaml:"configured"`
-	SmtpServer  SmtpServer `yaml:"smtp_server"`
-	IpWhitelist []string   `yaml:"ip_whitelist"`
+	Configured  bool       `yaml:"configured" json:"configured"`
+	SmtpServer  SmtpServer `yaml:"smtp_server" json:"smtp_server"`
+	IpWhitelist []string   `yaml:"ip_whitelist" json:"ip_whitelist"`
 }

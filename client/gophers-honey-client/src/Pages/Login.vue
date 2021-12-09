@@ -83,9 +83,9 @@ export default {
   },
   async beforeCreate() {
     //Checking if the service has been configured yet
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT + "/config")
+    const resp = await axios.get(process.env.VUE_APP_API_ROOT + "/config/configured")
     if (resp.status === 200) {
-      window.console.log(resp.data.configured)
+      window.console.log("configured", resp.data)
       if (!resp.data.configured) {
         router.push("/setup")
       }

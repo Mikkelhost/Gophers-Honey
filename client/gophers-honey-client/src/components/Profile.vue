@@ -44,7 +44,7 @@
         </b-col>
       </b-row>
       <div style="margin: auto; width: fit-content">
-        <b-button type="submit" :disabled="!formValid">Save profile settings</b-button>
+        <b-button type="submit" :disabled="!profileFormValid">Save profile settings</b-button>
       </div>
       <b-col md="12">
         <b-alert
@@ -74,7 +74,7 @@ export default {
       dismissSecs: 5,
       alert: "",
       variant: "",
-      formValid: false,
+      profileFormValid: false,
       form: {
         email: "",
         notifications_enabled: false,
@@ -110,9 +110,9 @@ export default {
     },
     checkUserForm: function(){
       if ( (this.form.email.length === 0 && this.form.password.length === 0 && this.form.confirmPw.length === 0 && this.form.notifications_enabled === this.user.notifications_enabled) || this.form.curr_password.length === 0){
-        this.formValid = false
+        this.profileFormValid = false
       } else {
-        this.formValid = true
+        this.profileFormValid = true
       }
     },
     getUser: function() {

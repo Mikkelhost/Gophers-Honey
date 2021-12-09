@@ -5,7 +5,7 @@ import (
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
-	"github.com/rs/zerolog/log"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"net/smtp"
 	"strconv"
 )
@@ -48,6 +48,27 @@ func SendEmailNotification(alert model.Log, to []string) error {
 	auth := smtp.PlainAuth("", smtpServer.Username, smtpServer.Password, smtpServer.SmtpHost)
 
 	err := smtp.SendMail(smtpServer.SmtpHost+":"+stringPort, auth, from, to, message)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error sending email: %s", err)
+		return err
+	}
+	log.Logger.Info().Msgf("Email sent")
+
+	return nil
+}
+
+func SendTestEmail(to []string) error {
+	message := "To: "+to[0]+"\r\n" +
+		"Subject: Test email from gopher\r\n" +
+		"\r\n" +
+		"This is a test email sent from your gophers-honey setup. If you have received this email you have set up the email configuration correctly"
+	smtpServer := config.Conf.SmtpServer
+	from := smtpServer.Username
+
+	stringPort := strconv.Itoa(int(smtpServer.SmtpPort))
+	auth := smtp.PlainAuth("", smtpServer.Username, smtpServer.Password, smtpServer.SmtpHost)
+
+	err := smtp.SendMail(smtpServer.SmtpHost+":"+stringPort, auth, from, to, []byte(message))
 	if err != nil {
 		log.Logger.Warn().Msgf("Error sending email: %s", err)
 		return err
