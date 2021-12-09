@@ -34,6 +34,7 @@ type Device struct {
 	IP         uint32             `bson:"ip,omitempty"`
 	IpStr      string             `bson:"ip_str,omitempty" json:"ip_str"`
 	Hostname   string             `bson:"hostname" json:"hostname"`
+	NICVendor  string             `bson:"nic_vendor" json:"nic_vendor"`
 	Configured bool               `bson:"configured" json:"configured"`
 	Services   Service            `bson:"services" json:"services"`
 	LastSeen   time.Time          `bson:"last_seen" json:"last_seen"`
@@ -156,6 +157,7 @@ type IPAddress struct {
 
 type Heartbeat struct {
 	DeviceID  uint32    `json:"device_id"`
+	IpStr     string    `json:"ip_str"`
 	TimeStamp time.Time `json:"time_stamp"`
 }
 
