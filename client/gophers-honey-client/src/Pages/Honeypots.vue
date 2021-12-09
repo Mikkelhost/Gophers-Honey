@@ -10,14 +10,13 @@
         <div class="configure-container">
           <b-form-group
               id="hostname"
-              label="Hostname*"
+              label="Hostname"
               label-for="hostname"
               description="Choose the hostname for this Raspberry Pi"
           >
             <b-form-input
                 v-model="form.hostname"
                 placeholder="Hostname"
-                required
             ></b-form-input>
           </b-form-group>
           <b-form-group
@@ -110,7 +109,7 @@
               </template>
               <td>
                 <div style="margin: auto; width: fit-content">
-                  <b-button v-on:click="setDeviceToConfigure(device.device_id)">Configure</b-button>
+                  <b-button v-on:click="setDeviceToConfigure(device)">Configure</b-button>
                 </div>
               </td>
               <td class="text-center">
@@ -143,10 +142,9 @@ export default {
       devices: [],
       selected: [],
       nic_vendors: [
-        {text: "Cisco", value: "cisco"},
-        {text: "Intel", value: "intel"},
-        {text: "Dell", value: "dell"},
-        {text: "HPE(Aruba)", value: "hpe"}
+        {text: "Cisco", value: "Cisco Systems"},
+        {text: "Intel", value: "Intel Corporate"},
+        {text: "Dell", value: "Dell Inc."},
       ],
       form: {
         device_id: null,
@@ -155,7 +153,6 @@ export default {
         services: {
           ftp: false,
           http: false,
-          https: false,
           smb: false,
           ssh: false,
           telnet: false,
@@ -208,8 +205,11 @@ export default {
     countDownChanged: function (dismissCountDown) {
       this.dismissCountDown = dismissCountDown
     },
-    setDeviceToConfigure: function (device_id) {
-      this.form.device_id = device_id
+    setDeviceToConfigure: function (device) {
+      this.form.device_id = device.device_id
+      this.form.services = device.services
+      this.form.nic_vendor = device.nic_vendor
+      this.form.hostname = device.hostname
       this.$bvModal.show('configure-honeypot')
     },
     submitConfiguration: function () {
@@ -231,7 +231,6 @@ export default {
             services: {
               ftp: false,
               http: false,
-              https: false,
               smb: false,
               ssh: false,
               telnet: false,

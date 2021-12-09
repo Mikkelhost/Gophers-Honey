@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
-	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"net/smtp"
 	"strconv"
 )
@@ -29,8 +29,11 @@ func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
 	// TODO: Add additional info to message.
 	prefix := ""
-	message := fmt.Sprintf("Device with Device ID: %d, has on %s raised alert based on the message %s",
-		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message)
+	message := fmt.Sprintf( "Subject: Honeypot Alert\r\n" +
+		"\r\n" +
+		"Device with Device ID: %d, has on %s raised alert based on the following \r\n" +
+		"Host: %s tried to access Device on IP: %s and Port: %d. Logtype: %s",
+		alert.DeviceID, alert.LogTimeStamp.String(), alert.SrcHost, alert.DstHost, alert.DstPort, alert.LogType)
 
 	byteMessage := []byte(prefix + message)
 	return byteMessage
@@ -93,11 +96,15 @@ func NotifyAll(alert model.Log) error {
 			emails = append(emails, user.Email)
 		}
 	}
-
-	err = SendEmailNotification(alert, emails)
-	if err != nil {
-		return err
+	if len(emails) > 0 {
+		err = SendEmailNotification(alert, emails)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Logger.Debug().Msg("No recipients for emails. All users has disabled notifications")
 	}
+
 
 	return nil
 }

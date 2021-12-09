@@ -179,7 +179,7 @@ func addIPToWhitelist(ip string) error {
 // should only be passed if validated first.
 func removeIPFromWhitelist(ip string) error {
 	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
-    remove(index, config.Conf.IpWhitelist)
+    	config.Conf.IpWhitelist = remove(index, config.Conf.IpWhitelist)
 		err := config.WriteConf()
 		if err != nil {
 			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
