@@ -115,7 +115,21 @@ func configureDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Logger.Debug().Msgf("Configuring device with config: %v", config)
-	err := database.ConfigureDevice(config)
+	currentConf, err := database.GetDeviceConfiguration(config.DeviceID)
+
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf("%s", err)))
+		return
+	}
+
+	if config.Hostname == "" {
+		config.Hostname = currentConf.Hostname
+	}
+	if config.NICVendor == "" {
+		config.NICVendor = currentConf.NICVendor
+	}
+
+	err = database.ConfigureDevice(config)
 	if err != nil {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error updating device configuration: %s", err)})
 		return
@@ -220,7 +234,7 @@ func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 
 	log.Logger.Debug().Uint32("device_id", heartbeat.DeviceID).Msg("Received heartbeat from device")
 
-	err := database.HandleHeartbeat(heartbeat.DeviceID)
+	err := database.HandleHeartbeat(heartbeat)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error handling heartbeat: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error handling heartbeat: %s", err)})

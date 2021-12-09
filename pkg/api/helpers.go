@@ -32,7 +32,7 @@ func checkForValidIp(ipStr string) (bool, error) {
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, PATCH")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
@@ -43,6 +43,7 @@ func createToken(user model.DBUser) (string, error) {
 	atClaims["username"] = user.Username
 	atClaims["role"] = user.Role
 	atClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	atClaims["email"] = user.Email
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte(SECRET_KEY))
 	if err != nil {
@@ -62,12 +63,14 @@ func extractToken(request *http.Request) string {
 	return ""
 }
 
+//decodeToken Only use this function after request has passed tokenmiddleware.
 func decodeToken(r *http.Request) (model.Claims, error) {
 	token := extractToken(r)
 	log.Logger.Debug().Str("Token", token).Msg("Decoding token")
 	tokenSlice := strings.Split(token, ".")
 	claims := model.Claims{}
-	claimsJson, err := base64.StdEncoding.DecodeString(tokenSlice[1])
+	log.Logger.Debug().Str("Base64", tokenSlice[1]).Msg("Base64 to decode")
+	claimsJson, err := base64.RawStdEncoding.DecodeString(tokenSlice[1])
 	if err != nil {
 		log.Logger.Warn().Msgf("Error base64 decoding: %s", err)
 		return model.Claims{}, err
@@ -157,15 +160,18 @@ func remove(i int, s []string) []string {
 // IP whitelist in the config file. No checks on whether the IP address is
 // valid so IP's should only be passed if validated first.
 func addIPToWhitelist(ip string) error {
-	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
-	err := config.WriteConf()
-	if err != nil {
-		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-		return err
+	if result, _ := isStringInStringArray(ip, config.Conf.IpWhitelist); !result {
+		config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
+		err := config.WriteConf()
+		if err != nil {
+			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+			return err
+		}
+		log.Logger.Debug().Msgf("Successfully added IP: %s to whitelist", ip)
+		return nil
 	}
-	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
-
-	return nil
+	log.Logger.Warn().Msgf("IP address already in whitelist")
+	return errors.New("ip address already in whitelist")
 }
 
 // removeIPFromWhitelist takes an IP address string and removes it from
@@ -173,13 +179,13 @@ func addIPToWhitelist(ip string) error {
 // should only be passed if validated first.
 func removeIPFromWhitelist(ip string) error {
 	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
-		log.Logger.Debug().Msgf("Removing IP: %s from whitelist", ip)
-		remove(index, config.Conf.IpWhitelist)
+    	config.Conf.IpWhitelist = remove(index, config.Conf.IpWhitelist)
 		err := config.WriteConf()
 		if err != nil {
 			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
 			return err
 		}
+		log.Logger.Debug().Msgf("Successfully removed IP: %s from whitelist", ip)
 		return nil
 	}
 	log.Logger.Warn().Msgf("IP address not in whitelist")

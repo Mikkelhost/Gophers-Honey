@@ -90,6 +90,7 @@ func ConfigureDevice(config model.Configuration) error {
 			"configured": true,
 			"hostname":   config.Hostname,
 			"services":   config.Services,
+			"nic_vendor": config.NICVendor,
 		},
 	}
 	if isIdInCollection(config.DeviceID, "device_id", DB_DEV_COLL) {
@@ -243,37 +244,39 @@ func GetDeviceConfiguration(deviceID uint32) (model.Configuration, error) {
 
 // HandleHeartbeat retrieves a timestamp from the API and sets/updates the
 // "last_seen" field for a given device.
-func HandleHeartbeat(deviceID uint32) error {
+func HandleHeartbeat(heartbeat model.Heartbeat) error {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()
 
 	timestamp := time.Now()
 
 	filter := bson.M{
-		"device_id": deviceID,
+		"device_id": heartbeat.DeviceID,
 	}
 
 	config := bson.M{
 		"last_seen": timestamp,
+		"ip_str":    heartbeat.IpStr,
+		"ip":        ip2int(heartbeat.IpStr),
 	}
 
 	update := bson.M{
 		"$set": config,
 	}
 
-	if isIdInCollection(deviceID, "device_id", DB_DEV_COLL) {
+	if isIdInCollection(heartbeat.DeviceID, "device_id", DB_DEV_COLL) {
 		_, err := db.Database(DB_NAME).Collection(DB_DEV_COLL).UpdateOne(ctx, filter, update)
 
 		if err != nil {
 			log.Logger.Warn().
-				Uint32("device_id", deviceID).
+				Uint32("device_id", heartbeat.DeviceID).
 				Msgf("Error updating device: %s", err)
 			return err
 		}
 	} else {
-		log.Logger.Warn().Msgf("Device ID: %d not found", deviceID)
+		log.Logger.Warn().Msgf("Device ID: %d not found", heartbeat.DeviceID)
 		return errors.New("device ID not found")
 	}
-	log.Logger.Debug().Uint32("device_id", deviceID).Msgf("Successfully added timestamp: %v to device", timestamp)
+	log.Logger.Debug().Uint32("device_id", heartbeat.DeviceID).Msgf("Successfully added timestamp: %v to device", timestamp)
 	return nil
 }

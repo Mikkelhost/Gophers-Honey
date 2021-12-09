@@ -66,10 +66,10 @@ func IsUserInCollection(value, key, collection string) bool {
 
 // RemoveUser removes a user, with the specified username, from the
 // database.
-func RemoveUser(username string) {
+func RemoveUser(username string) error{
 	if !IsUserInCollection(strings.ToLower(username), "username_lower", DB_USER_COLL) {
 		log.Logger.Warn().Str("username", username).Msgf("Username not found")
-		return
+		return errors.New("Username not in db")
 	}
 
 	ctx, cancel := getContextWithTimeout()
@@ -83,8 +83,9 @@ func RemoveUser(username string) {
 
 	if err != nil {
 		log.Logger.Warn().Msgf("Error removing user: %s", err)
-		return
+		return err
 	}
+	return nil
 }
 
 // UpdateUser updates user-specific fields in the user collection.

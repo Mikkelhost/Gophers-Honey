@@ -16,8 +16,10 @@ import (
 
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
-	configAPI.HandleFunc("/whitelist", whitelistHandler).Methods("PATCH", "OPTIONS")
-	configAPI.HandleFunc("", configHandler).Methods("GET", "POST", "PATCH", "OPTIONS")
+	configAPI.HandleFunc("/whitelist", tokenAuthMiddleware(whitelistHandler)).Methods("PATCH", "OPTIONS")
+	configAPI.HandleFunc("/testEmail", tokenAuthMiddleware(testEmailHandler)).Methods("GET", "OPTIONS")
+	configAPI.HandleFunc("", tokenAuthMiddleware(configHandler)).Methods("GET", "POST", "PATCH", "OPTIONS")
+	configAPI.HandleFunc("/configured", getConfigured).Methods("GET", "OPTIONS")
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
@@ -40,8 +42,22 @@ func configHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
-	log.Logger.Debug().Bool("configured", config.Conf.Configured)
+	json.NewEncoder(w).Encode(model.Config{
+		Configured: config.Conf.Configured,
+		SmtpServer: model.SmtpServer{
+			SmtpHost: config.Conf.SmtpServer.SmtpHost,
+			SmtpPort: config.Conf.SmtpServer.SmtpPort,
+		},
+		IpWhitelist: config.Conf.IpWhitelist,
+	})
+}
 
+func getConfigured(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+	log.Logger.Debug().Bool("configured", config.Conf.Configured).Msg("Configured is")
 	json.NewEncoder(w).Encode(model.ConfigResponse{Configured: config.Conf.Configured})
 }
 
@@ -135,21 +151,70 @@ func setupService(w http.ResponseWriter, r *http.Request) {
 // configureSmtpServer sets and writes SMTP server configurations such as
 // username/email, password, SMTP server and SMTP port.
 func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt token: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error decoding jwt token"})
+		return
+	}
+	if claims.Role != model.AdminRole {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "You do not have the sufficient privileges to make this request"})
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 
 	var smtpServer model.SmtpServer
 
-	err := decoder.Decode(&smtpServer)
+	err = decoder.Decode(&smtpServer)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
 		return
 	}
 
+	if len(smtpServer.SmtpHost) == 0 {
+		smtpServer.SmtpHost = config.Conf.SmtpServer.SmtpHost
+	}
+
+	if len(smtpServer.Password) == 0 {
+		smtpServer.Password = config.Conf.SmtpServer.Password
+	}
+
+	if len(smtpServer.Username) == 0 {
+		smtpServer.Username = config.Conf.SmtpServer.Username
+	}
+
+	log.Logger.Debug().Msgf("Sending updated smtpserver conf to file: %v", smtpServer)
+
 	err = notification.ConfigureSmtpServer(smtpServer)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error configuring SMTP server: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error configuring SMTP server: %s", err)})
+		return
+	}
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+}
+
+func testEmailHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	// CORS preflight handling.
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt token: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error decoding jwt token"})
+		return
+	}
+	log.Logger.Info().Str("Email", claims.Email).Msg("Sending test email")
+	var to []string
+	to = append(to, claims.Email)
+	err = notification.SendTestEmail(to)
+	if err != nil {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error sending email: %s", err)})
 		return
 	}
 
@@ -172,11 +237,23 @@ func whitelistHandler(w http.ResponseWriter, r *http.Request) {
 // on the whether "delete" field is set. Returns an error if IP is not
 // valid.
 func updateWhitelist(w http.ResponseWriter, r *http.Request) {
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt token: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error decoding jwt token"})
+		return
+	}
+	if claims.Role != model.AdminRole {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "You do not have the sufficient privileges to make this request"})
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var ip model.IPAddress
+  
+	err = decoder.Decode(&ip)
 
-	err := decoder.Decode(&ip)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})
@@ -184,7 +261,7 @@ func updateWhitelist(w http.ResponseWriter, r *http.Request) {
 	}
 	validIP, err := checkForValidIp(ip.IPAddressString)
 	if err != nil {
-		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("IP address not valid: %s", err)})
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error when checking ip against regex: %s", err)})
 		return
 	}
 
@@ -207,6 +284,9 @@ func updateWhitelist(w http.ResponseWriter, r *http.Request) {
 			}
 			json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 		}
+	} else {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("IP address not valid")})
+		return
 	}
 
 }

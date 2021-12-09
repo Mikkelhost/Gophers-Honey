@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
+	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
-	"github.com/rs/zerolog/log"
 	"net/smtp"
 	"strconv"
 )
@@ -29,8 +29,11 @@ func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
 	// TODO: Add additional info to message.
 	prefix := ""
-	message := fmt.Sprintf("Device with Device ID: %d, has on %s raised alert based on the message %s",
-		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message)
+	message := fmt.Sprintf( "Subject: Honeypot Alert\r\n" +
+		"\r\n" +
+		"Device with Device ID: %d, has on %s raised alert based on the following \r\n" +
+		"Host: %s tried to access Device on IP: %s and Port: %d. Logtype: %s",
+		alert.DeviceID, alert.LogTimeStamp.String(), alert.SrcHost, alert.DstHost, alert.DstPort, alert.LogType)
 
 	byteMessage := []byte(prefix + message)
 	return byteMessage
@@ -57,6 +60,27 @@ func SendEmailNotification(alert model.Log, to []string) error {
 	return nil
 }
 
+func SendTestEmail(to []string) error {
+	message := "To: "+to[0]+"\r\n" +
+		"Subject: Test email from gopher\r\n" +
+		"\r\n" +
+		"This is a test email sent from your gophers-honey setup. If you have received this email you have set up the email configuration correctly"
+	smtpServer := config.Conf.SmtpServer
+	from := smtpServer.Username
+
+	stringPort := strconv.Itoa(int(smtpServer.SmtpPort))
+	auth := smtp.PlainAuth("", smtpServer.Username, smtpServer.Password, smtpServer.SmtpHost)
+
+	err := smtp.SendMail(smtpServer.SmtpHost+":"+stringPort, auth, from, to, []byte(message))
+	if err != nil {
+		log.Logger.Warn().Msgf("Error sending email: %s", err)
+		return err
+	}
+	log.Logger.Info().Msgf("Email sent")
+
+	return nil
+}
+
 // NotifyAll fetches the email addresses of users with notifications
 // enabled and sends a mail with the alert.
 func NotifyAll(alert model.Log) error {
@@ -72,11 +96,15 @@ func NotifyAll(alert model.Log) error {
 			emails = append(emails, user.Email)
 		}
 	}
-
-	err = SendEmailNotification(alert, emails)
-	if err != nil {
-		return err
+	if len(emails) > 0 {
+		err = SendEmailNotification(alert, emails)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Logger.Debug().Msg("No recipients for emails. All users has disabled notifications")
 	}
+
 
 	return nil
 }

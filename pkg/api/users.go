@@ -22,7 +22,7 @@ All functions should write json data to the responsewriter
 func usersSubrouter(r *mux.Router) {
 	usersAPI := r.PathPrefix("/api/users").Subrouter()
 	usersAPI.Queries("user", "{user:.+}").HandlerFunc(tokenAuthMiddleware(getUser)).Methods("GET", "OPTIONS").Name("user")
-	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "PUT", "OPTIONS")
+	usersAPI.HandleFunc("", tokenAuthMiddleware(userHandler)).Methods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 	usersAPI.HandleFunc("/login", loginUser).Methods("POST", "OPTIONS")
 }
 
@@ -41,6 +41,9 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case "PUT":
 		updateUser(w, r)
+		return
+	case "DELETE":
+		deleteUser(w, r)
 		return
 	}
 }
@@ -70,6 +73,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 func getUsers(w http.ResponseWriter, r *http.Request) {
 	var users []model.DBUser
 	users, err := database.GetAllUsers()
+	log.Logger.Debug().Msgf("Users: %v", users)
 	if err != nil {
 		json.NewEncoder(w).Encode(model.APIResponse{Error: "Error retrieving users"})
 		return
@@ -127,22 +131,41 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 // registerUser creates a new user from the given information,
 // and hashes and salts password.
 func registerUser(w http.ResponseWriter, r *http.Request) {
-	var newUser = model.DBUser{}
+	var newUser = model.APIUser{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&newUser); err != nil {
 		log.Logger.Warn().Msgf("Error decoding json: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
 		return
 	}
-
-	hashedAndSaltedPassword := HashAndSaltPassword([]byte(newUser.PasswordHash))
-
-	err := database.AddNewUser(newUser, hashedAndSaltedPassword)
+	claims, err := decodeToken(r)
 	if err != nil {
-		log.Logger.Warn().Msgf("Error registering user: %s", err)
-		w.Write([]byte(fmt.Sprintf("Error registering user: %s", err)))
+		log.Logger.Warn().Msgf("Error decoding jwt: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding session: %s", err)})
+		return
 	}
-	w.Write([]byte("Registering user"))
+
+	if claims.Role != model.AdminRole {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "You do not have the sufficient privileges to make a new user"})
+		return
+	}
+
+	hash := HashAndSaltPassword([]byte(newUser.Password))
+	log.Logger.Debug().Str("hash", hash).Msgf("Created hash for password %s", newUser.Password)
+	user := model.DBUser{
+		FirstName: newUser.FirstName,
+		LastName:  newUser.LastName,
+		Email:     newUser.Email,
+		Username:  newUser.Username,
+		Role:      newUser.Role,
+	}
+	err = database.AddNewUser(user, hash)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error creating user: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error adding user to db: %s", err)})
+		return
+	}
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
 //TODO Check up against current password, to prevent JWT hijacking
@@ -175,8 +198,8 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !loginStatus {
-		log.Logger.Debug().Msg("Incorrect username or password")
-		json.NewEncoder(w).Encode(model.APIResponse{Error: "Incorrect username or password"})
+		log.Logger.Debug().Msg("Incorrect password")
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "Incorrect password"})
 		return
 	}
 
@@ -194,5 +217,41 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	database.UpdateUser(updatedUser, hashedAndSaltedPwd)
 
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+
+}
+
+func deleteUser(w http.ResponseWriter,r *http.Request) {
+	var user = model.APIUser{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		log.Logger.Warn().Msgf("Error decoding json: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding json: %s", err)})
+		return
+	}
+
+	claims, err := decodeToken(r)
+	if err != nil {
+		log.Logger.Warn().Msgf("Error decoding jwt: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding session: %s")})
+		return
+	}
+	if claims.Role != model.AdminRole {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "You do not have the sufficient privileges to delete a user"})
+		return
+	}
+
+	if claims.Username == user.Username {
+		json.NewEncoder(w).Encode(model.APIResponse{Error: "You cannot remove your own user"})
+		return
+	}
+
+	if err := database.RemoveUser(user.Username); err != nil {
+		log.Logger.Warn().Msgf("Error deleting user from db: %s", err)
+		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error deleting user from db: %s",err)})
+		return
+	}
+
+	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
+
 
 }
