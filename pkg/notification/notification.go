@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/config"
 	"github.com/Mikkelhost/Gophers-Honey/pkg/database"
-	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	log "github.com/Mikkelhost/Gophers-Honey/pkg/logger"
+	"github.com/Mikkelhost/Gophers-Honey/pkg/model"
 	"net/smtp"
 	"strconv"
 )
@@ -29,7 +29,9 @@ func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
 	// TODO: Add additional info to message.
 	prefix := ""
-	message := fmt.Sprintf("Device with Device ID: %d, has on %s raised alert based on the message %s",
+	message := fmt.Sprintf( "Subject: Test email from gopher\r\n" +
+		"\r\n" +
+		"Device with Device ID: %d, has on %s raised alert based on the message %s",
 		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message)
 
 	byteMessage := []byte(prefix + message)
