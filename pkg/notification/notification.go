@@ -101,6 +101,8 @@ func NotifyAll(alert model.Log) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		log.Logger.Debug().Msg("No recipients for emails. All users has disabled notifications")
 	}
 
 
