@@ -153,6 +153,7 @@ func isStringInStringArray(element string, array []string) (bool, int) {
 // index position. NB! Does not preserve order.
 func remove(i int, s []string) []string {
 	s[i] = s[len(s)-1]
+	log.Logger.Debug().Msgf("Ip array: %v", s[:len(s)-1])
 	return s[:len(s)-1]
 }
 
