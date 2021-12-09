@@ -96,11 +96,13 @@ func NotifyAll(alert model.Log) error {
 			emails = append(emails, user.Email)
 		}
 	}
-
-	err = SendEmailNotification(alert, emails)
-	if err != nil {
-		return err
+	if len(emails) > 0 {
+		err = SendEmailNotification(alert, emails)
+		if err != nil {
+			return err
+		}
 	}
+
 
 	return nil
 }
