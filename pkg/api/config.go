@@ -20,7 +20,6 @@ func configSubrouter(r *mux.Router) {
 	configAPI.HandleFunc("/testEmail", tokenAuthMiddleware(testEmailHandler)).Methods("GET", "OPTIONS")
 	configAPI.HandleFunc("", tokenAuthMiddleware(configHandler)).Methods("GET", "POST", "PATCH", "OPTIONS")
 	configAPI.HandleFunc("/configured", getConfigured).Methods("GET", "OPTIONS")
-
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
@@ -252,8 +251,9 @@ func updateWhitelist(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
 	var ip model.IPAddress
-
+  
 	err = decoder.Decode(&ip)
+
 	if err != nil {
 		log.Logger.Warn().Msgf("Error decoding JSON: %s", err)
 		json.NewEncoder(w).Encode(model.APIResponse{Error: fmt.Sprintf("Error decoding JSON: %s", err)})

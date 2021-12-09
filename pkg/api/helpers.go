@@ -160,15 +160,18 @@ func remove(i int, s []string) []string {
 // IP whitelist in the config file. No checks on whether the IP address is
 // valid so IP's should only be passed if validated first.
 func addIPToWhitelist(ip string) error {
-	config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
-	err := config.WriteConf()
-	if err != nil {
-		log.Logger.Warn().Msgf("Error writing to config file: %s", err)
-		return err
+	if result, _ := isStringInStringArray(ip, config.Conf.IpWhitelist); !result {
+		config.Conf.IpWhitelist = append(config.Conf.IpWhitelist, ip)
+		err := config.WriteConf()
+		if err != nil {
+			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
+			return err
+		}
+		log.Logger.Debug().Msgf("Successfully added IP: %s to whitelist", ip)
+		return nil
 	}
-	log.Logger.Debug().Msgf("Successfully added ip: %s to IP whitelist", ip)
-
-	return nil
+	log.Logger.Warn().Msgf("IP address already in whitelist")
+	return errors.New("ip address already in whitelist")
 }
 
 // removeIPFromWhitelist takes an IP address string and removes it from
@@ -176,13 +179,13 @@ func addIPToWhitelist(ip string) error {
 // should only be passed if validated first.
 func removeIPFromWhitelist(ip string) error {
 	if result, index := isStringInStringArray(ip, config.Conf.IpWhitelist); result {
-		log.Logger.Debug().Msgf("Removing IP: %s from whitelist", ip)
-		config.Conf.IpWhitelist = remove(index, config.Conf.IpWhitelist)
+    remove(index, config.Conf.IpWhitelist)
 		err := config.WriteConf()
 		if err != nil {
 			log.Logger.Warn().Msgf("Error writing to config file: %s", err)
 			return err
 		}
+		log.Logger.Debug().Msgf("Successfully removed IP: %s from whitelist", ip)
 		return nil
 	}
 	log.Logger.Warn().Msgf("IP address not in whitelist")
