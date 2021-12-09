@@ -29,10 +29,10 @@ func constructMessage(alert model.Log) []byte {
 	// TODO: Write prefix message
 	// TODO: Add additional info to message.
 	prefix := ""
-	message := fmt.Sprintf( "Subject: Test email from gopher\r\n" +
+	message := fmt.Sprintf( "Subject: Honeypot Alert\r\n" +
 		"\r\n" +
-		"Device with Device ID: %d, has on %s raised alert based on the message %s",
-		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message)
+		"Device with Device ID: %d, has on %s raised alert based on the message %s and logtype %s",
+		alert.DeviceID, alert.LogTimeStamp.String(), alert.Message, alert.LogType)
 
 	byteMessage := []byte(prefix + message)
 	return byteMessage
