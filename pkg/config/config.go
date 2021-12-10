@@ -10,6 +10,8 @@ import (
 
 var Conf *model.Config
 
+//CreateConfFile
+//Creates a config file for the backend
 func CreateConfFile() error {
 	// Checking if file already exists
 	if _, err := os.Stat("config.yml"); os.IsNotExist(err) {
@@ -40,6 +42,8 @@ func CreateConfFile() error {
 	return nil
 }
 
+//GetServiceConfig
+//Reads the config file and assigns the global config variable to the result
 func GetServiceConfig() (*model.Config, error) {
 	file, err := ioutil.ReadFile("config.yml")
 	if err != nil {
@@ -56,6 +60,8 @@ func GetServiceConfig() (*model.Config, error) {
 	return &config, nil
 }
 
+//WriteConf
+//Writes new config parameters to the config file.
 func WriteConf() error {
 	log.Logger.Debug().Msgf("Config to be set: %v", *Conf)
 	log.Logger.Debug().Msgf("conf: %falsev", *Conf)

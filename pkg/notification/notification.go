@@ -60,6 +60,8 @@ func SendEmailNotification(alert model.Log, to []string) error {
 	return nil
 }
 
+//SendTestEmail
+//Sends a test email to specified users
 func SendTestEmail(to []string) error {
 	message := "To: "+to[0]+"\r\n" +
 		"Subject: Test email from gopher\r\n" +

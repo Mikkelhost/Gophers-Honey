@@ -180,7 +180,7 @@ func newDevice(w http.ResponseWriter, r *http.Request) {
 }
 
 // removeDevice
-// TODO: in progress
+//removes a device from the database
 func removeDevice(w http.ResponseWriter, r *http.Request) {
 	var deviceID uint32
 	var device = model.Device{}

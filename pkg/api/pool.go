@@ -22,6 +22,8 @@ type Pool struct {
 	Clients    map[*Client]bool
 }
 
+//NewPool
+//Sets up a new pool
 func NewPool() *Pool {
 	return &Pool{
 		Register:   make(chan *Client),
@@ -32,6 +34,10 @@ func NewPool() *Pool {
 	}
 }
 
+//Start
+//Starts a websocket pool and listens in on the different channels for users joining and leaving the websocket.
+//If a new device is detected or a heartbeat from a device has been received it will also send messages to the user
+//which can then update their data dynamically without refreshing the whole page.
 func (pool *Pool) Start() {
 	for {
 		select {

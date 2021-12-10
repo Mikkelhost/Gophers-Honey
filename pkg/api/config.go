@@ -14,6 +14,8 @@ import (
 	"strconv"
 )
 
+//configSubrouter
+//Routes the config api endpoints to their respective handlers.
 func configSubrouter(r *mux.Router) {
 	configAPI := r.PathPrefix("/api/config").Subrouter()
 	configAPI.HandleFunc("/whitelist", tokenAuthMiddleware(whitelistHandler)).Methods("PATCH", "OPTIONS")
@@ -22,6 +24,8 @@ func configSubrouter(r *mux.Router) {
 	configAPI.HandleFunc("/configured", getConfigured).Methods("GET", "OPTIONS")
 }
 
+//configHandler
+//Handles config related REST functionalities
 func configHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
@@ -41,6 +45,8 @@ func configHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//getConfig
+//Serves the whole server config over the api
 func getConfig(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.Config{
 		Configured: config.Conf.Configured,
@@ -52,6 +58,8 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+//getConfigured
+//Serves only the configured variable over the api.
 func getConfigured(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	if r.Method == "OPTIONS" {
@@ -196,6 +204,8 @@ func configureSmtpServer(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
+//testEmailHandler
+//Sends a test email to test if the email config has been set correctly
 func testEmailHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
@@ -221,6 +231,8 @@ func testEmailHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
+//whitelistHandler
+//Handles incoming whitelist related requests
 func whitelistHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	if r.Method == "OPTIONS" {

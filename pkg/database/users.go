@@ -174,6 +174,8 @@ func LoginUser(username, stringPwd string) (bool, error) {
 	}
 }
 
+//GetUser
+//Gets a single user based on username from the database
 func GetUser(username string) (model.DBUser, error) {
 	ctx, cancel := getContextWithTimeout()
 	defer cancel()

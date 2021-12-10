@@ -16,6 +16,8 @@ var (
 	SECRET_KEY = getenv("SECRET_KEY", "UWKvPGDYd2zmAmbYQB2K")
 )
 
+//getenv
+//Gets environment var or sets to default if not exists
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)
 	if len(value) == 0 {
@@ -25,6 +27,8 @@ func getenv(key, fallback string) string {
 	return value
 }
 
+//SetupRouters
+//Sets up the different routers for the different api endpoints
 func SetupRouters(r *mux.Router) {
 	devicesSubrouter(r)
 	usersSubrouter(r)

@@ -12,6 +12,8 @@ var DEV = true
 
 var configured bool
 
+//RunServer
+//Runs the http/https server on the mux router
 func RunServer() {
 	log.Logger.Debug().Msgf("Starting websocket")
 	r := mux.NewRouter()

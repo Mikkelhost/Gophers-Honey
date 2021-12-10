@@ -12,6 +12,8 @@ import (
 	"strconv"
 )
 
+//imageSubRouter
+//Routes image related api endpoints to their respective handlers
 func imageSubRouter(r *mux.Router) {
 	imageAPI := r.PathPrefix("/api/images").Subrouter()
 	//imageRouter.Handle("/", http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
@@ -20,6 +22,8 @@ func imageSubRouter(r *mux.Router) {
 
 }
 
+//imageHandler
+//Checks the request method to determine which handler to use.
 func imageHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.
@@ -39,6 +43,8 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//downloadImage
+//Serves the requested raspberry pi image to a user for download
 func downloadImage(w http.ResponseWriter, r *http.Request) {
 	image := mux.Vars(r)["download"]
 	log.Logger.Debug().Msgf("APIUser wants to download image: %s", image)
@@ -46,6 +52,8 @@ func downloadImage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./images/"+image+".img")
 }
 
+//getImages
+//Gets all current images
 func getImages(w http.ResponseWriter, r *http.Request) {
 	var images []model.Image
 	images, err := database.GetImages()
@@ -60,6 +68,8 @@ func getImages(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(images)
 }
 
+//newImage
+//Creates a new raspberry pi image which later can be downloaded through the images/download endpoint
 func newImage(w http.ResponseWriter, r *http.Request) {
 	var imgInfo = model.ImageInfo{}
 	decoder := json.NewDecoder(r.Body)
@@ -105,6 +115,8 @@ func newImage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
+//removeImage
+//Removes a image both from disk and database.
 func removeImage(w http.ResponseWriter, r *http.Request) {
 	var image model.Image
 	var err error

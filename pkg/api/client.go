@@ -18,6 +18,8 @@ type Message struct {
 	DeviceID uint32 `json:"device_id,omitempty"`
 }
 
+//Read
+//keeps the ws connection alive
 func (c *Client) Read() {
 	defer func() {
 		c.Pool.Unregister <- c

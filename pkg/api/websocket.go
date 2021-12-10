@@ -18,6 +18,8 @@ var upgrader = websocket.Upgrader{
 
 var ClientPool *Pool
 
+//serveWs
+//upgrades a request to a websocket connection for use with heartbeats and other live notifications.
 func serveWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -34,6 +36,8 @@ func serveWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
+//SetupWs
+//Sets up the websocket endpoint.
 func SetupWs(r *mux.Router) {
 	ClientPool = NewPool()
 	go ClientPool.Start()

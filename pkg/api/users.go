@@ -48,6 +48,8 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//getUser
+//Gets a single user from the database
 func getUser(w http.ResponseWriter, r *http.Request) {
 	username := mux.Vars(r)["user"]
 	regex := "^[a-zA-Z0-9]*$"
@@ -168,7 +170,8 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.APIResponse{Error: ""})
 }
 
-//TODO Check up against current password, to prevent JWT hijacking
+//updateUser
+//Updates a user based on the received jwt token. Prevents other users from  changing each others email, passwords etc.
 func updateUser(w http.ResponseWriter, r *http.Request) {
 	updatedUser := model.APIUser{}
 	hashedAndSaltedPwd := ""
@@ -220,6 +223,8 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+//deleteUser
+//Deletes a user from the database
 func deleteUser(w http.ResponseWriter,r *http.Request) {
 	var user = model.APIUser{}
 	decoder := json.NewDecoder(r.Body)
