@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+//checkForValidIp
+//Checks if an ip address string matches the right format
 func checkForValidIp(ipStr string) (bool, error) {
 	if strings.TrimSpace(ipStr) == "" {
 		return false, errors.New("Error: Empty IP")
@@ -30,12 +32,16 @@ func checkForValidIp(ipStr string) (bool, error) {
 	return found, nil
 }
 
+//enableCors
+//Enables Cors for a specific request, only used on user related api calls from a frontend
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, PATCH")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
+//createToken
+//Assembles a JWT token
 func createToken(user model.DBUser) (string, error) {
 	var err error
 	atClaims := jwt.MapClaims{}
@@ -52,6 +58,8 @@ func createToken(user model.DBUser) (string, error) {
 	return token, nil
 }
 
+//extractToken
+//Extracts a jwt token from the authorization header
 func extractToken(request *http.Request) string {
 	bearToken := request.Header.Get("Authorization")
 	//normally Authorization the_token_xxx
@@ -63,7 +71,8 @@ func extractToken(request *http.Request) string {
 	return ""
 }
 
-//decodeToken Only use this function after request has passed tokenmiddleware.
+//decodeToken
+//Only use this function after request has passed tokenmiddleware.
 func decodeToken(r *http.Request) (model.Claims, error) {
 	token := extractToken(r)
 	log.Logger.Debug().Str("Token", token).Msg("Decoding token")
@@ -83,6 +92,8 @@ func decodeToken(r *http.Request) (model.Claims, error) {
 	return claims, nil
 }
 
+//verifyToken
+//Verifies the jwt token sent by a user
 func verifyToken(request *http.Request) (*jwt.Token, error) {
 	tokenString := extractToken(request)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -97,6 +108,8 @@ func verifyToken(request *http.Request) (*jwt.Token, error) {
 	return token, nil
 }
 
+//tokenValid
+//Throws an error if the jwt token is invalid.
 func tokenValid(request *http.Request) error {
 	token, err := verifyToken(request)
 	if err != nil {
@@ -108,6 +121,9 @@ func tokenValid(request *http.Request) error {
 	return nil
 }
 
+//tokenAuthMiddleware
+//Used for all api functionalities that require authentication and authorization
+//It checks if a valid jwt is in the header, if not, simply throws a 401 statuscode
 func tokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)

@@ -17,12 +17,17 @@ The logs API handles everything about logs/raspberry pis
 
 All functions should write json data to the responseWriter
 */
+
+//logsSubrouter
+//Routes all log related api endpoints to respective handlers
 func logsSubrouter(r *mux.Router) {
 	logAPI := r.PathPrefix("/api/logs").Subrouter()
 	logAPI.HandleFunc("", tokenAuthMiddleware(logHandler)).Methods("GET", "PUT", "OPTIONS")
 	logAPI.HandleFunc("/addLog", deviceSecretMiddleware(newLog)).Methods("POST")
 }
 
+//logHandler
+//Checks request method to use the right handler.
 func logHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	// CORS preflight handling.

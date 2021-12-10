@@ -12,6 +12,8 @@ import (
 	diskfs "github.com/diskfs/go-diskfs"
 )
 
+//InsertConfig
+//Makes a copy from a base image and inserts a config into the /boot folder of the image
 func InsertConfig(conf model.PiConf, id uint32) error {
 	yaml, err := yaml.Marshal(&conf)
 	if err := copyImage(id); err != nil {
@@ -39,6 +41,8 @@ func InsertConfig(conf model.PiConf, id uint32) error {
 	return nil
 }
 
+//copyImage
+//Copies the base image into a new identical image with an id in the name.
 func copyImage(id uint32) error {
 	if _, err := os.Stat("images/" + strconv.FormatUint(uint64(id), 10) + ".img"); os.IsNotExist(err) {
 		log.Logger.Info().Msg("Creating image")

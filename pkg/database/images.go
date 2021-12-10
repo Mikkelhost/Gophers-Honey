@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+
+//GetImages
+//Returns a list of images from the database.
 func GetImages() ([]model.Image, error) {
 	var imageList []model.Image
 
