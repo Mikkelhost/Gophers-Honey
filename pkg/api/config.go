@@ -21,7 +21,7 @@ func configSubrouter(r *mux.Router) {
 	configAPI.HandleFunc("/whitelist", tokenAuthMiddleware(whitelistHandler)).Methods("PATCH", "OPTIONS")
 	configAPI.HandleFunc("/testEmail", tokenAuthMiddleware(testEmailHandler)).Methods("GET", "OPTIONS")
 	configAPI.HandleFunc("", tokenAuthMiddleware(configHandler)).Methods("GET", "POST", "PATCH", "OPTIONS")
-	configAPI.HandleFunc("/configured", getConfigured).Methods("GET", "OPTIONS")
+	configAPI.HandleFunc("/configured", setupHandler).Methods("GET", "POST", "OPTIONS")
 }
 
 //configHandler
@@ -36,11 +36,24 @@ func configHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		getConfig(w, r)
 		return
-	case "POST":
-		setupService(w, r)
-		return
 	case "PATCH":
 		configureSmtpServer(w, r)
+		return
+	}
+}
+
+func setupHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	// CORS preflight handling.
+	if r.Method == "OPTIONS" {
+		return
+	}
+	switch r.Method {
+	case "GET":
+		getConfigured(w, r)
+		return
+	case "POST":
+		setupService(w, r)
 		return
 	}
 }

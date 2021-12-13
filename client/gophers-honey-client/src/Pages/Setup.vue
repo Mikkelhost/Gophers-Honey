@@ -311,7 +311,7 @@ export default {
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-          process.env.VUE_APP_API_ROOT+"/config", setupInfoJson
+          process.env.VUE_APP_API_ROOT+"/config/configured", setupInfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false
