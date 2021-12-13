@@ -21,7 +21,7 @@ func configSubrouter(r *mux.Router) {
 	configAPI.HandleFunc("/whitelist", tokenAuthMiddleware(whitelistHandler)).Methods("PATCH", "OPTIONS")
 	configAPI.HandleFunc("/testEmail", tokenAuthMiddleware(testEmailHandler)).Methods("GET", "OPTIONS")
 	configAPI.HandleFunc("", tokenAuthMiddleware(configHandler)).Methods("GET", "POST", "PATCH", "OPTIONS")
-	configAPI.HandleFunc("/configured", setupHandler).Methods("GET", "OPTIONS")
+	configAPI.HandleFunc("/configured", setupHandler).Methods("GET", "POST", "OPTIONS")
 }
 
 //configHandler
