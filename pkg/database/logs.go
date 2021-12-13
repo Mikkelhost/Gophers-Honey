@@ -134,7 +134,7 @@ func setTTLIndex(seconds int32) error {
 
 	ttlIndex := mongo.IndexModel{
 		Keys: bson.M{
-			"time_stamp": 1,
+			"log_time_stamp": 1,
 		},
 		Options: options.Index().SetExpireAfterSeconds(seconds),
 	}
