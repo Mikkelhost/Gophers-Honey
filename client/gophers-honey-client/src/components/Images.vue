@@ -25,6 +25,23 @@
           <b-col class="input">
             <b-form-group
                 id="input-group-8"
+                label="C2 Protocol*"
+                label-for="input-8"
+                description="The C2 protocol can be either https or http, for https please ensure that certificates has been set up correctly"
+            >
+              <b-form-radio-group
+                  id="input-8"
+                  v-model="imageInfo.c2_protocol"
+                  :options="protocolOptions"
+              >
+              </b-form-radio-group>
+            </b-form-group>
+          </b-col>
+        </b-form-row>
+        <b-form-row>
+          <b-col style="margin-top: -20px" class="input">
+            <b-form-group
+                id="input-group-8"
                 label="C2 Hostname*"
                 label-for="input-8"
                 description="The C2 hostname is the url for your the api"
@@ -39,8 +56,6 @@
               </b-form-input>
             </b-form-group>
           </b-col>
-        </b-form-row>
-        <b-form-row>
           <b-col style="margin-top: -20px" class="input">
             <b-form-group
                 id="input-group-9"
@@ -139,9 +154,14 @@ export default {
       alert: "",
       variant: "",
       images: [],
+      protocolOptions: [
+        { text: 'HTTPS', value: 'https' },
+        { text: 'HTTP', value: 'http' },
+      ],
       imageInfo: {
         name: "",
         c2: "",
+        c2_protocol: "https",
         port: null,
       }
     }

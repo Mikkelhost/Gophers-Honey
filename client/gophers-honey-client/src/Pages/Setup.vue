@@ -171,12 +171,30 @@
               <b-col class="input">
                 <b-form-group
                     id="input-group-8"
-                    label="C2 Hostname*"
+                    label="C2 Protocol*"
                     label-for="input-8"
-                    description="The C2 hostname is the url for your the api"
+                    description="The C2 protocol can be either https or http, for https please ensure that certificates has been set up correctly"
+                >
+                  <b-form-radio-group
+                      id="input-8"
+                      v-model="form.imageInfo.c2_protocol"
+                      :options="protocolOptions"
+                      @input.native="checkUserForm()"
+                  >
+                  </b-form-radio-group>
+                </b-form-group>
+              </b-col>
+            </b-form-row>
+            <b-form-row>
+              <b-col style="margin-top: -10px" class="input">
+                <b-form-group
+                    id="input-group-9"
+                    label="C2 Hostname*"
+                    label-for="input-9"
+                    description="The C2 hostname is what comes after https:// or http:// for your api"
                 >
                   <b-form-input
-                      id="input-8"
+                      id="input-9"
                       v-model="form.imageInfo.c2"
                       type="text"
                       placeholder="C2 Hostname"
@@ -186,17 +204,15 @@
                   </b-form-input>
                 </b-form-group>
               </b-col>
-            </b-form-row>
-            <b-form-row>
-              <b-col style="margin-top: -20px" class="input">
+              <b-col style="margin-top: -10px" class="input">
                 <b-form-group
-                    id="input-group-9"
+                    id="input-group-10"
                     label="Port*"
-                    label-for="input-9"
+                    label-for="input-10"
                     description="The api port"
                 >
                   <b-form-input
-                      id="input-9"
+                      id="input-10"
                       v-model="form.imageInfo.port"
                       type="number"
                       min="0"
@@ -266,8 +282,13 @@ export default {
           name: "",
           c2: "",
           port: null,
+          c2_protocol: "https",
         }
       },
+      protocolOptions: [
+        { text: 'HTTPS', value: 'https' },
+        { text: 'HTTP', value: 'http' },
+      ],
       formValid: false,
       dismissCountDown: 0,
       dismissSecs: 3,
