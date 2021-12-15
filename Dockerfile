@@ -10,15 +10,9 @@ RUN go build -o app ./main.go
 
 FROM golang:1.16.6-alpine
 
-RUN adduser -S gophershoney
+COPY --from=builder /app /go/
 
-COPY --from=builder /app /home/gophershoney/
+EXPOSE 8000
 
-RUN mkdir /home/gophershoney/images
-
-
-
-USER gophershoney
-
-CMD ["/home/gophershoney/app"]
+CMD ["/go/app"]
 
