@@ -134,9 +134,10 @@ type SetupParams struct {
 }
 
 type ImageInfo struct {
-	ImageName string `json:"name"`
-	C2        string `json:"c2"`
-	Port      string `json:"port"`
+	ImageName  string `json:"name"`
+	C2         string `json:"c2"`
+	C2Protocol string `json:"c2_protocol"`
+	Port       string `json:"port"`
 }
 
 type PiConfResponse struct {
@@ -163,6 +164,7 @@ type Heartbeat struct {
 
 type PiConf struct {
 	C2         string  `yaml:"c2"`
+	C2Protocol string  `yaml:"c2_protocol"`
 	IpStr      string  `yaml:"ip_str"`
 	Hostname   string  `yaml:"hostname"`
 	NICVendor  string  `yaml:"nic_vendor"`
