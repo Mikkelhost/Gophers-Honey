@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-var DEV = true
-
 var configured bool
 
 //RunServer
@@ -19,8 +17,5 @@ func RunServer() {
 	r := mux.NewRouter()
 	api.SetupWs(r)
 	api.SetupRouters(r)
-	if !DEV {
-		sLog.Fatal(http.ListenAndServeTLS(":8443", "certs/nginx-selfsigned.crt", "certs/nginx-selfsigned.key", r))
-	}
 	sLog.Fatal(http.ListenAndServe(":8000", r))
 }
