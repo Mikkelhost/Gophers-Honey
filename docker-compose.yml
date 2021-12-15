@@ -1,23 +1,52 @@
-services:
-  db:
-    image: mariadb:10.4.12
+  #USER=$(id -u) docker-compose up --build
+  services:
+  gophers-api:
+    build: .
     restart: always
+    user: $USER
     ports:
-      - "127.0.0.1:3306:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_USER=gohoney
-      - MYSQL_PASSWORD=password
-      - MYSQL_DATABASE=gohoney
+      - "8000:8000"
     volumes:
-      - .data/mysql:/var/lib/mysql
+      - "./images/:/go/images/:rw"
     networks:
-      default:
-      internal:
-    # This command is required to set important mariadb defaults
-    command: [ mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0 ]
+      - nginx-proxy
+
+
+  #nginx-proxy:
+  #  image: jwilder/nginx-proxy:alpine
+  #  restart: "always"
+  #  ports:
+  #    - "80:80"
+  #    - "443:443"
+  #  networks:
+  #    - nginx-proxy
+  #  labels:
+  #    - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy" # Label needed for Let's Encrypt companion container
+  #  volumes:
+  #    - /var/run/docker.sock:/tmp/docker.sock:ro
+  #    - "nginx-conf:/etc/nginx/conf.d"
+  #    - "nginx-vhost:/etc/nginx/vhost.d"
+  #    - "html:/usr/share/nginx/html"
+  #    - "certs:/etc/nginx/certs:ro"
+  #    -
+  #letsencrypt-nginx-proxy-companion:
+  #  image: jrcs/letsencrypt-nginx-proxy-companion
+  #  restart: always
+  #  container_name: letsencrypt-nginx-proxy-companion
+  #  volumes:
+  #    - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #    - "nginx-conf:/etc/nginx/conf.d"
+  #    - "nginx-vhost:/etc/nginx/vhost.d"
+  #    - "html:/usr/share/nginx/html"
+  #    - "certs:/etc/nginx/certs:rw"
+  #  depends_on: # Make sure we start nginx proxy container first
+  #    - nginx-proxy
 
 networks:
-  default:
-  internal:
-    internal: true
+  nginx-proxy:
+
+volumes: # Names of volumes that out containers will share. Those will persist on docker's host machine.
+  nginx-conf:
+  nginx-vhost:
+  html:
+  certs:
