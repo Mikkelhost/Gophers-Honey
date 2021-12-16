@@ -8,6 +8,7 @@ services:
       - VIRTUAL_HOST=api.mikkelhost.com
     volumes:
       - "./images/:/go/images/:rw"
+      - "./config.yml:/go/config.yml"
     networks:
       - nginx-proxy
 
