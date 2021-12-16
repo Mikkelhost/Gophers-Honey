@@ -6,8 +6,6 @@ services:
     user: $USER
     environment:
       - VIRTUAL_HOST=api.mikkelhost.com
-    ports:
-      - "8000:8000"
     volumes:
       - "./images/:/go/images/:rw"
     networks:
@@ -16,8 +14,6 @@ services:
   gophers-client:
     build: ./client/gophers-honey-client/.
     restart: always
-    ports:
-      - "80:80"
     environment:
       - VIRTUAL_HOST=mikkelhost.com
       - VUE_APP_API_ROOT=https://api.mikkelhost.com/api
