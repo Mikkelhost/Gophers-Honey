@@ -1,9 +1,11 @@
-  #USER=$(id -u) docker-compose up --build
-  services:
+#USER=$(id -u) docker-compose up --build
+services:
   gophers-api:
     build: .
     restart: always
     user: $USER
+    environment:
+      - VIRTUAL_HOST=api.mikkelhost.com
     ports:
       - "8000:8000"
     volumes:
@@ -11,24 +13,33 @@
     networks:
       - nginx-proxy
 
+  gophers-client:
+    build: ./client/gophers-honey-client/.
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - VIRTUAL_HOST=mikkelhost.com
+      - VUE_APP_API_ROOT=https://api.mikkelhost.com/api
+    networks:
+      - nginx-proxy
 
-  #nginx-proxy:
-  #  image: jwilder/nginx-proxy:alpine
-  #  restart: "always"
-  #  ports:
-  #    - "80:80"
-  #    - "443:443"
-  #  networks:
-  #    - nginx-proxy
-  #  labels:
-  #    - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy" # Label needed for Let's Encrypt companion container
-  #  volumes:
-  #    - /var/run/docker.sock:/tmp/docker.sock:ro
-  #    - "nginx-conf:/etc/nginx/conf.d"
-  #    - "nginx-vhost:/etc/nginx/vhost.d"
-  #    - "html:/usr/share/nginx/html"
-  #    - "certs:/etc/nginx/certs:ro"
-  #    -
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    restart: "always"
+    ports:
+      - "80:80"
+      #- "443:443"
+    networks:
+      - nginx-proxy
+    #labels:
+    #  - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy" # Label needed for Let's Encrypt companion container
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      #- "nginx-conf:/etc/nginx/conf.d"
+      #- "nginx-vhost:/etc/nginx/vhost.d"
+      #- "html:/usr/share/nginx/html"
+      #- "certs:/etc/nginx/certs:ro"
   #letsencrypt-nginx-proxy-companion:
   #  image: jrcs/letsencrypt-nginx-proxy-companion
   #  restart: always
