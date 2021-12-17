@@ -186,7 +186,7 @@ export default {
       apiWs = apiWs.replace("https://", "")
     }
 
-    new_uri += "//" + apiWs + "/ws";
+    new_uri += "//" + api.sec0host.local + "/ws";
     window.console.log("Trying to connect to ws on: " + new_uri)
     this.connection = new WebSocket(new_uri)
 
