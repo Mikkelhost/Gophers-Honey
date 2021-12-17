@@ -179,7 +179,7 @@ export default {
     } else {
       new_uri = "ws:"
     }
-    let apiWs = this.apiRoot.replace("/ws","")
+    let apiWs = this.apiRoot.replace("/api","")
     if(this.apiRoot.includes("http://")) {
       apiWs = this.apiRoot.replace("http://", "")
     } else {
