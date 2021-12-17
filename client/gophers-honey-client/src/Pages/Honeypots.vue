@@ -179,14 +179,14 @@ export default {
     } else {
       new_uri = "ws:"
     }
-    let apiWs = this.apiRoot.replace("/api","")
+    let apiWs = ""
     if(this.apiRoot.includes("http://")) {
-      apiWs = apiWs.replace("http://", "")
+      apiWs = this.apiRoot.replace("http://", "")
     } else {
-      apiWs = apiWs.replace("https://", "")
+      apiWs = this.apiRoot.replace("https://", "")
     }
 
-    new_uri += "//" + api.sec0host.local + "/ws";
+    new_uri += "//" + apiWs + "/ws";
     window.console.log("Trying to connect to ws on: " + new_uri)
     this.connection = new WebSocket(new_uri)
 
@@ -225,7 +225,7 @@ export default {
       window.console.log("Submitting config")
       window.console.log("Form ", this.form)
       axios({
-        url: this.apiRoot + "/devices",
+        url: this.apiRoot + "/api/devices",
         method: "PUT",
         data: this.form
       }).then(function (response) {
@@ -262,7 +262,7 @@ export default {
     updateDevice: function (device_id) {
       let devices = []
       axios({
-        url: this.apiRoot + "/devices",
+        url: this.apiRoot + "/api/devices",
         method: "GET",
       }).then(function (response) {
         if (response.data.error == null) {
@@ -282,7 +282,7 @@ export default {
       window.console.log("Getting devices")
       //this.devices = []
       axios({
-        url: this.apiRoot + "/devices",
+        url: this.apiRoot + "/api/devices",
         method: "GET",
       }).then(function (response) {
         if (response.data.error == null) {
@@ -300,7 +300,7 @@ export default {
       if (confirm("Are you sure you want to delete device with id?: " + deviceID)) {
         let device_id = {device_id: deviceID}
         axios({
-          url: this.apiRoot + "/devices",
+          url: this.apiRoot + "/api/devices",
           method: "DELETE",
           data: device_id
         }).then(function (response) {

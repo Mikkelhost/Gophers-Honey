@@ -301,7 +301,7 @@ export default {
   },
   async beforeCreate() {
     let apiRoot = getEnv('VUE_APP_API_ROOT')
-    const resp = await axios.get(apiRoot + "/config/configured")
+    const resp = await axios.get(apiRoot + "/api/config/configured")
     if (resp.status === 200) {
       window.console.log(resp.data.configured)
       if (resp.data.configured) {
@@ -335,7 +335,7 @@ export default {
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-          this.apiRoot+"/config/configured", setupInfoJson
+          this.apiRoot+"/api/config/configured", setupInfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false

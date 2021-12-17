@@ -191,7 +191,7 @@ export default {
       let that = this
       this.loading = true
       axios({
-        url: this.apiRoot+"/images",
+        url: this.apiRoot+"/api/images",
         method: 'POST',
         data: that.imageInfo
       }).then(function (response){
@@ -209,7 +209,7 @@ export default {
     downloadImage: function(image) {
       //window.console.log(this.images)
       axios({
-        url: this.apiRoot+"/images?download="+image.id,
+        url: this.apiRoot+"/api/images?download="+image.id,
         method: 'GET',
         responseType: 'blob',
         onDownloadProgress: function (event) {
@@ -229,7 +229,7 @@ export default {
       if (confirm("Are you sure you want to delete image with id?: " + imageId)) {
         let image_id = {image_id: imageId}
         axios({
-          url: this.apiRoot+"/images",
+          url: this.apiRoot+"/api/images",
           method: "DELETE",
           data: image_id,
         }).then(function (response){
@@ -246,7 +246,7 @@ export default {
     getImages: function() {
       let that = this
       this.images = []
-      axios.get(this.apiRoot+"/images").then(function(response){
+      axios.get(this.apiRoot+"/api/images").then(function(response){
         if (response.status === 200) {
           if (response.data.error !== "No images in DB") {
             response.data.forEach(function(image){

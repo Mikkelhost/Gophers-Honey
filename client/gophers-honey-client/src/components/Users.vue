@@ -237,7 +237,7 @@ export default {
     },
     getUsers: function () {
       axios({
-        url: this.apiRoot + "/users",
+        url: this.apiRoot + "/api/users",
         method: "GET",
       }).then(function (response) {
         if (response.status === 200) {
@@ -258,7 +258,7 @@ export default {
     submitUser: function () {
       window.console.log("Submitting user" + this.form)
       axios({
-        url: this.apiRoot + "/users",
+        url: this.apiRoot + "/api/users",
         method: "POST",
         data: this.form,
       }).then(function (response) {
@@ -282,7 +282,7 @@ export default {
       let data = {username: username}
       if (confirm("Do you really want to delete user: " + username)) {
         axios({
-          url: this.apiRoot + "/users",
+          url: this.apiRoot + "/api/users",
           method: "DELETE",
           data: data,
         }).then(function (response) {

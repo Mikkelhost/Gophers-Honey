@@ -86,7 +86,7 @@ export default {
   async beforeCreate() {
     //Checking if the service has been configured yet
     let apiRoot = getEnv('VUE_APP_API_ROOT')
-    const resp = await axios.get(apiRoot + "/config/configured")
+    const resp = await axios.get(apiRoot + "/api/config/configured")
     if (resp.status === 200) {
       window.console.log("configured", resp.data)
       if (!resp.data.configured) {
@@ -113,7 +113,7 @@ export default {
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-          this.apiRoot + "/users/login", userinfoJson
+          this.apiRoot + "/api/users/login", userinfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false

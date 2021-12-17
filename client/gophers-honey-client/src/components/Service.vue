@@ -212,7 +212,7 @@ export default {
       this.smtpUpdate.smtp_port = parseInt(this.smtpUpdate.smtp_port)
       window.console.log("updated smtp conf", this.smtpUpdate)
       axios({
-        url: this.apiRoot + "/config",
+        url: this.apiRoot + "/api/config",
         method: "PATCH",
         data: this.smtpUpdate
       }).then(function (response) {
@@ -241,7 +241,7 @@ export default {
     testEmail: function () {
       window.console.log("Sending testemail")
       axios({
-        url: this.apiRoot + "/config/testEmail",
+        url: this.apiRoot + "/api/config/testEmail",
         method: "GET"
       }).then(function (response) {
         if (response.status === 200) {
@@ -260,7 +260,7 @@ export default {
     },
     getConf: function () {
       axios({
-        url: this.apiRoot + "/config",
+        url: this.apiRoot + "/api/config",
         method: "GET",
       }).then(function (response) {
         if (response.status === 200) {
@@ -279,7 +279,7 @@ export default {
       window.console.log("Adding ip: ", this.whitelistNewIp.ip_address)
       this.whitelistNewIp.delete = false
       axios({
-        url: this.apiRoot + "/config/whitelist",
+        url: this.apiRoot + "/api/config/whitelist",
         method: "PATCH",
         data: this.whitelistNewIp
       }).then(function (response) {
@@ -304,7 +304,7 @@ export default {
         return
       }
       axios({
-        url: this.apiRoot + "/config/whitelist",
+        url: this.apiRoot + "/api/config/whitelist",
         method: "PATCH",
         data: {delete: true, ip_address: ip}
       }).then(function (response) {

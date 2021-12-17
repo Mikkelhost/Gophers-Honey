@@ -211,7 +211,7 @@ export default {
     },
     getLogs: function () {
       return axios({
-        url: this.apiRoot + "/logs",
+        url: this.apiRoot + "/api/logs",
         method: "GET"
       }).then(function (response) {
         if (response.status === 200) {
@@ -230,7 +230,7 @@ export default {
     },
     getDevices: function () {
       return axios({
-        url: this.apiRoot + "/devices",
+        url: this.apiRoot + "/api/devices",
         method: "GET"
       }).then(function (response) {
         if (response.status === 200) {

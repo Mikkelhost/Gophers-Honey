@@ -119,7 +119,7 @@ export default {
     },
     getUser: function() {
       axios({
-        url: this.apiRoot+"/users?user="+this.claims.username,
+        url: this.apiRoot+"/api/users?user="+this.claims.username,
         method: 'GET',
       }).then(function (response){
         if (response.data.error == null) {
@@ -137,7 +137,7 @@ export default {
         return
       }
       axios({
-        url: this.apiRoot+"/users",
+        url: this.apiRoot+"/api/users",
         method: "PUT",
         data: this.form
       }).then(function(response){
