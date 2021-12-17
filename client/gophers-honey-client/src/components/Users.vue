@@ -181,11 +181,13 @@
 
 <script>
 import axios from "axios";
+import getEnv from '../utils/env'
 
 export default {
   name: "Users",
   data: function () {
     return {
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       users: [],
       form: {
         firstName: "",
@@ -235,7 +237,7 @@ export default {
     },
     getUsers: function () {
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/users",
+        url: this.apiRoot + "/users",
         method: "GET",
       }).then(function (response) {
         if (response.status === 200) {
@@ -256,7 +258,7 @@ export default {
     submitUser: function () {
       window.console.log("Submitting user" + this.form)
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/users",
+        url: this.apiRoot + "/users",
         method: "POST",
         data: this.form,
       }).then(function (response) {
@@ -280,7 +282,7 @@ export default {
       let data = {username: username}
       if (confirm("Do you really want to delete user: " + username)) {
         axios({
-          url: process.env.VUE_APP_API_ROOT + "/users",
+          url: this.apiRoot + "/users",
           method: "DELETE",
           data: data,
         }).then(function (response) {

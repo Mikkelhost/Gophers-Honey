@@ -133,12 +133,14 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
 import moment from "moment"
+import getEnv from '../utils/env'
 
 export default {
   name: "Honeypots",
   components: {Navbar, Footer},
   data: function () {
     return {
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       devices: [],
       selected: [],
       nic_vendors: [
@@ -216,7 +218,7 @@ export default {
       window.console.log("Submitting config")
       window.console.log("Form ", this.form)
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/devices",
+        url: this.apiRoot + "/devices",
         method: "PUT",
         data: this.form
       }).then(function (response) {
@@ -253,7 +255,7 @@ export default {
     updateDevice: function (device_id) {
       let devices = []
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/devices",
+        url: this.apiRoot + "/devices",
         method: "GET",
       }).then(function (response) {
         if (response.data.error == null) {
@@ -273,7 +275,7 @@ export default {
       window.console.log("Getting devices")
       //this.devices = []
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/devices",
+        url: this.apiRoot + "/devices",
         method: "GET",
       }).then(function (response) {
         if (response.data.error == null) {
@@ -291,7 +293,7 @@ export default {
       if (confirm("Are you sure you want to delete device with id?: " + deviceID)) {
         let device_id = {device_id: deviceID}
         axios({
-          url: process.env.VUE_APP_API_ROOT + "/devices",
+          url: this.apiRoot + "/devices",
           method: "DELETE",
           data: device_id
         }).then(function (response) {

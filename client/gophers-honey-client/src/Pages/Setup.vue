@@ -264,11 +264,13 @@
 <script>
 import axios from "axios";
 import {router} from "../router";
+import getEnv from '../utils/env'
 
 export default {
   name: "Setup",
   data() {
     return {
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       form: {
         userInfo: {
           firstName: "",
@@ -298,7 +300,8 @@ export default {
     }
   },
   async beforeCreate() {
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT+"/config/configured")
+    let apiRoot = getEnv('VUE_APP_API_ROOT')
+    const resp = await axios.get(apiRoot + "/config/configured")
     if (resp.status === 200) {
       window.console.log(resp.data.configured)
       if (resp.data.configured) {
@@ -332,7 +335,7 @@ export default {
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-          process.env.VUE_APP_API_ROOT+"/config/configured", setupInfoJson
+          this.apiRoot+"/config/configured", setupInfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false

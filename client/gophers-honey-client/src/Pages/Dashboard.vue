@@ -81,12 +81,14 @@ import DoughnutChart from "../components/doughnutChart";
 import BarChart from "../components/barChart";
 import axios from "axios";
 import Logs from "../components/Logs";
+import getEnv from '../utils/env'
 
 export default {
   name: "Dashboard",
   components: {Navbar, Footer, PieChart, DoughnutChart, BarChart, Logs},
   data() {
     return {
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       loaded: false,
       dismissCountDown: 0,
       dismissSecs: 10,
@@ -209,7 +211,7 @@ export default {
     },
     getLogs: function () {
       return axios({
-        url: process.env.VUE_APP_API_ROOT + "/logs",
+        url: this.apiRoot + "/logs",
         method: "GET"
       }).then(function (response) {
         if (response.status === 200) {
@@ -228,7 +230,7 @@ export default {
     },
     getDevices: function () {
       return axios({
-        url: process.env.VUE_APP_API_ROOT + "/devices",
+        url: this.apiRoot + "/devices",
         method: "GET"
       }).then(function (response) {
         if (response.status === 200) {

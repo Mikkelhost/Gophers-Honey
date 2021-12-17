@@ -141,11 +141,13 @@
 
 <script>
 import axios from "axios";
+import getEnv from '../utils/env'
 
 export default {
   name: "Service",
   data() {
     return {
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       dismissCountDown: 0,
       dismissSecs: 10,
       alert: "",
@@ -210,7 +212,7 @@ export default {
       this.smtpUpdate.smtp_port = parseInt(this.smtpUpdate.smtp_port)
       window.console.log("updated smtp conf", this.smtpUpdate)
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/config",
+        url: this.apiRoot + "/config",
         method: "PATCH",
         data: this.smtpUpdate
       }).then(function (response) {
@@ -239,7 +241,7 @@ export default {
     testEmail: function () {
       window.console.log("Sending testemail")
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/config/testEmail",
+        url: this.apiRoot + "/config/testEmail",
         method: "GET"
       }).then(function (response) {
         if (response.status === 200) {
@@ -258,7 +260,7 @@ export default {
     },
     getConf: function () {
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/config",
+        url: this.apiRoot + "/config",
         method: "GET",
       }).then(function (response) {
         if (response.status === 200) {
@@ -277,7 +279,7 @@ export default {
       window.console.log("Adding ip: ", this.whitelistNewIp.ip_address)
       this.whitelistNewIp.delete = false
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/config/whitelist",
+        url: this.apiRoot + "/config/whitelist",
         method: "PATCH",
         data: this.whitelistNewIp
       }).then(function (response) {
@@ -302,7 +304,7 @@ export default {
         return
       }
       axios({
-        url: process.env.VUE_APP_API_ROOT + "/config/whitelist",
+        url: this.apiRoot + "/config/whitelist",
         method: "PATCH",
         data: {delete: true, ip_address: ip}
       }).then(function (response) {

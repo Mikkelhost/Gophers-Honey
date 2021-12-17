@@ -68,11 +68,13 @@
 
 import axios from 'axios';
 import {router} from '../router';
+import getEnv from '../utils/env'
 
 export default {
   name: "Login",
   data: function () {
     return {
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       userinfo: {username: "", password: ""},
       dismissCountDown: 0,
       dismissSecs: 3,
@@ -83,7 +85,8 @@ export default {
   },
   async beforeCreate() {
     //Checking if the service has been configured yet
-    const resp = await axios.get(process.env.VUE_APP_API_ROOT + "/config/configured")
+    let apiRoot = getEnv('VUE_APP_API_ROOT')
+    const resp = await axios.get(apiRoot + "/config/configured")
     if (resp.status === 200) {
       window.console.log("configured", resp.data)
       if (!resp.data.configured) {
@@ -110,7 +113,7 @@ export default {
       this.loading = true
       this.dismissCountDown = 0
       axios.post(
-          process.env.VUE_APP_API_ROOT + "/users/login", userinfoJson
+          this.apiRoot + "/users/login", userinfoJson
       ).then(response => {
         if (response.status === 200) {
           that.loading = false

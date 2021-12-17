@@ -64,11 +64,13 @@
 
 <script>
 import axios from "axios";
+import getEnv from '../utils/env'
 
 export default {
   name: "Profile",
   data: function(){
     return{
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       loading: false,
       dismissCountDown: 0,
       dismissSecs: 5,
@@ -117,7 +119,7 @@ export default {
     },
     getUser: function() {
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/users?user="+this.claims.username,
+        url: this.apiRoot+"/users?user="+this.claims.username,
         method: 'GET',
       }).then(function (response){
         if (response.data.error == null) {
@@ -135,7 +137,7 @@ export default {
         return
       }
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/users",
+        url: this.apiRoot+"/users",
         method: "PUT",
         data: this.form
       }).then(function(response){
