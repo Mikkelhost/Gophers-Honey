@@ -179,7 +179,7 @@ export default {
     } else {
       new_uri = "ws:"
     }
-    new_uri += "//" + loc.hostname + ":8000/ws";
+    new_uri += "//" + loc.hostname + ":" + loc.port + "/ws";
     window.console.log("Trying to connect to ws on: " + new_uri)
     this.connection = new WebSocket(new_uri)
 
