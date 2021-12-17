@@ -59,7 +59,6 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "certs:/etc/nginx/certs:rw"
-      - acme:/etc/acme.sh      
     depends_on: # Make sure we start nginx proxy container first
       - nginx-proxy
 
@@ -74,4 +73,3 @@ volumes: # Names of volumes that out containers will share. Those will persist o
   html:
   dhparam:
   certs:
-  acme:
