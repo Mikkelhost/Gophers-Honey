@@ -179,7 +179,14 @@ export default {
     } else {
       new_uri = "ws:"
     }
-    new_uri += "//" + this.apiRoot + "/ws";
+    let apiWs = ""
+    if(this.apiRoot.includes("http://")) {
+      apiWs = this.apiRoot.replace("http://", "")
+    } else {
+      apiWs = this.apiRoot.replace("https://", "")
+    }
+
+    new_uri += "//" + apiWs + "/ws";
     window.console.log("Trying to connect to ws on: " + new_uri)
     this.connection = new WebSocket(new_uri)
 
