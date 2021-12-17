@@ -181,9 +181,9 @@ export default {
     }
     let apiWs = this.apiRoot.replace("/api","")
     if(this.apiRoot.includes("http://")) {
-      apiWs = this.apiRoot.replace("http://", "")
+      apiWs = apiWs.replace("http://", "")
     } else {
-      apiWs = this.apiRoot.replace("https://", "")
+      apiWs = apiWs.replace("https://", "")
     }
 
     new_uri += "//" + apiWs + "/ws";
