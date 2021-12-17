@@ -7,12 +7,16 @@ services:
     expose:
       - 8000
     environment:
-      - VIRTUAL_HOST=api.localhost
+      - VIRTUAL_HOST=api.mikkelhost.com
+      - LETSENCRYPT_HOST=mikkelhost.com,api.mikkelhost.com
+      - LETSENCRYPT_EMAIL=mikkel.christiansen250996@gmail.com
     volumes:
       - "./images/:/go/images/:rw"
       - "./config.yml:/go/config.yml"
     networks:
-      - nginx-proxy
+      - proxy
+    depends_on:
+      - letsencrypt
 
   gophers-client:
     build: ./client/gophers-honey-client/.
@@ -20,45 +24,54 @@ services:
     expose:
       - 8080
     environment:
-      - VIRTUAL_HOST=localhost
-      - VUE_APP_API_ROOT=http://api.localhost/api
+      - VIRTUAL_HOST=mikkelhost.com
+      - VUE_APP_API_ROOT=https://api.mikkelhost.com/api
     networks:
-      - nginx-proxy
+      - proxy
+    depends_on:
+      - letsencrypt
 
   nginx-proxy:
     image: jwilder/nginx-proxy:alpine
     restart: "always"
+    container_name: nginx-proxy
     ports:
       - "80:80"
-      #- "443:443"
+      - "443:443"
     networks:
-      - nginx-proxy
-    #labels:
-    #  - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy" # Label needed for Let's Encrypt companion container
+      - proxy
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy" # Label needed for Let's Encrypt companion container
     volumes:
       - "/var/run/docker.sock:/tmp/docker.sock:ro"
-      #- "nginx-conf:/etc/nginx/conf.d"
-      #- "nginx-vhost:/etc/nginx/vhost.d"
-      #- "html:/usr/share/nginx/html"
-      #- "certs:/etc/nginx/certs:ro"
-  #letsencrypt-nginx-proxy-companion:
-  #  image: jrcs/letsencrypt-nginx-proxy-companion
-  #  restart: always
-  #  container_name: letsencrypt-nginx-proxy-companion
-  #  volumes:
-  #    - "/var/run/docker.sock:/var/run/docker.sock:ro"
-  #    - "nginx-conf:/etc/nginx/conf.d"
-  #    - "nginx-vhost:/etc/nginx/vhost.d"
-  #    - "html:/usr/share/nginx/html"
-  #    - "certs:/etc/nginx/certs:rw"
-  #  depends_on: # Make sure we start nginx proxy container first
-  #    - nginx-proxy
+      - "nginx-conf:/etc/nginx/conf.d"
+      - "nginx-vhost:/etc/nginx/vhost.d"
+      - dhparam:/etc/nginx/dhparam
+      - "html:/usr/share/nginx/html"
+      - "certs:/etc/nginx/certs:ro"
+  
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: always
+    container_name: letsencrypt-nginx-proxy-companion
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "certs:/etc/nginx/certs:rw"
+      - acme:/etc/acme.sh      
+    depends_on: # Make sure we start nginx proxy container first
+      - nginx-proxy
 
 networks:
-  nginx-proxy:
+  proxy:
+    external:
+      name: nginx-proxy
 
 volumes: # Names of volumes that out containers will share. Those will persist on docker's host machine.
   nginx-conf:
   nginx-vhost:
   html:
+  dhparam:
   certs:
+  acme:
