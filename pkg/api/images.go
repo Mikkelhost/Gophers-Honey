@@ -106,6 +106,7 @@ func newImage(w http.ResponseWriter, r *http.Request) {
 		Port:      port,
 		DeviceID:  0,
 		DeviceKey: DEVICE_KEY,
+		C2Protocol: imgInfo.C2Protocol,
 	}, id)
 	if err != nil {
 		log.Logger.Warn().Msgf("Error inserting config into image: %s", err)

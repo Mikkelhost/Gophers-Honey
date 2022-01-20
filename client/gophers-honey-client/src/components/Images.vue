@@ -25,6 +25,23 @@
           <b-col class="input">
             <b-form-group
                 id="input-group-8"
+                label="C2 Protocol*"
+                label-for="input-8"
+                description="The C2 protocol can be either https or http, for https please ensure that certificates has been set up correctly"
+            >
+              <b-form-radio-group
+                  id="input-8"
+                  v-model="imageInfo.c2_protocol"
+                  :options="protocolOptions"
+              >
+              </b-form-radio-group>
+            </b-form-group>
+          </b-col>
+        </b-form-row>
+        <b-form-row>
+          <b-col style="margin-top: -20px" class="input">
+            <b-form-group
+                id="input-group-8"
                 label="C2 Hostname*"
                 label-for="input-8"
                 description="The C2 hostname is the url for your the api"
@@ -39,8 +56,6 @@
               </b-form-input>
             </b-form-group>
           </b-col>
-        </b-form-row>
-        <b-form-row>
           <b-col style="margin-top: -20px" class="input">
             <b-form-group
                 id="input-group-9"
@@ -128,20 +143,27 @@
 </template>
 
 <script>
+import getEnv from '../utils/env'
 import axios from "axios";
 export default {
   name: "Images",
   data: function(){
     return{
+      apiRoot: getEnv('VUE_APP_API_ROOT'),
       loading: false,
       dismissCountDown: 0,
       dismissSecs: 3,
       alert: "",
       variant: "",
       images: [],
+      protocolOptions: [
+        { text: 'HTTPS', value: 'https' },
+        { text: 'HTTP', value: 'http' },
+      ],
       imageInfo: {
         name: "",
         c2: "",
+        c2_protocol: "https",
         port: null,
       }
     }
@@ -169,7 +191,7 @@ export default {
       let that = this
       this.loading = true
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/images",
+        url: this.apiRoot+"/api/images",
         method: 'POST',
         data: that.imageInfo
       }).then(function (response){
@@ -187,7 +209,7 @@ export default {
     downloadImage: function(image) {
       //window.console.log(this.images)
       axios({
-        url: process.env.VUE_APP_API_ROOT+"/images?download="+image.id,
+        url: this.apiRoot+"/api/images?download="+image.id,
         method: 'GET',
         responseType: 'blob',
         onDownloadProgress: function (event) {
@@ -207,7 +229,7 @@ export default {
       if (confirm("Are you sure you want to delete image with id?: " + imageId)) {
         let image_id = {image_id: imageId}
         axios({
-          url: process.env.VUE_APP_API_ROOT+"/images",
+          url: this.apiRoot+"/api/images",
           method: "DELETE",
           data: image_id,
         }).then(function (response){
@@ -224,7 +246,7 @@ export default {
     getImages: function() {
       let that = this
       this.images = []
-      axios.get(process.env.VUE_APP_API_ROOT+"/images").then(function(response){
+      axios.get(this.apiRoot+"/api/images").then(function(response){
         if (response.status === 200) {
           if (response.data.error !== "No images in DB") {
             response.data.forEach(function(image){
